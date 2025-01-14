@@ -92,7 +92,6 @@ public final class UserRest {
                                            @PathVariable @NotNull final String email,
                                            @PathVariable @NotNull final String passwd,
                                            @NotNull final HttpServletRequest request) throws CommonsException {
-
         final var userOptional = userRepository.findByEmailAndPasswd(email, crypto.decryptToString(passwd));
         userOptional.ifPresent(user -> {
 
@@ -157,7 +156,7 @@ public final class UserRest {
             Map<String, Object> ret = new HashMap<>();
             ret.put("id", device.get().getUser().getId());
 
-            ret.put("dateTimeLastUpdate", new SimpleDateFormat(DATE_TIME_FORMAT).format(device.get().getUser().getDateTimeLastUpdate()));
+            ret.put("dateTimeLastUpdate", new SimpleDateFormat(DATE_TIME_FORMAT).format(device.get().getUser().getTimestampLastUpdate()));
 
             return ResponseEntity.ok(List.of(ret));
         } else return ResponseEntityUtils.returnNoContent(List.of());

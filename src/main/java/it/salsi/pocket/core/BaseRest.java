@@ -41,6 +41,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -132,7 +134,7 @@ public class BaseRest<T extends BaseModel, Y extends BaseRepository<T>> {
     ) {
         List<T> ret = new ArrayList<>();
 
-        final var now = Date.from(ZonedDateTime.now(ZoneOffset.UTC).toInstant());
+        final var now = Instant.now(Clock.systemUTC()).getEpochSecond();
 
         final var device = deviceRepository.findByToken(token);
         if (device.isPresent()) {
@@ -147,7 +149,7 @@ public class BaseRest<T extends BaseModel, Y extends BaseRepository<T>> {
                 final var id = it.getId();
                 it.setId(it.getServerId());
 
-                it.setDateTimeLastUpdate(now);
+                it.setTimestampLastUpdate(now);
 
                 try {
 
@@ -169,10 +171,10 @@ public class BaseRest<T extends BaseModel, Y extends BaseRepository<T>> {
             });
 
             if (!ret.isEmpty()) {
-                device.get().setDateTimeLastUpdate(now);
+                device.get().setTimestampLastUpdate(now);
                 final var deviceChecked = deviceRepository.save(device.get());
 
-                deviceChecked.getUser().setDateTimeLastUpdate(now);
+                deviceChecked.getUser().setTimestampLastUpdate(now);
                 userRepository.save(deviceChecked.getUser());
             }
 
@@ -197,17 +199,17 @@ public class BaseRest<T extends BaseModel, Y extends BaseRepository<T>> {
                 t.setId(serverId);
                 t.setServerId(id);
 
-                final var date = Date.from(ZonedDateTime.now(ZoneOffset.UTC).toInstant());
+                final var date = Instant.now(Clock.systemUTC()).getEpochSecond();
 
                 t.setDeleted(true);
-                t.setDateTimeLastUpdate(date);
+                t.setTimestampLastUpdate(date);
 
                 final var base = repository.save(t);
 
-                device.get().setDateTimeLastUpdate(date);
+                device.get().setTimestampLastUpdate(date);
                 final var deviceChecked = deviceRepository.save(device.get());
 
-                deviceChecked.getUser().setDateTimeLastUpdate(date);
+                deviceChecked.getUser().setTimestampLastUpdate(date);
                 userRepository.save(deviceChecked.getUser());
 
                 base.setServerId(serverId);

@@ -34,6 +34,8 @@ import lombok.ToString;
 import org.hibernate.Hibernate;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Date;
@@ -58,7 +60,7 @@ abstract public class BaseModel implements Cloneable {
 
     @JsonIgnore
     @Temporal(TemporalType.TIMESTAMP)
-    protected Date dateTimeLastUpdate = Date.from(ZonedDateTime.now(ZoneOffset.UTC).toInstant());
+    private Long timestampLastUpdate = Instant.now(Clock.systemUTC()).getEpochSecond();
 
     @Override
     public Object clone() throws CloneNotSupportedException {

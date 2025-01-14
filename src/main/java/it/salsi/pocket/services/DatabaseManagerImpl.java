@@ -118,7 +118,9 @@ public final class DatabaseManagerImpl implements DatabaseManager {
                 updateVersion(adminUser.get(), NumberUtils.parseInt(PROPERTY_DB_VERSION.value));
             }
 
-        }, () -> updateVersion(adminUser.get(), 0));
+        }, () ->
+                updateVersion(adminUser.get(), 0)
+        );
 
     }
 
@@ -181,7 +183,7 @@ public final class DatabaseManagerImpl implements DatabaseManager {
                 property.setValue(metaProperty.defaultValue());
                 propertyRepository.save(property);
             }
-            default -> System.out.printf("At the last version");
+            default -> System.out.print("At the last version");
         }
     }
 }

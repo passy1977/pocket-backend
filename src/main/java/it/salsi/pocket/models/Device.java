@@ -33,6 +33,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Date;
@@ -66,7 +68,7 @@ public final class Device {
     @NotEmpty(message = "field empty")
     @NotNull(message = "field null")
     @Column(nullable = false)
-    private String deviceSerial = "";
+    private String uuid = "";
 
     @JsonIgnore
     private String version;
@@ -76,12 +78,11 @@ public final class Device {
 
     @JsonIgnore
     @Temporal(TemporalType.TIMESTAMP)
-    private Date dateTimeLastUpdate = null;
+    private Long timestampLastUpdate = 0L;
 
-    @JsonFormat(pattern = DATE_TIME_FORMAT, timezone = "UTC")
     @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false)
-    private Date dateTimeLastLogin = Date.from(ZonedDateTime.now(ZoneOffset.UTC).toInstant());
+    private Long timestampLastLogin = Instant.now(Clock.systemUTC()).getEpochSecond();
 
     @JsonIgnore
     private String address;
@@ -96,12 +97,12 @@ public final class Device {
     private User user;
 
     public void updateDateTimeLastLogin() {
-        dateTimeLastLogin = Date.from(ZonedDateTime.now(ZoneOffset.UTC).toInstant());
+        timestampLastLogin = Instant.now(Clock.systemUTC()).getEpochSecond();;
     }
 
     public void updateDateTimeLastUpdate() {
-        if (user.getDateTimeLastUpdate() != null) {
-            dateTimeLastUpdate = user.getDateTimeLastUpdate();
+        if (user.getTimestampLastUpdate() != null) {
+            timestampLastUpdate = user.getTimestampLastUpdate();
         }
     }
 }

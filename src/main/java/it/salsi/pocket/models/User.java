@@ -36,6 +36,8 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.Hibernate;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -90,10 +92,9 @@ public final class User implements Cloneable {
     @NotNull
     private String hostAuthPasswd = "";
 
-    @JsonFormat(pattern = DATE_TIME_FORMAT, timezone = "UTC")
+    @JsonIgnore
     @Temporal(TemporalType.TIMESTAMP)
-    @Column
-    private Date dateTimeLastUpdate;
+    private Long timestampLastUpdate = 0L;
 
     @Column(nullable = false)
     private Status status = ACTIVE;
