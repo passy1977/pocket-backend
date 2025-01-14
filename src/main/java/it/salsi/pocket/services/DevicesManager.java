@@ -24,9 +24,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 package it.salsi.pocket.services;
 
 
+import it.salsi.commons.CommonsException;
+
 public interface DevicesManager {
 
 
-    void invalidateAll();
+    void invalidateAll() throws CommonsException;
 
 }

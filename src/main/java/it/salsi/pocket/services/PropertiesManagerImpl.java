@@ -26,7 +26,10 @@ package it.salsi.pocket.services;
 import it.salsi.commons.CommonsException;
 import it.salsi.pocket.Constant;
 import it.salsi.pocket.models.Property;
+import it.salsi.pocket.models.User;
 import it.salsi.pocket.repositories.PropertyRepository;
+import it.salsi.pocket.repositories.UserRepository;
+import it.salsi.pocket.security.PasswordEncoder;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,33 +38,58 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Log
 @Service
 public final class PropertiesManagerImpl implements PropertiesManager {
 
-//
-//    @Value("${basic.auth.passwd}")
-//    @Nullable
-//
+    @Value("${basic.auth.user}")
+    @Nullable
+    private String authUser;
+
+    @Value("${basic.auth.passwd}")
+    @Nullable
+    private String authPasswd;
 
     @NotNull
     private final PropertyRepository propertyRepository;
 
-    public PropertiesManagerImpl(@Autowired @NotNull PropertyRepository propertyRepository) {
+    @NotNull
+    private final UserRepository userRepository;
+
+    @NotNull
+    private final PasswordEncoder passwordEncoder;
+
+    public PropertiesManagerImpl(@Autowired @NotNull final PropertyRepository propertyRepository,
+                                 @Autowired @NotNull final UserRepository userRepository,
+                                 @Autowired @NotNull final PasswordEncoder passwordEncoder) {
         this.propertyRepository = propertyRepository;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public void checkAll() throws CommonsException {
+        if(authUser == null || authPasswd == null) {
+            throw new CommonsException("authUser or authPasswd not set");
+        }
 
         log.info("start checks");
+
+
+        AtomicReference<User> adminUser = new AtomicReference<>(new User());
+        userRepository.findByEmail(authUser).ifPresentOrElse(
+                adminUser::set,
+                () -> adminUser.set(userRepository.save(new User(authUser, authUser, passwordEncoder.encode(authPasswd))))
+        );
+
 
         for (final var constant : Constant.values()) {
             final var metaProperty = constant.getMetaProperty();
 
             if (metaProperty.mandatory()) {
-                final var opt = propertyRepository.getByKey(constant);
+                final var opt = propertyRepository.getByUserIdAndKey(adminUser.get().getId(), constant);
                 if (opt.isEmpty()) {
                     var property = new Property();
                     property.setKey(metaProperty.constant());
@@ -73,16 +101,13 @@ public final class PropertiesManagerImpl implements PropertiesManager {
                             () -> property.setValue("")
                     );
 
+                    property.setUser(adminUser.get());
                     property.setType(metaProperty.type());
                     propertyRepository.save(property);
                     log.info("add property: " + property);
                 }
             }
         }
-
-//        if (authPasswd != null && authPasswd.length() != 32) {
-//            throw new CommonsException("Crypto key must be 32 char");
-//        }
 
         log.info("end checks");
     }

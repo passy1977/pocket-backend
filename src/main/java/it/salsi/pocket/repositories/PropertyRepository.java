@@ -26,7 +26,6 @@ package it.salsi.pocket.repositories;
 import it.salsi.pocket.Constant;
 import it.salsi.pocket.models.Property;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.List;
@@ -36,18 +35,12 @@ import java.util.Optional;
 public interface PropertyRepository extends CrudRepository<Property, Long> {
 
     @NotNull
-    default Optional<Property> getByKey(@NotNull final Constant key) {
-        throw new RuntimeException("TODO");
-        //return getByUserIdAndKey(null, key.value);
+    default Optional<Property> getByUserIdAndKey(@NotNull final Long userId, @NotNull final Constant key) {
+        return getByUserIdAndKey(userId, key.value);
     }
 
     @NotNull
-    default Optional<Property> getByKey(@NotNull final String key) {
-        return getByUserIdAndKey(null, key);
-    }
-
-    @NotNull
-    Optional<Property> getByUserIdAndKey(@Nullable final Long userId, @NotNull final String key);
+    Optional<Property> getByUserIdAndKey(@NotNull final Long userId, @NotNull final String key);
 
     @NotNull
     List<Property> findAllByOrderByKey();

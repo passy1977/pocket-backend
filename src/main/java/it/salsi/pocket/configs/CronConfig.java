@@ -24,6 +24,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 package it.salsi.pocket.configs;
 
 
+import it.salsi.commons.CommonsException;
 import it.salsi.pocket.services.DatabaseManager;
 import it.salsi.pocket.services.DevicesManager;
 import lombok.extern.slf4j.Slf4j;
@@ -58,7 +59,12 @@ public class CronConfig {
 
     @Scheduled(cron = "55 23 * * * ?")
     final public void authTokenExpiration() {
-        devicesManager.invalidateAll();
-        databaseManager.cleanOldData();
+        try {
+            devicesManager.invalidateAll();
+            databaseManager.cleanOldData();
+        } catch (CommonsException e) {
+            log.error(e.getMessage());
+        }
+
     }
 }

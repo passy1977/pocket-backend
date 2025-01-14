@@ -29,5 +29,5 @@ public interface DatabaseManager {
 
     void init() throws CommonsException;
 
-    void cleanOldData();
+    void cleanOldData() throws CommonsException;
 }

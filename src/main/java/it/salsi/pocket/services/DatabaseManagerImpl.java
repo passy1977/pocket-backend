@@ -24,6 +24,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 package it.salsi.pocket.services;
 
 import it.salsi.commons.CommonsException;
+import it.salsi.commons.utils.NumberUtils;
 import it.salsi.pocket.models.Device;
 import it.salsi.pocket.models.Property;
 import it.salsi.pocket.models.User;
@@ -104,35 +105,41 @@ public final class DatabaseManagerImpl implements DatabaseManager {
                 () -> adminUser.set(userRepository.save(new User(authUser, authUser, passwordEncoder.encode(authPasswd))))
         );
 
-        propertyRepository.getByUserIdAndKey(adminUser.get().getId(), PROPERTY_DB_VERSION.value).ifPresentOrElse(property -> {
+        propertyRepository.getByUserIdAndKey(adminUser.get().getId(), PROPERTY_DB_VERSION).ifPresentOrElse(property -> {
             Integer version = (Integer) PROPERTY_DB_VERSION.getMetaProperty().defaultValue();
             if (version == null) {
                 return;
             }
             try {
                 if (Integer.parseInt(property.getValue()) < version) {
-                    updateVersion(version);
+                    updateVersion(adminUser.get(), version);
                 }
             } catch (NumberFormatException e) {
-                updateVersion(0);
+                updateVersion(adminUser.get(), NumberUtils.parseInt(PROPERTY_DB_VERSION.value));
             }
 
-
-        }, () -> updateVersion(0));
+        }, () -> updateVersion(adminUser.get(), 0));
 
     }
 
     @Override
-    public void cleanOldData() {
+    public void cleanOldData()  throws CommonsException {
         log.info("start delete data");
+        if(authUser == null || authPasswd == null) {
+            throw new CommonsException("authUser or authPasswd not set");
+        }
 
-        //userRepository.findByEmail(authUser);
+        AtomicReference<User> adminUser = new AtomicReference<>(new User());
+        userRepository.findByEmail(authUser).ifPresentOrElse(
+                adminUser::set,
+                () -> adminUser.set(userRepository.save(new User(authUser, authUser, passwordEncoder.encode(authPasswd))))
+        );
 
-        propertyRepository.getByKey(PROPERTY_CLEAN_DATA_ENABLE).ifPresentOrElse(invalidatorEnable -> {
+        propertyRepository.getByUserIdAndKey(adminUser.get().getId(), PROPERTY_CLEAN_DATA_ENABLE).ifPresentOrElse(invalidatorEnable -> {
 
             if (Boolean.TRUE.toString().equals(invalidatorEnable.getValue())) {
                 try {
-                    propertyRepository.getByKey(PROPERTY_INVALIDATOR_MAX_LOGIN_DAYS).ifPresentOrElse(invalidatorMaxLoginDays -> {
+                    propertyRepository.getByUserIdAndKey(adminUser.get().getId(), PROPERTY_INVALIDATOR_MAX_LOGIN_DAYS).ifPresentOrElse(invalidatorMaxLoginDays -> {
                         log.info("start delete data thread: " + Thread.currentThread().getName());
 
                         userRepository.findAll().forEach(user -> {
@@ -164,11 +171,12 @@ public final class DatabaseManagerImpl implements DatabaseManager {
         log.info("end delete data");
     }
 
-    private void updateVersion(final int version) {
+    private void updateVersion(@NotNull final User user, final int version) {
         switch (version) {
             case 0, 1, 2 -> {
                 final var metaProperty = PROPERTY_DB_VERSION.getMetaProperty();
                 final var property = new Property();
+                property.setUser(user);
                 property.setKey(PROPERTY_DB_VERSION);
                 property.setValue(metaProperty.defaultValue());
                 propertyRepository.save(property);

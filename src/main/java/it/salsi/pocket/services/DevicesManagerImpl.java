@@ -24,15 +24,22 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 package it.salsi.pocket.services;
 
 
+import it.salsi.commons.CommonsException;
 import it.salsi.pocket.models.Device;
+import it.salsi.pocket.models.User;
 import it.salsi.pocket.repositories.DeviceRepository;
 import it.salsi.pocket.repositories.PropertyRepository;
+import it.salsi.pocket.repositories.UserRepository;
+import it.salsi.pocket.security.PasswordEncoder;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.temporal.ChronoUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static it.salsi.pocket.Constant.PROPERTY_INVALIDATOR_ENABLE;
 import static it.salsi.pocket.Constant.PROPERTY_INVALIDATOR_MAX_LOGIN_DAYS;
@@ -41,28 +48,55 @@ import static it.salsi.pocket.Constant.PROPERTY_INVALIDATOR_MAX_LOGIN_DAYS;
 @Service
 public final class DevicesManagerImpl implements DevicesManager {
 
+    @Value("${basic.auth.user}")
+    @Nullable
+    private String authUser;
+
+    @Value("${basic.auth.passwd}")
+    @Nullable
+    private String authPasswd;
+
     @NotNull
     private final PropertyRepository propertyRepository;
 
     @NotNull
     private final DeviceRepository deviceRepository;
 
+    @NotNull
+    private final UserRepository userRepository;
 
-    public DevicesManagerImpl(@Autowired @NotNull PropertyRepository propertyRepository,
-                              @Autowired @NotNull DeviceRepository deviceRepository) {
+    @NotNull
+    private final PasswordEncoder passwordEncoder;
+
+    public DevicesManagerImpl(@Autowired @NotNull final PropertyRepository propertyRepository,
+                              @Autowired @NotNull final DeviceRepository deviceRepository,
+                              @Autowired @NotNull final UserRepository userRepository,
+                              @Autowired @NotNull final PasswordEncoder passwordEncoder) {
         this.propertyRepository = propertyRepository;
         this.deviceRepository = deviceRepository;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
 
-    public void invalidateAll() {
+    public void invalidateAll() throws CommonsException {
+        if(authUser == null || authPasswd == null) {
+            throw new CommonsException("authUser or authPasswd not set");
+        }
 
         log.info("start invalidate");
 
-        propertyRepository.getByKey(PROPERTY_INVALIDATOR_ENABLE).ifPresentOrElse(invalidatorEnable -> {
+        AtomicReference<User> adminUser = new AtomicReference<>(new User());
+        userRepository.findByEmail(authUser).ifPresentOrElse(
+                adminUser::set,
+                () -> adminUser.set(userRepository.save(new User(authUser, authUser, passwordEncoder.encode(authPasswd))))
+        );
+
+
+        propertyRepository.getByUserIdAndKey(adminUser.get().getId(), PROPERTY_INVALIDATOR_ENABLE).ifPresentOrElse(invalidatorEnable -> {
             if (Boolean.TRUE.toString().equals(invalidatorEnable.getValue())) {
                 try {
-                    propertyRepository.getByKey(PROPERTY_INVALIDATOR_MAX_LOGIN_DAYS).ifPresentOrElse(invalidatorMaxLoginDays -> {
+                    propertyRepository.getByUserIdAndKey(adminUser.get().getId(), PROPERTY_INVALIDATOR_MAX_LOGIN_DAYS).ifPresentOrElse(invalidatorMaxLoginDays -> {
                         log.info("start invalidator thread: " + Thread.currentThread().getName());
 
                         try {
