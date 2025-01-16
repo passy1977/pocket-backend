@@ -37,16 +37,20 @@ import org.springframework.stereotype.Component;
 public record ApplicationStartup(@NotNull DatabaseManager databaseManager,
                                  @NotNull DevicesManager devicesManager,
                                  @NotNull PropertiesManager propertiesManager,
-                                 @NotNull UserManager userManager) implements ApplicationListener<ApplicationReadyEvent> {
+                                 @NotNull UserManager userManager,
+                                 @NotNull IpcSocketManager ipcSocketManager) implements ApplicationListener<ApplicationReadyEvent> {
 
     public ApplicationStartup(@Autowired @NotNull final DatabaseManager databaseManager,
                               @Autowired @NotNull final DevicesManager devicesManager,
                               @Autowired @NotNull final PropertiesManager propertiesManager,
-                              @NotNull UserManager userManager) {
+                              @Autowired @NotNull final UserManager userManager,
+                              @Autowired @NotNull final IpcSocketManager ipcSocketManager
+    ) {
         this.databaseManager = databaseManager;
         this.devicesManager = devicesManager;
         this.propertiesManager = propertiesManager;
         this.userManager = userManager;
+        this.ipcSocketManager = ipcSocketManager;
     }
 
 
@@ -55,6 +59,7 @@ public record ApplicationStartup(@NotNull DatabaseManager databaseManager,
         try {
             databaseManager.init();
             propertiesManager.checkAll();
+            ipcSocketManager.start();
         } catch (CommonsException e) {
             log.warning(e.getLocalizedMessage());
         }

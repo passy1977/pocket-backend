@@ -86,8 +86,8 @@ public final class UserRest {
         this.passwordEncoder = passwordEncoder;
     }
 
-    @GetMapping("/{deviceSerial}/{version}/{email}/{passwd}")
-    public ResponseEntity<Iterable<User>> login(@PathVariable @NotNull final String deviceSerial,
+    @GetMapping("/{uuid}/{version}/{email}/{passwd}")
+    public ResponseEntity<Iterable<User>> login(@PathVariable @NotNull final String uuid,
                                            @PathVariable @NotNull final String version,
                                            @PathVariable @NotNull final String email,
                                            @PathVariable @NotNull final String passwd,
@@ -95,46 +95,47 @@ public final class UserRest {
         final var userOptional = userRepository.findByEmailAndPasswd(email, crypto.decryptToString(passwd));
         userOptional.ifPresent(user -> {
 
+            //TODO: complete login
 
-            if (user.getDevices().isEmpty()) {
-                user.getDevices().add(deviceRepository.save(newDevice(deviceSerial, request.getRemoteAddr(), version, user)));
-
-                try {
-                    setEncryptedData(user);
-                } catch (CommonsException e) {
-                    log.severe(e.getMessage());
-                }
-
-            } else {
-
-                final var devices = user.getDevices().stream().filter(device -> device.getDeviceSerial().equals(deviceSerial)).collect(Collectors.toSet());
-                devices.forEach(device -> {
-                    device.setToken(UUID.randomUUID().toString());
-                    device.updateDateTimeLastLogin();
-                    device.updateDateTimeLastUpdate();
-                    var remoteIP = request.getRemoteAddr();
-                    if (request.getHeader("x-forwarded-for") != null) {
-                        remoteIP = request.getHeader("x-forwarded-for");
-                    }
-                    device.setAddress(remoteIP);
-                    device.setVersion(version);
-                    deviceRepository.save(device);
-                });
-
-                if (devices.isEmpty()) {
-                    devices.add(deviceRepository.save(newDevice(deviceSerial, request.getRemoteAddr(), version, user)));
-                }
-
-                try {
-                    setEncryptedData(user);
-                } catch (CommonsException e) {
-                    log.severe(e.getMessage());
-                }
-
-                user.setServerId(user.getId());
-                user.setId(0L);
-                user.setDevices(devices);
-            }
+//            if (user.getDevices().isEmpty()) {
+//                user.getDevices().add(deviceRepository.save(newDevice(uuid, request.getRemoteAddr(), version, user)));
+//
+//                try {
+//                    setEncryptedData(user);
+//                } catch (CommonsException e) {
+//                    log.severe(e.getMessage());
+//                }
+//
+//            } else {
+//
+//                final var devices = user.getDevices().stream().filter(device -> device.getUuid().equals(uuid)).collect(Collectors.toSet());
+//                devices.forEach(device -> {
+//                    device.setToken(UUID.randomUUID().toString());
+//                    device.updateDateTimeLastLogin();
+//                    device.updateDateTimeLastUpdate();
+//                    var remoteIP = request.getRemoteAddr();
+//                    if (request.getHeader("x-forwarded-for") != null) {
+//                        remoteIP = request.getHeader("x-forwarded-for");
+//                    }
+//                    device.setAddress(remoteIP);
+//                    device.setVersion(version);
+//                    deviceRepository.save(device);
+//                });
+//
+//                if (devices.isEmpty()) {
+//                    devices.add(deviceRepository.save(newDevice(uuid, request.getRemoteAddr(), version, user)));
+//                }
+//
+//                try {
+//                    setEncryptedData(user);
+//                } catch (CommonsException e) {
+//                    log.severe(e.getMessage());
+//                }
+//
+//                user.setServerId(user.getId());
+//                user.setId(0L);
+//                user.setDevices(devices);
+//            }
 
         });
 
@@ -156,7 +157,7 @@ public final class UserRest {
             Map<String, Object> ret = new HashMap<>();
             ret.put("id", device.get().getUser().getId());
 
-            ret.put("dateTimeLastUpdate", new SimpleDateFormat(DATE_TIME_FORMAT).format(device.get().getUser().getTimestampLastUpdate()));
+            ret.put("dateTimeLastUpdate", new SimpleDateFormat(DATE_TIME_FORMAT).format(device.get().getTimestampLastUpdate()));
 
             return ResponseEntity.ok(List.of(ret));
         } else return ResponseEntityUtils.returnNoContent(List.of());
@@ -232,7 +233,7 @@ public final class UserRest {
     }
 
     @NotNull
-    private Device newDevice(@NotNull final String deviceSerial,
+    private Device newDevice(@NotNull final String uud,
                              @NotNull final String address,
                              @NotNull final String version,
                              @NotNull final User user) {
@@ -240,11 +241,11 @@ public final class UserRest {
         device.setUser(user);
         device.setVersion(version);
         device.setToken(UUID.randomUUID().toString());
-        device.setDeviceSerial(deviceSerial);
+        device.setUuid(uud);
         device.setStatus(Device.Status.ACTIVE);
         device.setAddress(address);
-        device.updateDateTimeLastLogin();
-        device.updateDateTimeLastUpdate();
+        device.updateTimestampLastLogin();
+        device.updateTimestampLastUpdate();
         return device;
     }
 }

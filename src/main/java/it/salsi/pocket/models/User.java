@@ -92,10 +92,6 @@ public final class User implements Cloneable {
     @NotNull
     private String hostAuthPasswd = "";
 
-    @JsonIgnore
-    @Temporal(TemporalType.TIMESTAMP)
-    private Long timestampLastUpdate = 0L;
-
     @Column(nullable = false)
     private Status status = ACTIVE;
 
@@ -130,8 +126,7 @@ public final class User implements Cloneable {
         return ret;
     }
 
-    public User() {
-    }
+    public User() {}
 
     public User(
             @NotNull final String name,

@@ -41,6 +41,6 @@ public interface DeviceRepository extends CrudRepository<Device, Long> {
     @Transactional
     Long deleteByToken(@NotNull final String token);
 
-    Long countAllByUserAndDateTimeLastUpdateBeforeAndStatusIsNot(@NotNull final User user, @NotNull final Date beforeDate, @NotNull final Device.Status statusNotIn);
+    Long countAllByUserAndTimestampLastUpdateBeforeAndStatusIsNot(@NotNull final User user, @NotNull final Long beforeDate, @NotNull final Device.Status statusNotIn);
 
 }

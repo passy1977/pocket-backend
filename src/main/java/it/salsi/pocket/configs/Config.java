@@ -27,12 +27,12 @@ import it.salsi.commons.CommonsException;
 import it.salsi.commons.utils.Crypto;
 import it.salsi.commons.utils.CryptoBuilder;
 import it.salsi.pocket.security.PasswordEncoder;
+import it.salsi.pocket.security.RSAHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-//import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Base64;
 
@@ -66,5 +66,9 @@ public class Config {
                 .build();
     }
 
-
+    @NotNull
+    @Bean
+    public RSAHelper getRSAHelper() throws CommonsException {
+        return new RSAHelper("RSA", 2048);
+    }
 }

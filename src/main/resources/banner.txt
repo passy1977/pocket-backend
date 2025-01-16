@@ -6,4 +6,4 @@
 | _ \   ((_)  ((_) | |(_) (_))   | |_
 |  _/  / _ \ / _|  | / /  / -_)  |  _|
 |_|    \___/ \__|  |_\_\  \___|   \__|
-by Antonio Salsi copyright 2018-2023
+by Antonio Salsi copyright 2018-2025

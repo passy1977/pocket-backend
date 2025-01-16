@@ -96,13 +96,11 @@ public final class Device {
     @JsonIgnore
     private User user;
 
-    public void updateDateTimeLastLogin() {
-        timestampLastLogin = Instant.now(Clock.systemUTC()).getEpochSecond();;
+    public void updateTimestampLastLogin() {
+        timestampLastLogin = Instant.now(Clock.systemUTC()).getEpochSecond();
     }
 
-    public void updateDateTimeLastUpdate() {
-        if (user.getTimestampLastUpdate() != null) {
-            timestampLastUpdate = user.getTimestampLastUpdate();
-        }
+    public void updateTimestampLastUpdate() {
+        timestampLastLogin = Instant.now(Clock.systemUTC()).getEpochSecond();
     }
 }

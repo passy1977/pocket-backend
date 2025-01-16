@@ -27,7 +27,7 @@ package it.salsi.pocket.configs;
 import it.salsi.commons.CommonsException;
 import it.salsi.pocket.services.DatabaseManager;
 import it.salsi.pocket.services.DevicesManager;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -36,7 +36,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
 
-@Slf4j
+@Log
 @Configuration
 @EnableAsync
 @EnableScheduling
@@ -63,7 +63,7 @@ public class CronConfig {
             devicesManager.invalidateAll();
             databaseManager.cleanOldData();
         } catch (CommonsException e) {
-            log.error(e.getMessage());
+            log.severe(e.getMessage());
         }
 
     }

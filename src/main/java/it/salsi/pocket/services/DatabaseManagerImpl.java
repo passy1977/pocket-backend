@@ -35,7 +35,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.config.ConfigDataException;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -147,15 +146,16 @@ public final class DatabaseManagerImpl implements DatabaseManager {
                         userRepository.findAll().forEach(user -> {
                             if (user.getStatus() != User.Status.DELETED) {
 
-                                if (deviceRepository.countAllByUserAndDateTimeLastUpdateBeforeAndStatusIsNot(user, user.getDateTimeLastUpdate(), Device.Status.INVALIDATED) == 0) {
-                                    log.info("start deleting data");
-
-                                    fieldRepository.findByUserAndDeletedAndDateTimeLastUpdateLessThan(user, true, user.getDateTimeLastUpdate()).forEach(fieldRepository::delete);
-                                    groupFieldRepository.findByUserAndDeletedAndDateTimeLastUpdateLessThan(user, true, user.getDateTimeLastUpdate()).forEach(groupFieldRepository::delete);
-                                    groupRepository.findByUserAndDeletedAndDateTimeLastUpdateLessThan(user, true, user.getDateTimeLastUpdate()).forEach(groupRepository::delete);
-
-                                    log.info("end deleting data");
-                                }
+                                //TODO: fix device invalidation
+//                                if (deviceRepository.countAllByUserAndTimestampLastUpdateBeforeAndStatusIsNot(user, user.getTimestampLastUpdate(), Device.Status.INVALIDATED) == 0) {
+//                                    log.info("start deleting data");
+//
+//                                    fieldRepository.findByUserAndDeletedAndTimestampLastUpdateLessThan(user, true, user.getTimestampLastUpdate()).forEach(fieldRepository::delete);
+//                                    groupFieldRepository.findByUserAndDeletedAndTimestampLastUpdateLessThan(user, true, user.getTimestampLastUpdate()).forEach(groupFieldRepository::delete);
+//                                    groupRepository.findByUserAndDeletedAndTimestampLastUpdateLessThan(user, true, user.getTimestampLastUpdate()).forEach(groupRepository::delete);
+//
+//                                    log.info("end deleting data");
+//                                }
 
                             }
                         });

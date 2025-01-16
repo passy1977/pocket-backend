@@ -38,7 +38,7 @@ public interface BaseRepository<T> extends CrudRepository<T, Long> {
 
     Iterable<T> findByUser(@NotNull final User userId);
 
-    Iterable<T> findByUserAndDateTimeLastUpdateGreaterThan(@NotNull final User userId, @NotNull final Date dateTimeLastUpdate);
+    Iterable<T> findByUserAndTimestampLastUpdateGreaterThan(@NotNull final User userId, @NotNull final Long dateTimeLastUpdate);
 
-    Iterable<T> findByUserAndDeletedAndDateTimeLastUpdateLessThan(@NotNull final User userId, boolean deleted, @NotNull final Date dateTimeLastUpdate);
+    Iterable<T> findByUserAndDeletedAndTimestampLastUpdateLessThan(@NotNull final User userId, boolean deleted, @NotNull final Long dateTimeLastUpdate);
 }

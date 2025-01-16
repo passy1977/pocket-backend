@@ -43,8 +43,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -109,13 +107,13 @@ public class BaseRest<T extends BaseModel, Y extends BaseRepository<T>> {
     @GetMapping("/{token}/{dateTimeLastUpdate}")
     public ResponseEntity<Iterable<T>> getAll(@PathVariable @NotNull final String token,
                               @DateTimeFormat(pattern = Constant.DATE_TIME_FORMAT)
-                              @PathVariable @NotNull final Date dateTimeLastUpdate
+                              @PathVariable @NotNull final Long dateTimeLastUpdate
     ) {
         final var device = deviceRepository.findByToken(token);
         if (device.isPresent()) {
             if (device.get().getStatus() != Device.Status.ACTIVE) return ResponseEntityUtils.returnNonAuthoritativeInformation(List.of());
             if (device.get().getUser().getStatus() != User.Status.ACTIVE) return ResponseEntityUtils.returnNonAuthoritativeInformation(List.of());
-            final var ret = repository.findByUserAndDateTimeLastUpdateGreaterThan(device.get().getUser(), dateTimeLastUpdate);
+            final var ret = repository.findByUserAndTimestampLastUpdateGreaterThan(device.get().getUser(), dateTimeLastUpdate);
             ret.forEach(it -> it.setServerId(it.getId()));
             return ResponseEntity.ok(ret);
         } else return ResponseEntityUtils.returnNoContent(List.of());
@@ -174,7 +172,7 @@ public class BaseRest<T extends BaseModel, Y extends BaseRepository<T>> {
                 device.get().setTimestampLastUpdate(now);
                 final var deviceChecked = deviceRepository.save(device.get());
 
-                deviceChecked.getUser().setTimestampLastUpdate(now);
+                deviceChecked.setTimestampLastUpdate(now);
                 userRepository.save(deviceChecked.getUser());
             }
 
@@ -209,7 +207,7 @@ public class BaseRest<T extends BaseModel, Y extends BaseRepository<T>> {
                 device.get().setTimestampLastUpdate(date);
                 final var deviceChecked = deviceRepository.save(device.get());
 
-                deviceChecked.getUser().setTimestampLastUpdate(date);
+                deviceChecked.setTimestampLastUpdate(date);
                 userRepository.save(deviceChecked.getUser());
 
                 base.setServerId(serverId);

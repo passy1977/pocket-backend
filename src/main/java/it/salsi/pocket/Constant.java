@@ -41,6 +41,8 @@ public enum Constant {
     PROPERTY_CLEAN_DATA_ENABLE("cleanDataEnable"),
     FOO("");
 
+    static public final int SOCKET_PORT = 333;
+
     @NotNull
     public static Constant getEnum(@NotNull final String str) {
         return switch (str) {

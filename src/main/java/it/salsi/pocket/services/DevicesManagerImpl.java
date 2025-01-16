@@ -43,6 +43,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static it.salsi.pocket.Constant.PROPERTY_INVALIDATOR_ENABLE;
 import static it.salsi.pocket.Constant.PROPERTY_INVALIDATOR_MAX_LOGIN_DAYS;
+import static java.time.Instant.*;
 
 @Log
 @Service
@@ -104,7 +105,7 @@ public final class DevicesManagerImpl implements DevicesManager {
 
                             for (final var device : deviceRepository.findAll()) {
 
-                                if (ChronoUnit.DAYS.between(device.getDateTimeLastUpdate().toInstant(), device.getUser().getDateTimeLastUpdate().toInstant()) > maxLoginDays) {
+                                if (ChronoUnit.DAYS.between(ofEpochSecond(device.getTimestampLastUpdate()), ofEpochSecond(device.getTimestampLastUpdate())) > maxLoginDays) {
                                     device.setStatus(Device.Status.INVALIDATED);
                                     deviceRepository.save(device);
                                 }
