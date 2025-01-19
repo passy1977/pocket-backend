@@ -14,10 +14,11 @@ import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
 
 final public class RSAHelper  {
 
-    private @NotNull String algorithm;
+    private final @NotNull String algorithm;
 
     @NotNull
     private final KeyPair pair;
@@ -37,6 +38,20 @@ final public class RSAHelper  {
         } catch (NoSuchAlgorithmException e) {
             throw new CommonsException(e);
         }
+    }
+
+    public @Nullable String getPrivateKey() {
+        if(privateKey == null) {
+            return null;
+        }
+        return Base64.getEncoder().encodeToString(privateKey.getEncoded());
+    }
+
+    public @Nullable String getPublicKey() {
+        if(publicKey == null) {
+            return null;
+        }
+        return Base64.getEncoder().encodeToString(publicKey.getEncoded());
     }
 
     public void enroll() {
@@ -78,7 +93,15 @@ final public class RSAHelper  {
         }
     }
 
+    public @NotNull String encryptToString(@NotNull final String str) throws CommonsException {
+        final var result = new StringBuilder();
 
+        for (final var b : encrypt(str)) {
+            result.append(String.format("%02X", b));
+        }
+
+        return result.toString();
+    }
 
     public @NotNull String decrypt(byte[] buffer) throws CommonsException {
         try {
@@ -89,6 +112,10 @@ final public class RSAHelper  {
         } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
             throw new CommonsException(e);
         }
+    }
+
+    public @NotNull String decryptFromString(@NotNull final String buffer) throws CommonsException {
+        return decrypt(buffer.getBytes(StandardCharsets.UTF_8));
     }
 
 }

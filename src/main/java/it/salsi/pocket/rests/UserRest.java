@@ -45,7 +45,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static it.salsi.pocket.Constant.*;
 import static it.salsi.pocket.models.User.Status.ACTIVE;
@@ -149,7 +148,7 @@ public final class UserRest {
 
     @GetMapping("/lastLogin/{token}")
     public ResponseEntity<Iterable<Object>> getAll(@PathVariable @NotNull final String token) {
-        final var device = deviceRepository.findByToken(token);
+        final var device = deviceRepository.findByUuid(token);
         if (device.isPresent()) {
             if (device.get().getStatus() != Device.Status.ACTIVE) return ResponseEntityUtils.returnNonAuthoritativeInformation(List.of());
             if (device.get().getUser().getStatus() != User.Status.ACTIVE) return ResponseEntityUtils.returnNonAuthoritativeInformation(List.of());
@@ -174,9 +173,10 @@ public final class UserRest {
         long idByEmail = 0;
         var user = users.stream().findFirst().orElseThrow();
 
-        if (userRepository.findByEmailAndPasswd(user.getHostAuthUser(), crypto.decryptToString(user.getHostAuthPasswd())).isEmpty()) {
-            return ResponseEntityUtils.returnNonAuthoritativeInformation(List.of(User.build(EMAIL_HOST_WRONG_CREDENTIAL.value)));
-        }
+        //TODO: handle this situation
+//        if (userRepository.findByEmailAndPasswd(user.getHostAuthUser(), crypto.decryptToString(user.getHostAuthPasswd())).isEmpty()) {
+//            return ResponseEntityUtils.returnNonAuthoritativeInformation(List.of(User.build(EMAIL_HOST_WRONG_CREDENTIAL.value)));
+//        }
 
         final var optional = userRepository.findByEmail(user.getEmail());
         if (optional.isPresent()) {
@@ -191,8 +191,9 @@ public final class UserRest {
         user.setPasswd(crypto.decryptToString(user.getPasswd()));
 
         final var userToRet = userRepository.save(user);
-        userToRet.setServerId(userToRet.getId());
-        userToRet.setId(idByEmail);
+        //TODO: handle this situation
+//        userToRet.setServerId(userToRet.getId());
+//        userToRet.setId(idByEmail);
 
         try {
             setEncryptedData(userToRet);
@@ -205,11 +206,12 @@ public final class UserRest {
 
     @DeleteMapping("/{token}")
     public void logout(@PathVariable final String token) {
-        deviceRepository.findByToken(token).ifPresent(device -> {
+        deviceRepository.findByUuid(token).ifPresent(device -> {
             device.setUser(null);
             deviceRepository.save(device);
 
-            deviceRepository.deleteByToken(token);
+            //TODO: handle this situation
+            //deviceRepository.deleteByToken(token);
         });
 
     }
@@ -221,31 +223,16 @@ public final class UserRest {
 
 
     private void setEncryptedData(@NotNull final User user) throws CommonsException {
-        if (baseAuthUser != null) {
-            user.setHostAuthUser(baseAuthUser);
-        }
-
-        if (baseAutPasswd != null) {
-            user.setHostAuthPasswd(crypto.encryptToString(passwordEncoder.encode(baseAutPasswd)));
-        } else {
-            user.setHostAuthPasswd("");
-        }
+        //TODO: handle this situation
+//        if (baseAuthUser != null) {
+//            user.setHostAuthUser(baseAuthUser);
+//        }
+//
+//        if (baseAutPasswd != null) {
+//            user.setHostAuthPasswd(crypto.encryptToString(passwordEncoder.encode(baseAutPasswd)));
+//        } else {
+//            user.setHostAuthPasswd("");
+//        }
     }
 
-    @NotNull
-    private Device newDevice(@NotNull final String uud,
-                             @NotNull final String address,
-                             @NotNull final String version,
-                             @NotNull final User user) {
-        var device = new Device();
-        device.setUser(user);
-        device.setVersion(version);
-        device.setToken(UUID.randomUUID().toString());
-        device.setUuid(uud);
-        device.setStatus(Device.Status.ACTIVE);
-        device.setAddress(address);
-        device.updateTimestampLastLogin();
-        device.updateTimestampLastUpdate();
-        return device;
-    }
 }

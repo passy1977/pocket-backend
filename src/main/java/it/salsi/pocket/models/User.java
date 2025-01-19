@@ -61,10 +61,6 @@ public final class User implements Cloneable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id = 0L;
 
-    @JsonInclude
-    @Transient
-    private Long serverId = 0L;
-
     @Size(max = 256, message = "max size exceeded, maximum 256 char")
     @NotEmpty(message = "field empty")
     @NotNull(message = "field null")
@@ -84,16 +80,12 @@ public final class User implements Cloneable {
     @Column(nullable = false)
     private String passwd;
 
-    @Transient
-    @NotNull
-    private String hostAuthUser = "";
-
-    @Transient
-    @NotNull
-    private String hostAuthPasswd = "";
-
     @Column(nullable = false)
     private Status status = ACTIVE;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(nullable = false)
+    private Long timestampCreation = 0L;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "user", fetch = FetchType.EAGER)
     private Set<Device> devices;
@@ -123,6 +115,7 @@ public final class User implements Cloneable {
         final var ret = new User();
         ret.setEmail(email);
         ret.setStatus(UNACTIVE);
+
         return ret;
     }
 
@@ -136,9 +129,11 @@ public final class User implements Cloneable {
         this.email = email;
         this.name = name;
         this.passwd = passwd;
+        setTimestampCreation(Instant.now(Clock.systemUTC()).getEpochSecond());
     }
 
     @Override
+    @NotNull
     public User clone() throws CloneNotSupportedException {
         return (User) super.clone();
     }
@@ -161,4 +156,5 @@ public final class User implements Cloneable {
     public int hashCode() {
         return getClass().hashCode();
     }
+
 }

@@ -53,7 +53,7 @@ public record PropertyRest(@NotNull PropertyRepository repository,
     @GetMapping("/{token}")
     public ResponseEntity<Iterable<Property>> list(@PathVariable @NotNull final String token) {
 
-        final var device = deviceRepository.findByToken(token);
+        final var device = deviceRepository.findByUuid(token);
         if (device.isPresent()) {
             if (device.get().getStatus() != Device.Status.ACTIVE)
                 return ResponseEntityUtils.returnNonAuthoritativeInformation(List.of());

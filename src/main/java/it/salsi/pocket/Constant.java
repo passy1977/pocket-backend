@@ -31,7 +31,6 @@ import static it.salsi.pocket.models.Property.Type.*;
 
 public enum Constant {
 
-    DEFAULT_BASE_AUTH("base.auth@salsi.it"),
     CRYPTO_IV("h7QWwZ2eVGow03X9"),
     EMAIL_ALREADY_USED("Email already used"),
     EMAIL_HOST_WRONG_CREDENTIAL("Wrong baseAuth credential for this server"),

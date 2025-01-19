@@ -27,19 +27,21 @@ import it.salsi.pocket.models.Device;
 import it.salsi.pocket.models.User;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.repository.CrudRepository;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
 import java.util.Optional;
 
 
 public interface DeviceRepository extends CrudRepository<Device, Long> {
 
-    Optional<Device> findByToken(@NotNull final String token);
+    //TODO:Handle this situation
+    Optional<Device> findByUuid(@NotNull final String uuid);
+
+    Optional<Device> findByUser(@NotNull final User user);
 
     @SuppressWarnings("UnusedReturnValue")
-    @Transactional
-    Long deleteByToken(@NotNull final String token);
+            //TODO:Handle this situation
+//    @Transactional
+//    Long deleteByToken(@NotNull final String token);
 
     Long countAllByUserAndTimestampLastUpdateBeforeAndStatusIsNot(@NotNull final User user, @NotNull final Long beforeDate, @NotNull final Device.Status statusNotIn);
 

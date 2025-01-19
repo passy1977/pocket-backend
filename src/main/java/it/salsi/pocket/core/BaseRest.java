@@ -44,7 +44,6 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -94,7 +93,7 @@ public class BaseRest<T extends BaseModel, Y extends BaseRepository<T>> {
     @GetMapping("/{token}")
     public ResponseEntity<Iterable<T>> getAll(@PathVariable @NotNull final String token) {
 
-        final var device = deviceRepository.findByToken(token);
+        final var device = deviceRepository.findByUuid(token);
         if (device.isPresent()) {
             if (device.get().getStatus() != Device.Status.ACTIVE) return ResponseEntityUtils.returnNonAuthoritativeInformation(List.of());
             if (device.get().getUser().getStatus() != User.Status.ACTIVE) return ResponseEntityUtils.returnNonAuthoritativeInformation(List.of());
@@ -109,7 +108,7 @@ public class BaseRest<T extends BaseModel, Y extends BaseRepository<T>> {
                               @DateTimeFormat(pattern = Constant.DATE_TIME_FORMAT)
                               @PathVariable @NotNull final Long dateTimeLastUpdate
     ) {
-        final var device = deviceRepository.findByToken(token);
+        final var device = deviceRepository.findByUuid(token);
         if (device.isPresent()) {
             if (device.get().getStatus() != Device.Status.ACTIVE) return ResponseEntityUtils.returnNonAuthoritativeInformation(List.of());
             if (device.get().getUser().getStatus() != User.Status.ACTIVE) return ResponseEntityUtils.returnNonAuthoritativeInformation(List.of());
@@ -134,7 +133,7 @@ public class BaseRest<T extends BaseModel, Y extends BaseRepository<T>> {
 
         final var now = Instant.now(Clock.systemUTC()).getEpochSecond();
 
-        final var device = deviceRepository.findByToken(token);
+        final var device = deviceRepository.findByUuid(token);
         if (device.isPresent()) {
             if (device.get().getStatus() != Device.Status.ACTIVE) return ResponseEntityUtils.returnNonAuthoritativeInformation(List.of());
             if (device.get().getUser().getStatus() != User.Status.ACTIVE) return ResponseEntityUtils.returnNonAuthoritativeInformation(List.of());
@@ -187,7 +186,7 @@ public class BaseRest<T extends BaseModel, Y extends BaseRepository<T>> {
                          @PathVariable @NotNull final Long serverId
     ) {
 
-        final var device = deviceRepository.findByToken(token);
+        final var device = deviceRepository.findByUuid(token);
         if (device.isPresent()) {
 
             final var optional = repository.findByUserAndId(device.get().getUser(), serverId);

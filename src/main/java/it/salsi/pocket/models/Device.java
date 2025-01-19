@@ -38,6 +38,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Date;
+import java.util.UUID;
 
 import static it.salsi.pocket.Constant.DATE_TIME_FORMAT;
 import static it.salsi.pocket.models.Device.Status.ACTIVE;
@@ -73,8 +74,11 @@ public final class Device {
     @JsonIgnore
     private String version;
 
+    @JsonIgnore
+    private String address;
+
     @Column(nullable = false)
-    private String token = "";
+    private Status status = ACTIVE;
 
     @JsonIgnore
     @Temporal(TemporalType.TIMESTAMP)
@@ -84,11 +88,10 @@ public final class Device {
     @Column(nullable = false)
     private Long timestampLastLogin = Instant.now(Clock.systemUTC()).getEpochSecond();
 
-    @JsonIgnore
-    private String address;
-
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false)
-    private Status status = ACTIVE;
+    private Long timestampCreation = 0L;
+
 
     @ToString.Exclude
     @JoinColumn(name = "user_id", referencedColumnName = "id")
@@ -96,11 +99,31 @@ public final class Device {
     @JsonIgnore
     private User user;
 
+    @JsonIgnore
+    @Lob
+    private String note;
+
+    @JsonIgnore
+    @Lob
+    private String publicKey;
+
+    @JsonIgnore
+    @Lob
+    private String privateKey;
+
     public void updateTimestampLastLogin() {
         timestampLastLogin = Instant.now(Clock.systemUTC()).getEpochSecond();
     }
 
     public void updateTimestampLastUpdate() {
         timestampLastLogin = Instant.now(Clock.systemUTC()).getEpochSecond();
+    }
+
+    public Device(@org.jetbrains.annotations.NotNull final User user) {
+        setUser(user);
+        setUuid(UUID.randomUUID().toString());
+        setStatus(Device.Status.ACTIVE);
+        updateTimestampLastLogin();
+        updateTimestampLastUpdate();
     }
 }
