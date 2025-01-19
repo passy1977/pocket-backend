@@ -23,9 +23,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 package it.salsi.pocket.models;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
@@ -38,14 +36,12 @@ import org.hibernate.Hibernate;
 
 import java.time.Clock;
 import java.time.Instant;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import static it.salsi.pocket.Constant.DATE_TIME_FORMAT;
 import static it.salsi.pocket.models.User.Status.ACTIVE;
-import static it.salsi.pocket.models.User.Status.UNACTIVE;
+import static it.salsi.pocket.models.User.Status.NOT_ACTIVE;
 
 @Getter
 @Setter
@@ -54,7 +50,7 @@ import static it.salsi.pocket.models.User.Status.UNACTIVE;
 public final class User implements Cloneable {
 
     public enum Status {
-        UNACTIVE, ACTIVE, DELETED
+        NOT_ACTIVE, ACTIVE, DELETED
     }
 
     @Id
@@ -78,6 +74,7 @@ public final class User implements Cloneable {
     @NotEmpty(message = "field empty")
     @NotNull(message = "field null")
     @Column(nullable = false)
+    @JsonIgnore
     private String passwd;
 
     @Column(nullable = false)
@@ -87,7 +84,8 @@ public final class User implements Cloneable {
     @Column(nullable = false)
     private Long timestampCreation = 0L;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "user", fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
+    @JsonIgnore
     private Set<Device> devices;
 
     @JsonIgnore
@@ -114,8 +112,7 @@ public final class User implements Cloneable {
     public static User build(@org.jetbrains.annotations.NotNull final String email) {
         final var ret = new User();
         ret.setEmail(email);
-        ret.setStatus(UNACTIVE);
-
+        ret.setStatus(NOT_ACTIVE);
         return ret;
     }
 

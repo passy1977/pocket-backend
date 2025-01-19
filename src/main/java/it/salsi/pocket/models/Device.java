@@ -23,7 +23,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 package it.salsi.pocket.models;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
@@ -35,12 +34,8 @@ import lombok.ToString;
 
 import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.util.Date;
 import java.util.UUID;
 
-import static it.salsi.pocket.Constant.DATE_TIME_FORMAT;
 import static it.salsi.pocket.models.Device.Status.ACTIVE;
 
 @ToString
@@ -58,7 +53,7 @@ public final class Device {
 
     @SuppressWarnings("unused")
     public enum Status {
-        UNACTIVE, ACTIVE, DELETED, INVALIDATED
+        NOT_ACTIVE, ACTIVE, DELETED, INVALIDATED
     }
 
     @Id
@@ -80,7 +75,6 @@ public final class Device {
     @Column(nullable = false)
     private Status status = ACTIVE;
 
-    @JsonIgnore
     @Temporal(TemporalType.TIMESTAMP)
     private Long timestampLastUpdate = 0L;
 
@@ -90,12 +84,11 @@ public final class Device {
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false)
-    private Long timestampCreation = 0L;
-
+    private Long timestampCreation = Instant.now(Clock.systemUTC()).getEpochSecond();
 
     @ToString.Exclude
     @JoinColumn(name = "user_id", referencedColumnName = "id")
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JsonIgnore
     private User user;
 
@@ -119,7 +112,10 @@ public final class Device {
         timestampLastLogin = Instant.now(Clock.systemUTC()).getEpochSecond();
     }
 
+    public Device() {}
+
     public Device(@org.jetbrains.annotations.NotNull final User user) {
+        this();
         setUser(user);
         setUuid(UUID.randomUUID().toString());
         setStatus(Device.Status.ACTIVE);

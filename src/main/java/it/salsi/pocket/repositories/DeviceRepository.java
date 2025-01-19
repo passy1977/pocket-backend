@@ -36,7 +36,7 @@ public interface DeviceRepository extends CrudRepository<Device, Long> {
     //TODO:Handle this situation
     Optional<Device> findByUuid(@NotNull final String uuid);
 
-    Optional<Device> findByUser(@NotNull final User user);
+    Optional<Device> findByUserAndUuid(@NotNull final User user, @NotNull final String uuid);
 
     @SuppressWarnings("UnusedReturnValue")
             //TODO:Handle this situation

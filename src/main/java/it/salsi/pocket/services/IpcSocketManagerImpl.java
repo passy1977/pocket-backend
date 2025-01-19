@@ -12,11 +12,14 @@ import it.salsi.pocket.security.RSAHelper;
 import lombok.Setter;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.util.Arrays;
 import java.util.Optional;
@@ -38,7 +41,8 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
         USER_ALREADY_EXIST(3),
         DEVICE_ALREADY_EXIST(4),
         USER_NOT_EXIST(5),
-        DEVICE_NOT_EXIST(6);
+        DEVICE_NOT_EXIST(6),
+        WRONG_PASSWD(7);
 
 
         Response(int value) {
@@ -56,6 +60,12 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
 
     private @NotNull final PasswordEncoder passwordEncoder;
 
+    @Value("${basic.auth.passwd}")
+    @Nullable
+    private String authPasswd;
+
+    private @Nullable String passwd;
+
     public IpcSocketManagerImpl(
             @Autowired @NotNull final DeviceRepository deviceRepository,
             @Autowired @NotNull final UserRepository userRepository,
@@ -66,7 +76,6 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
         this.passwordEncoder = passwordEncoder;
     }
 
-    //cmd|email|passwd|name
     private @NotNull Optional<User> handleUser(@NotNull final PrintWriter out, final String @NotNull [] split) {
         if(split.length < 2) {
             out.println(WRONG_PARAMS.value);
@@ -133,7 +142,6 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
         }
 
 
-
         return Optional.ofNullable(ret);
     }
 
@@ -145,17 +153,23 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
         }
         String cmd = split[0];
         String email = split[1];
+        String uuid = split.length >= 3 ? split[2] : "";
 
-        AtomicReference<Optional<Device>> atmDevice = new AtomicReference<>(Optional.empty());
-        final var user = new AtomicReference<User>();
+        final var atmDevice = new AtomicReference<Optional<Device>>(Optional.empty());
+        final var user = new AtomicReference<User>(null);
 
         AtomicBoolean stop = new AtomicBoolean(false);
         userRepository.findByEmail(email).ifPresentOrElse( u-> {
             user.set(u);
-            atmDevice.set(deviceRepository.findByUser(u));
+            atmDevice.set(deviceRepository.findByUserAndUuid(u, uuid));
         }, () -> stop.set(true));
 
         if(stop.get()) {
+            return Optional.empty();
+        }
+
+        if(user.get() == null) {
+            out.println(USER_NOT_EXIST.value);
             return Optional.empty();
         }
 
@@ -167,7 +181,6 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
                     out.println(DEVICE_ALREADY_EXIST.value);
                     return Optional.empty();
                 }
-
                 ret = new Device(user.get());
 
                 try {
@@ -181,7 +194,7 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
                     return Optional.empty();
                 }
 
-                deviceRepository.save(ret);
+                ret = deviceRepository.save(ret);
                 break;
             case "RM_DEVICE":
                 if(atmDevice.get().isEmpty()) {
@@ -209,57 +222,96 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
         return Optional.ofNullable(ret);
     }
 
-
+    /**
+     * ADD_USER|test@test.it|pwd|user
+     * MOD_USER|test@test.it|pwd1|user1
+     * RM_USER|test@test.it
+     * GET_USER|test@test.it
+     *
+     * ADD_DEVICE|test@test.it
+     * RM_DEVICE|test@test.it|47a48e92-c521-4f07-a4b3-757c889a0816
+     * GET_DEVICE|test@test.it|47a48e92-c521-4f07-a4b3-757c889a0816
+     */
     @Async
     @Override
     public void start() {
 
         log.info("start socket");
 
-        try (final var serverSocket = new ServerSocket(SOCKET_PORT)) {
+        try (final var serverSocket = new ServerSocket(SOCKET_PORT, 0, InetAddress.getByName(null))) {
 
-            while (loop) {
+            while (loop && !serverSocket.isClosed()) {
+
                 final var client = serverSocket.accept();
 
-                final var out = new PrintWriter(client.getOutputStream(), true);
-                final var in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+                try(final var in = new BufferedReader(new InputStreamReader(client.getInputStream()))) {
 
+                    try(final var out = new PrintWriter(client.getOutputStream(), true)) {
 
+                        if(authPasswd == null) {
+                            out.println("Auth passwd non set");
+                            continue;
+                        }
 
-                String line;
-                while ((line = in.readLine()) != null) {
+                        while(loop && !client.isClosed()) {
 
-                    final var split = Arrays
-                            .stream(line.split("[|]"))
-                            .map(String::trim)
-                            .toArray(String[]::new);
+                            // Check for client disconnection
+                            if(in.read() == -1) {
+                                passwd = null;
 
-                    if(split[0].contains("_USER")) {
-                        handleUser(out, split).ifPresent( u -> {
-                            final var mapper = new ObjectMapper();
-                            try {
-                                mapper.writeValueAsString(u);
-                                out.println(0);
-                            } catch (JsonProcessingException e) {
-                                out.println(e.getMessage());
-                                out.println(ERROR.value);
+                                System.out.println("client disconnected. Socket closing...");
+                                in.close();
                             }
-                        });
-                    } else if(split[0].contains("_DEVICE")) {
-                        handleDevice(out, split).ifPresent( d -> {
-                            final var mapper = new ObjectMapper();
-                            try {
-                                mapper.writeValueAsString(d);
-                                out.println(0);
-                            } catch (JsonProcessingException e) {
-                                out.println(e.getMessage());
-                                out.println(ERROR.value);
+
+
+                            String line;
+                            while (loop && (line = in.readLine()) != null) {
+
+                                if(passwd == null) {
+                                    if(line.equals(authPasswd)) {
+                                        passwd = line;
+                                        out.println(0);
+                                    } else {
+                                        out.println(WRONG_PASSWD.value);
+                                    }
+                                    continue;
+                                }
+
+                                if(authPasswd != null) {
+                                    final var split = Arrays
+                                            .stream(line.split("[|]"))
+                                            .map(String::trim)
+                                            .toArray(String[]::new);
+
+                                    if(split[0].contains("_USER")) {
+                                        handleUser(out, split).ifPresent( u -> {
+                                            final var mapper = new ObjectMapper();
+                                            try {
+                                                out.println(mapper.writeValueAsString(u));
+                                                out.println(0);
+                                            } catch (JsonProcessingException e) {
+                                                out.println(e.getMessage());
+                                                out.println(ERROR.value);
+                                            }
+                                        });
+                                    } else if(split[0].contains("_DEVICE")) {
+                                        handleDevice(out, split).ifPresent( d -> {
+                                            final var mapper = new ObjectMapper();
+                                            try {
+                                                out.println(mapper.writeValueAsString(d));
+                                                out.println(0);
+                                            } catch (JsonProcessingException e) {
+                                                out.println(e.getMessage());
+                                                out.println(ERROR.value);
+                                            }
+                                        });
+                                    }
+
+                                }
                             }
-                        });
+                        }
                     }
-
                 }
-
             }
 
 
