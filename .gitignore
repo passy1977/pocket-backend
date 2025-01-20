@@ -38,3 +38,4 @@ error-screenshots/
 .DS_Store
 *.db
 application.yaml
+script/pocket4.sql

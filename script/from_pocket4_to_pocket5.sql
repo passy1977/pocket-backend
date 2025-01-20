@@ -1,5 +1,3 @@
-use pocket4;
-
 SET foreign_key_checks = 0;
 
 ALTER TABLE devices 
@@ -18,19 +16,19 @@ DELETE FROM devices;
 ALTER TABLE fields 
     ADD COLUMN timestamp_last_update bigint(20) DEFAULT 0,
     ADD COLUMN timestamp_creation bigint(20) DEFAULT 0;
-UPDATE fields SET timestamp_creation = UNIX_TIMESTAMP(date_time_last_update);
+UPDATE fields SET timestamp_creation = UNIX_TIMESTAMP(date_time_last_update), timestamp_last_update = UNIX_TIMESTAMP(date_time_last_update);
 ALTER TABLE fields DROP COLUMN  date_time_last_update;
 
 ALTER TABLE group_fields 
     ADD COLUMN timestamp_last_update bigint(20) DEFAULT 0,
     ADD COLUMN timestamp_creation bigint(20) DEFAULT 0;
-UPDATE group_fields SET timestamp_creation = UNIX_TIMESTAMP(date_time_last_update);
+UPDATE group_fields SET timestamp_creation = UNIX_TIMESTAMP(date_time_last_update), timestamp_last_update = UNIX_TIMESTAMP(date_time_last_update);
 ALTER TABLE group_fields DROP COLUMN  date_time_last_update;
 
 ALTER TABLE `groups` 
     ADD COLUMN timestamp_last_update bigint(20) DEFAULT 0,
     ADD COLUMN timestamp_creation bigint(20) DEFAULT 0;
-UPDATE groups SET timestamp_creation = UNIX_TIMESTAMP(date_time_last_update);
+UPDATE groups SET timestamp_creation = UNIX_TIMESTAMP(date_time_last_update), timestamp_last_update = UNIX_TIMESTAMP(date_time_last_update);
 ALTER TABLE groups DROP COLUMN  date_time_last_update;
 
 ALTER TABLE users ADD COLUMN timestamp_creation bigint(20) DEFAULT 0;

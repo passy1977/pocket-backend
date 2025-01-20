@@ -31,7 +31,7 @@ public class SessionRest {
                                                     @PathVariable @NotNull final String passwd,
                                                     @NotNull final HttpServletRequest request) throws CommonsException
     {
-        return sessionController.getData(uuid, timestampLastUpdate, email, passwd, request);
+        return sessionController.getData(uuid, timestampLastUpdate, email, passwd);
     }
 
 }

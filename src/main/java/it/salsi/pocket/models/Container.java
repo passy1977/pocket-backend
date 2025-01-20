@@ -9,6 +9,6 @@ public record Container(
         @NotNull User user,
         @NotNull Device device,
         @NotNull Iterable<Group> groups,
-        @NotNull Iterable<Field> fields,
-        @NotNull Iterable<GroupField> groupsFields
+        @NotNull Iterable<GroupField> groupsFields,
+        @NotNull Iterable<Field> fields
 ) {}

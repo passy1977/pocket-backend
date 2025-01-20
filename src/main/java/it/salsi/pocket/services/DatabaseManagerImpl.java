@@ -25,7 +25,6 @@ package it.salsi.pocket.services;
 
 import it.salsi.commons.CommonsException;
 import it.salsi.commons.utils.NumberUtils;
-import it.salsi.pocket.models.Device;
 import it.salsi.pocket.models.Property;
 import it.salsi.pocket.models.User;
 import it.salsi.pocket.repositories.*;
@@ -125,7 +124,7 @@ public final class DatabaseManagerImpl implements DatabaseManager {
 
     @Override
     public void cleanOldData()  throws CommonsException {
-        log.info("start delete data");
+        log.info("Start delete data");
         if(authUser == null || authPasswd == null) {
             throw new CommonsException("authUser or authPasswd not set");
         }
@@ -141,20 +140,20 @@ public final class DatabaseManagerImpl implements DatabaseManager {
             if (Boolean.TRUE.toString().equals(invalidatorEnable.getValue())) {
                 try {
                     propertyRepository.getByUserIdAndKey(adminUser.get().getId(), PROPERTY_INVALIDATOR_MAX_LOGIN_DAYS).ifPresentOrElse(invalidatorMaxLoginDays -> {
-                        log.info("start delete data thread: " + Thread.currentThread().getName());
+                        log.info("Start delete data thread: " + Thread.currentThread().getName());
 
                         userRepository.findAll().forEach(user -> {
                             if (user.getStatus() != User.Status.DELETED) {
 
                                 //TODO: fix device invalidation
 //                                if (deviceRepository.countAllByUserAndTimestampLastUpdateBeforeAndStatusIsNot(user, user.getTimestampLastUpdate(), Device.Status.INVALIDATED) == 0) {
-//                                    log.info("start deleting data");
+//                                    log.info("Start deleting data");
 //
 //                                    fieldRepository.findByUserAndDeletedAndTimestampLastUpdateLessThan(user, true, user.getTimestampLastUpdate()).forEach(fieldRepository::delete);
 //                                    groupFieldRepository.findByUserAndDeletedAndTimestampLastUpdateLessThan(user, true, user.getTimestampLastUpdate()).forEach(groupFieldRepository::delete);
 //                                    groupRepository.findByUserAndDeletedAndTimestampLastUpdateLessThan(user, true, user.getTimestampLastUpdate()).forEach(groupRepository::delete);
 //
-//                                    log.info("end deleting data");
+//                                    log.info("End deleting data");
 //                                }
 
                             }
@@ -170,7 +169,7 @@ public final class DatabaseManagerImpl implements DatabaseManager {
         }, () -> log.warning("cron delete data disabled"));
 
 
-        log.info("end delete data");
+        log.info("End delete data");
     }
 
     private void updateVersion(@NotNull final User user, final int version) {

@@ -19,7 +19,6 @@ public final class UserManagerImpl implements UserManager {
     @NotNull
     private final UserRepository userRepository;
 
-
     @NotNull
     private final PasswordEncoder passwordEncoder;
 
@@ -40,49 +39,19 @@ public final class UserManagerImpl implements UserManager {
 
     @Override
     public void checkAll() {
-        log.info("start user");
+        log.info("Start user");
 
-        if (user != null) {
-            userRepository.findByEmail(user).ifPresentOrElse(user ->
-                    {
-                        assert passwd != null;
+        if (user != null && passwd != null) {
+            userRepository.findByEmail(user).ifPresentOrElse(user -> {
                         if (!user.getPasswd().equals(passwordEncoder.encode(passwd))) {
                             userRepository.delete(user);
-                            try {
-                                insertBaseAuthUser(this.user, passwd);
-                            } catch (CommonsException e) {
-                                log.severe(e.getMessage());
-                            }
+                            userRepository.save(new User("ADMIN", this.user, passwordEncoder.encode(passwd)));
                         }
                     },
-                    () -> {
-                        try {
-                            insertBaseAuthUser(user, passwd);
-                        } catch (CommonsException e) {
-                            log.info(e.getMessage());
-                        }
-                    }
+                    () -> userRepository.save(new User("ADMIN", user, passwordEncoder.encode(passwd)))
             );
         }
 
-        log.info("end user");
-    }
-
-
-    private void insertBaseAuthUser(@Nullable final String user, @Nullable final String passwd) throws CommonsException {
-        if (passwd == null || user == null) {
-            throw new CommonsException("baseAuth parameters not founds");
-        }
-//        final var baseAuth = new User(BASE_AUTH.name(), user, passwordEncoder.encode(passwd));
-//        roleRepository.findByRole(BASE_AUTH).ifPresent(role -> {
-//            if (baseAuth.getRoles() == null) {
-//                baseAuth.setRoles(new HashSet<>());
-//            }
-//            baseAuth.getRoles().add(role);
-//            if (role.getUsers() == null) {
-//                role.setUsers(new ArrayList<>());
-//            }
-//        });
-        //userRepository.save(baseAuth);
+        log.info("End user");
     }
 }

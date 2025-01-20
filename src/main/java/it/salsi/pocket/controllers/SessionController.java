@@ -40,11 +40,13 @@ public record SessionController(
     public @NotNull ResponseEntity<Container> getData(@NotNull final String uuid,
                                                       @NotNull final Long timestampLastUpdate,
                                                       @NotNull final String email,
-                                                      @NotNull final String passwd,
-                                                      @NotNull final HttpServletRequest request) throws CommonsException {
+                                                      @NotNull final String passwd) throws CommonsException {
 
 
-
+        final var optUser = userRepository.findByEmailAndPasswd(email, passwd);
+        if(optUser.isEmpty()) {
+            return ResponseEntity.status(401).build();
+        }
 
         Device device = null;
         RSAHelper rsaHelper = null;
@@ -78,15 +80,13 @@ public record SessionController(
                     Instant.now(Clock.systemUTC()).getEpochSecond()
             ));
         }
-
-        final var optUser = userRepository.findByEmailAndPasswd(email, passwordEncoder.encode(passwd));
-        if(optUser.isEmpty()) {
-            return ResponseEntity.status(401).build();
-        }
-
         assert device != null;
 
-        //user_id|device_id|pwd|random
+        device.updateTimestampLastLogin();
+        device.updateTimestampLastUpdate();
+        deviceRepository.save(device);
+
+        //user_id|device_uuid|pwd|random
         final var token = (device.getUser().getId() + DIVISOR.value + device.getUuid() + DIVISOR.value + newPasswd + DIVISOR.value + UUID.randomUUID()).getBytes(StandardCharsets.UTF_8);
 
         return ResponseEntity.ok(
@@ -95,8 +95,8 @@ public record SessionController(
                         optUser.get(),
                         device,
                         groupController.getAll(uuid, timestampLastUpdate),
-                        fieldController.getAll(uuid, timestampLastUpdate),
-                        groupFieldController.getAll(uuid, timestampLastUpdate)
+                        groupFieldController.getAll(uuid, timestampLastUpdate),
+                        fieldController.getAll(uuid, timestampLastUpdate)
         ));
     }
 

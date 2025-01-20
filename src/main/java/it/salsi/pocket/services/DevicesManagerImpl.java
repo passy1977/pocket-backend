@@ -85,7 +85,7 @@ public final class DevicesManagerImpl implements DevicesManager {
             throw new CommonsException("authUser or authPasswd not set");
         }
 
-        log.info("start invalidate");
+        log.info("Start invalidate");
 
         AtomicReference<User> adminUser = new AtomicReference<>(new User());
         userRepository.findByEmail(authUser).ifPresentOrElse(
@@ -98,7 +98,7 @@ public final class DevicesManagerImpl implements DevicesManager {
             if (Boolean.TRUE.toString().equals(invalidatorEnable.getValue())) {
                 try {
                     propertyRepository.getByUserIdAndKey(adminUser.get().getId(), PROPERTY_INVALIDATOR_MAX_LOGIN_DAYS).ifPresentOrElse(invalidatorMaxLoginDays -> {
-                        log.info("start invalidator thread: " + Thread.currentThread().getName());
+                        log.info("Start invalidator thread: " + Thread.currentThread().getName());
 
                         try {
                             final var maxLoginDays = Integer.parseInt(invalidatorMaxLoginDays.getValue());
@@ -129,7 +129,7 @@ public final class DevicesManagerImpl implements DevicesManager {
 
         }, () -> log.warning("cron invalidator disabled"));
 
-        log.info("end invalidate");
+        log.info("End invalidate");
     }
 
 }

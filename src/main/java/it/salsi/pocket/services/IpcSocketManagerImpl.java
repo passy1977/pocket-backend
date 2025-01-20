@@ -1,7 +1,5 @@
 package it.salsi.pocket.services;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,7 +25,6 @@ import java.net.ServerSocket;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static it.salsi.pocket.Constant.*;
@@ -83,7 +80,7 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
 
 
     }
-
+    static public final int SOCKET_PORT = 333;
 
     private boolean loop = true;
 
@@ -101,6 +98,10 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
     @Nullable
     private String authPasswd;
 
+    @Value("${server.socket-port}")
+    @Nullable
+    private Integer socketPort;
+
     private @Nullable String passwd;
 
     public IpcSocketManagerImpl(
@@ -111,6 +112,9 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
         this.deviceRepository = deviceRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        if(socketPort == null) {
+            socketPort = SOCKET_PORT;
+        }
     }
 
     private @NotNull Optional<User> handleUser(@NotNull final PrintWriter out, final String @NotNull [] split) {
@@ -184,19 +188,21 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
 
     //cmd|email|uuid
     private @NotNull Optional<Device>  handleDevice(@NotNull final PrintWriter out, final String @NotNull [] split) {
-        if(split.length < 2) {
+        if(split.length < 3) {
             out.println(WRONG_PARAMS.value);
             return Optional.empty();
         }
         String cmd = split[0];
         String email = split[1];
-        String uuid = split.length >= 3 ? split[2] : "";
+        String passwd = split[2];
+        String uuid = split.length >= 4 ? split[3] : "";
+
+
 
         final var atmDevice = new AtomicReference<Optional<Device>>(Optional.empty());
         final var user = new AtomicReference<User>(null);
 
-        AtomicBoolean stop = new AtomicBoolean(false);
-        userRepository.findByEmail(email).ifPresent( u-> {
+        userRepository.findByEmailAndPasswd(email, passwordEncoder.encode(passwd)).ifPresent( u-> {
             user.set(u);
             atmDevice.set(deviceRepository.findByUserAndUuid(u, uuid));
         });
@@ -262,17 +268,19 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
      * RM_USER|test@test.it
      * GET_USER|test@test.it
      *
-     * ADD_DEVICE|test@test.it
-     * RM_DEVICE|test@test.it|47a48e92-c521-4f07-a4b3-757c889a0816
-     * GET_DEVICE|test@test.it|47a48e92-c521-4f07-a4b3-757c889a0816
+     * ADD_DEVICE|test@test.it|pwd
+     * RM_DEVICE|test@test.it|pwd|47a48e92-c521-4f07-a4b3-757c889a0816
+     * GET_DEVICE|test@test.it|pwd|47a48e92-c521-4f07-a4b3-757c889a0816
      */
     @Async
     @Override
     public void start() {
 
-        log.info("start socket");
+        log.info("Start socket");
+        passwd = null;
 
-        try (final var serverSocket = new ServerSocket(SOCKET_PORT, 0, InetAddress.getByName(null))) {
+        assert socketPort != null;
+        try (final var serverSocket = new ServerSocket(socketPort, 0, InetAddress.getByName(null))) {
 
             while (loop && !serverSocket.isClosed()) {
 
@@ -352,9 +360,15 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
 
         } catch (IOException e) {
             log.severe(e.getMessage());
-            Thread.currentThread().interrupt();
+        } finally {
+            try {
+                Thread.sleep(10_000);
+            } catch (InterruptedException ex) {
+                log.severe(ex.getMessage());
+            }
+            start();
         }
 
-        log.info("end socket");
+        log.info("End socket");
     }
 }

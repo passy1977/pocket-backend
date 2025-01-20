@@ -75,7 +75,7 @@ public final class PropertiesManagerImpl implements PropertiesManager {
             throw new CommonsException("authUser or authPasswd not set");
         }
 
-        log.info("start checks");
+        log.info("Start checks");
 
 
         AtomicReference<User> adminUser = new AtomicReference<>(new User());
@@ -109,7 +109,7 @@ public final class PropertiesManagerImpl implements PropertiesManager {
             }
         }
 
-        log.info("end checks");
+        log.info("End checks");
     }
 
 }

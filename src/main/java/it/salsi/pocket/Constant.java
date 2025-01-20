@@ -41,7 +41,6 @@ public enum Constant {
     DIVISOR("|"),
     FOO("");
 
-    static public final int SOCKET_PORT = 333;
 
     @NotNull
     public static Constant getEnum(@NotNull final String str) {
