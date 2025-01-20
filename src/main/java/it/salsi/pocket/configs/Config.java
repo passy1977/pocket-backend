@@ -28,6 +28,7 @@ import it.salsi.commons.utils.Crypto;
 import it.salsi.commons.utils.CryptoBuilder;
 import it.salsi.pocket.security.PasswordEncoder;
 import it.salsi.pocket.security.RSAHelper;
+import it.salsi.pocket.security.TokenHelper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,7 +42,7 @@ import static it.salsi.pocket.Constant.CRYPTO_IV;
 @Configuration
 public class Config {
 
-    @Value("${basic.auth.passwd}")
+    @Value("${server.auth.passwd}")
     @Nullable
     private String authPasswd;
 
@@ -69,6 +70,7 @@ public class Config {
     @NotNull
     @Bean
     public RSAHelper getRSAHelper() throws CommonsException {
-        return new RSAHelper("RSA", 2048);
+        return new RSAHelper(RSAHelper.ALGORITHM, RSAHelper.KEY_SIZE);
     }
+
 }

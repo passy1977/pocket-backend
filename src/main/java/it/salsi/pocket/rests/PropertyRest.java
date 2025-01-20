@@ -44,12 +44,6 @@ import java.util.List;
 public record PropertyRest(@NotNull PropertyRepository repository,
                            @NotNull DeviceRepository deviceRepository) {
 
-    public PropertyRest(@NotNull final PropertyRepository repository,
-                        @NotNull final DeviceRepository deviceRepository) {
-        this.repository = repository;
-        this.deviceRepository = deviceRepository;
-    }
-
     @GetMapping("/{token}")
     public ResponseEntity<Iterable<Property>> list(@PathVariable @NotNull final String token) {
 

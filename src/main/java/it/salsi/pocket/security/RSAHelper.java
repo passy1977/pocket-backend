@@ -8,11 +8,10 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
-import java.io.UnsupportedEncodingException;
-import java.net.ConnectException;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
@@ -29,6 +28,9 @@ final public class RSAHelper  {
     @Nullable
     private PublicKey publicKey = null;
 
+    public static final String ALGORITHM = "RSA";
+    public static final int KEY_SIZE = 2048;
+
     public RSAHelper(@NotNull String algorithm, int keySize) throws CommonsException {
         this.algorithm = algorithm;
         try {
@@ -40,18 +42,18 @@ final public class RSAHelper  {
         }
     }
 
-    public @Nullable String getPrivateKey() {
+    public byte @Nullable [] getPrivateKey() {
         if(privateKey == null) {
             return null;
         }
-        return Base64.getEncoder().encodeToString(privateKey.getEncoded());
+        return privateKey.getEncoded();
     }
 
-    public @Nullable String getPublicKey() {
+    public byte @Nullable [] getPublicKey() {
         if(publicKey == null) {
             return null;
         }
-        return Base64.getEncoder().encodeToString(publicKey.getEncoded());
+        return publicKey.getEncoded();
     }
 
     public void enroll() {
@@ -63,8 +65,8 @@ final public class RSAHelper  {
     public void loadPrivateKey(byte[] keyBytes) throws CommonsException {
         try {
             final var keyFactory = KeyFactory.getInstance(algorithm);
-            final var publicKeySpec = new X509EncodedKeySpec(keyBytes);
-            privateKey = keyFactory.generatePrivate(publicKeySpec);
+            final var privateKeySpec = new PKCS8EncodedKeySpec(keyBytes);
+            privateKey = keyFactory.generatePrivate(privateKeySpec);
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             throw new CommonsException(e);
         }
@@ -80,23 +82,21 @@ final public class RSAHelper  {
         }
     }
 
-
-    public byte @NotNull [] encrypt(@NotNull final String Buffer) throws CommonsException {
+    public byte @NotNull [] encrypt(final byte @NotNull[] buffer) throws CommonsException {
         try {
-            Cipher rsa;
-            rsa = Cipher.getInstance(algorithm);
-            rsa.init(Cipher.ENCRYPT_MODE, privateKey);
-            return rsa.doFinal(Buffer.getBytes());
+            final var rsa = Cipher.getInstance(algorithm);
+            rsa.init(Cipher.ENCRYPT_MODE, publicKey);
+            return rsa.doFinal(buffer);
         } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | IllegalBlockSizeException |
                  BadPaddingException e) {
             throw new CommonsException(e);
         }
     }
 
-    public @NotNull String encryptToString(@NotNull final String str) throws CommonsException {
+    public @NotNull String encryptToString(final byte @NotNull[] buffer) throws CommonsException {
         final var result = new StringBuilder();
 
-        for (final var b : encrypt(str)) {
+        for (final var b : encrypt(buffer)) {
             result.append(String.format("%02X", b));
         }
 

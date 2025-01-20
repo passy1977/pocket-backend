@@ -44,11 +44,11 @@ import java.util.concurrent.atomic.AtomicReference;
 @Service
 public final class PropertiesManagerImpl implements PropertiesManager {
 
-    @Value("${basic.auth.user}")
+    @Value("${server.auth.user}")
     @Nullable
     private String authUser;
 
-    @Value("${basic.auth.passwd}")
+    @Value("${server.auth.passwd}")
     @Nullable
     private String authPasswd;
 

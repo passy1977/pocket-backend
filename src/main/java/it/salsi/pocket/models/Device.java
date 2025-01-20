@@ -48,7 +48,7 @@ import static it.salsi.pocket.models.Device.Status.ACTIVE;
 @Getter
 @Setter
 @SuppressWarnings("JpaDataSourceORMInspection")
-public final class Device {
+public class Device {
 
 
     @SuppressWarnings("unused")
@@ -80,7 +80,7 @@ public final class Device {
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false)
-    private Long timestampLastLogin = Instant.now(Clock.systemUTC()).getEpochSecond();
+    private Long timestampLastLogin = 0L;
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false)
@@ -109,7 +109,7 @@ public final class Device {
     }
 
     public void updateTimestampLastUpdate() {
-        timestampLastLogin = Instant.now(Clock.systemUTC()).getEpochSecond();
+        timestampLastUpdate = Instant.now(Clock.systemUTC()).getEpochSecond();
     }
 
     public Device() {}

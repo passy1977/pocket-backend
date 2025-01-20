@@ -12,6 +12,7 @@ public interface CacheManager {
 
     record CacheRecord(
             @NotNull String uuid,
+            @NotNull String passwd,
             @NotNull Device device,
             @NotNull RSAHelper rsaHelper,
             long timestampCreation
@@ -21,8 +22,12 @@ public interface CacheManager {
 
     @NotNull Optional<CacheRecord> get(@NotNull final CacheRecord record);
 
+    @NotNull Optional<CacheRecord> get(@NotNull final String uuid);
+
     boolean rm(@NotNull final CacheRecord record);
 
     boolean has(@NotNull final CacheRecord record);
+
+    boolean has(@NotNull final String uuid);
 
 }

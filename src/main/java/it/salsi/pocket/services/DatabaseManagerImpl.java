@@ -45,11 +45,11 @@ import static it.salsi.pocket.Constant.*;
 @Service
 public final class DatabaseManagerImpl implements DatabaseManager {
 
-    @Value("${basic.auth.user}")
+    @Value("${server.auth.user}")
     @Nullable
     private String authUser;
 
-    @Value("${basic.auth.passwd}")
+    @Value("${server.auth.passwd}")
     @Nullable
     private String authPasswd;
 

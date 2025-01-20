@@ -32,6 +32,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
+
 @Log
 @Component
 public record ApplicationStartup(@NotNull DatabaseManager databaseManager,

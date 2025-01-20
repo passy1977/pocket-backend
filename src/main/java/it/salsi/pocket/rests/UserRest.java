@@ -55,11 +55,11 @@ import static it.salsi.pocket.models.User.Status.ACTIVE;
 @RequestMapping("${server.api-version}/user/")
 public final class UserRest {
 
-    @Value("${basic.auth.user}")
+    @Value("${server.auth.user}")
     @Nullable
     private String baseAuthUser;
 
-    @Value("${basic.auth.passwd}")
+    @Value("${server.auth.passwd}")
     @Nullable
     private String baseAutPasswd;
 

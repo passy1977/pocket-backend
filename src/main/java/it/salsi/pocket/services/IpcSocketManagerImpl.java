@@ -1,5 +1,8 @@
 package it.salsi.pocket.services;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.salsi.commons.CommonsException;
@@ -22,6 +25,7 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -52,6 +56,35 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
         public int value = 0;
     }
 
+
+    private static class DeviceExtended extends Device {
+
+
+        @JsonProperty("userId")
+        private @NotNull Long _userId;
+
+        @JsonProperty("host")
+        private @Nullable String _host;
+
+        @JsonProperty("hostPublicKey")
+        private @NotNull String _publicKey;
+
+        public DeviceExtended(@NotNull final Device device, @Nullable final String host) {
+            setId(device.getId());
+            setUuid(device.getUuid());
+            setStatus(device.getStatus());
+            setTimestampLastUpdate(device.getTimestampLastUpdate());
+            setTimestampLastLogin(device.getTimestampLastLogin());
+            setNote(device.getNote());
+            this._userId = device.getUser().getId();
+            this._host = host;
+            this._publicKey = device.getPublicKey();
+        }
+
+
+    }
+
+
     private boolean loop = true;
 
     private @NotNull final DeviceRepository deviceRepository;
@@ -60,7 +93,11 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
 
     private @NotNull final PasswordEncoder passwordEncoder;
 
-    @Value("${basic.auth.passwd}")
+    @Value("${server.url}")
+    @Nullable
+    private String serverUrl;
+
+    @Value("${server.auth.passwd}")
     @Nullable
     private String authPasswd;
 
@@ -159,14 +196,10 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
         final var user = new AtomicReference<User>(null);
 
         AtomicBoolean stop = new AtomicBoolean(false);
-        userRepository.findByEmail(email).ifPresentOrElse( u-> {
+        userRepository.findByEmail(email).ifPresent( u-> {
             user.set(u);
             atmDevice.set(deviceRepository.findByUserAndUuid(u, uuid));
-        }, () -> stop.set(true));
-
-        if(stop.get()) {
-            return Optional.empty();
-        }
+        });
 
         if(user.get() == null) {
             out.println(USER_NOT_EXIST.value);
@@ -186,8 +219,9 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
                 try {
                     var rsaHelper = new RSAHelper("RSA", 2048);
                     rsaHelper.enroll();
-                    ret.setPrivateKey(rsaHelper.getPrivateKey());
-                    ret.setPublicKey(rsaHelper.getPublicKey());
+
+                    ret.setPrivateKey(Base64.getEncoder().encodeToString(rsaHelper.getPrivateKey()));
+                    ret.setPublicKey(Base64.getEncoder().encodeToString(rsaHelper.getPublicKey()));
                 } catch (CommonsException e) {
                     out.println(e.getMessage());
                     out.println(0);
@@ -279,7 +313,7 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
 
                                 if(authPasswd != null) {
                                     final var split = Arrays
-                                            .stream(line.split("[|]"))
+                                            .stream(line.split("["+DIVISOR.value+"]"))
                                             .map(String::trim)
                                             .toArray(String[]::new);
 
@@ -287,6 +321,7 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
                                         handleUser(out, split).ifPresent( u -> {
                                             final var mapper = new ObjectMapper();
                                             try {
+
                                                 out.println(mapper.writeValueAsString(u));
                                                 out.println(0);
                                             } catch (JsonProcessingException e) {
@@ -298,7 +333,7 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
                                         handleDevice(out, split).ifPresent( d -> {
                                             final var mapper = new ObjectMapper();
                                             try {
-                                                out.println(mapper.writeValueAsString(d));
+                                                out.println(mapper.writeValueAsString(new DeviceExtended(d, serverUrl)));
                                                 out.println(0);
                                             } catch (JsonProcessingException e) {
                                                 out.println(e.getMessage());

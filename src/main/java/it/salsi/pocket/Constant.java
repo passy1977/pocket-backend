@@ -38,6 +38,7 @@ public enum Constant {
     PROPERTY_INVALIDATOR_ENABLE("invalidatorEnable"),
     PROPERTY_INVALIDATOR_MAX_LOGIN_DAYS("invalidatorMaxLoginDays"),
     PROPERTY_CLEAN_DATA_ENABLE("cleanDataEnable"),
+    DIVISOR("|"),
     FOO("");
 
     static public final int SOCKET_PORT = 333;

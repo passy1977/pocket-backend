@@ -49,11 +49,11 @@ import static java.time.Instant.*;
 @Service
 public final class DevicesManagerImpl implements DevicesManager {
 
-    @Value("${basic.auth.user}")
+    @Value("${server.auth.user}")
     @Nullable
     private String authUser;
 
-    @Value("${basic.auth.passwd}")
+    @Value("${server.auth.passwd}")
     @Nullable
     private String authPasswd;
 

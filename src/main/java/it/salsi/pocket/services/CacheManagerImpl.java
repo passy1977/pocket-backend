@@ -29,10 +29,14 @@ public final class CacheManagerImpl implements CacheManager {
     }
 
     public @NotNull Optional<CacheRecord> get(@NotNull final CacheRecord record) {
-        if(!map.containsKey(record.uuid())) {
+        return get(record.uuid());
+    }
+
+    public @NotNull Optional<CacheRecord> get(@NotNull final String uuid) {
+        if(!map.containsKey(uuid)) {
             return Optional.empty();
         }
-        return Optional.ofNullable(map.get(record.uuid()));
+        return Optional.ofNullable(map.get(uuid));
     }
 
     public boolean rm(@NotNull final CacheRecord record) {
@@ -43,7 +47,11 @@ public final class CacheManagerImpl implements CacheManager {
     }
 
     public boolean has(@NotNull final CacheRecord record) {
-        return  map.containsKey(record.uuid());
+        return has(record.uuid());
+    }
+
+    public boolean has(@NotNull final String uuid) {
+        return map.containsKey(uuid);
     }
 
 }

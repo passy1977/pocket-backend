@@ -23,11 +23,11 @@ public final class UserManagerImpl implements UserManager {
     @NotNull
     private final PasswordEncoder passwordEncoder;
 
-    @Value("${basic.auth.user}")
+    @Value("${server.auth.user}")
     @Nullable
     private String user;
 
-    @Value("${basic.auth.passwd}")
+    @Value("${server.auth.passwd}")
     @Nullable
     private String passwd;
 
