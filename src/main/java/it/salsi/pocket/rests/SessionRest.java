@@ -25,13 +25,13 @@ public class SessionRest {
     }
 
     @GetMapping("/{uuid}/{timestampLastUpdate}/{email}/{passwd}")
-    public @NotNull ResponseEntity<Container> login(@PathVariable @NotNull final String uuid,
+    public @NotNull ResponseEntity<Container> getFullData(@PathVariable @NotNull final String uuid,
                                                     @PathVariable @NotNull final Long timestampLastUpdate,
                                                     @PathVariable @NotNull final String email,
                                                     @PathVariable @NotNull final String passwd,
                                                     @NotNull final HttpServletRequest request) throws CommonsException
     {
-        return sessionController.getData(uuid, timestampLastUpdate, email, passwd);
+        return sessionController.getFullData(uuid, timestampLastUpdate, email, passwd);
     }
 
 }

@@ -39,7 +39,7 @@ public class BaseController <T extends BaseModel, Y extends BaseRepository<T>> {
             if (device.get().getStatus() != Device.Status.ACTIVE) return List.of();
             if (device.get().getUser().getStatus() != User.Status.ACTIVE) return List.of();
             final var ret = repository.findByUserAndTimestampLastUpdateGreaterThan(device.get().getUser(), timestampLastUpdate);
-            ret.forEach(it -> it.setServerId(it.getId()));
+            ret.forEach(T::switchId);
             return ret;
         } else return List.of();
     }

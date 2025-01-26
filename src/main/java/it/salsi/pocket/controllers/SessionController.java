@@ -9,7 +9,6 @@ import it.salsi.pocket.security.PasswordEncoder;
 import it.salsi.pocket.security.RSAHelper;
 import it.salsi.pocket.services.CacheManager;
 import it.salsi.pocket.services.CacheManager.CacheRecord;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,16 +36,18 @@ public record SessionController(
         @Autowired @NotNull CacheManager cacheManager
         ) {
 
-    public @NotNull ResponseEntity<Container> getData(@NotNull final String uuid,
-                                                      @NotNull final Long timestampLastUpdate,
-                                                      @NotNull final String email,
-                                                      @NotNull final String passwd) throws CommonsException {
+    public @NotNull ResponseEntity<Container> getFullData(@NotNull final String uuid,
+                                                          @NotNull final Long timestampLastUpdate,
+                                                          @NotNull final String email,
+                                                          @NotNull final String passwd) throws CommonsException {
 
 
         final var optUser = userRepository.findByEmailAndPasswd(email, passwd);
         if(optUser.isEmpty()) {
             return ResponseEntity.status(401).build();
         }
+
+        final var now = Instant.now(Clock.systemUTC()).getEpochSecond();
 
         Device device = null;
         RSAHelper rsaHelper = null;
@@ -77,17 +78,20 @@ public record SessionController(
                     newPasswd,
                     device,
                     rsaHelper,
-                    Instant.now(Clock.systemUTC()).getEpochSecond()
+                    now
             ));
         }
         assert device != null;
 
-        device.updateTimestampLastLogin();
-        device.updateTimestampLastUpdate();
+
+
+        device.setTimestampLastLogin(now);
         deviceRepository.save(device);
 
         //user_id|device_uuid|pwd|random
         final var token = (device.getUser().getId() + DIVISOR.value + device.getUuid() + DIVISOR.value + newPasswd + DIVISOR.value + UUID.randomUUID()).getBytes(StandardCharsets.UTF_8);
+
+        
 
         return ResponseEntity.ok(
                 new Container(

@@ -59,11 +59,19 @@ public final class Field extends BaseModel {
     private Boolean isHidden = false;
 
     @Column(nullable = false)
+    @NotNull
     private Long groupFieldId = 0L;
 
 //    @JsonInclude
     @Transient
+    @NotNull
     private Long serverGroupFieldId = 0L;
+
+    @Transient
+    private @NotNull Long groupId = 0L;
+
+    @Transient
+    private @NotNull Long serverGroupId = 0L;
 
     @SuppressWarnings("JpaDataSourceORMInspection")
     @ToString.Exclude
@@ -73,12 +81,29 @@ public final class Field extends BaseModel {
     private User user;
 
     @SuppressWarnings("JpaDataSourceORMInspection")
+    @JsonIgnore
     @ToString.Exclude
     @JoinColumn(name = "group_id", referencedColumnName = "id")
     @ManyToOne
     //@Where(clause = "deleted = 0")
     @SQLRestriction("deleted = 0")
     private Group group;
+
+
+    @Override
+    public void switchId() {
+        Long tmp = serverId;
+        serverId = id;
+        id = tmp;
+
+        tmp = serverGroupFieldId;
+        serverGroupFieldId = groupFieldId;
+        groupFieldId = tmp;
+
+        tmp = serverGroupId;
+        serverGroupId = groupId;
+        groupId = tmp;
+    }
 
     @Override
     public boolean equals(Object o) {

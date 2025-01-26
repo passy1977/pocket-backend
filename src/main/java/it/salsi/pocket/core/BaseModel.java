@@ -58,9 +58,12 @@ abstract public class BaseModel implements Cloneable {
     @Column(nullable = false)
     protected Boolean deleted = false;
 
+    @Temporal(TemporalType.TIMESTAMP)
+    private Long timestampCreation = Instant.now(Clock.systemUTC()).getEpochSecond();
+
     @JsonIgnore
     @Temporal(TemporalType.TIMESTAMP)
-    private Long timestampLastUpdate = Instant.now(Clock.systemUTC()).getEpochSecond();
+    private Long timestampLastUpdate = 0L;
 
     @Override
     public Object clone() throws CloneNotSupportedException {
@@ -71,6 +74,8 @@ abstract public class BaseModel implements Cloneable {
 
     @NotNull
     abstract public User getUser();
+
+    public abstract void switchId();
 
     @Override
     public boolean equals(Object o) {

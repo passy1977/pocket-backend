@@ -25,6 +25,7 @@ package it.salsi.pocket.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import it.salsi.pocket.core.BaseModel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
@@ -68,6 +69,16 @@ public final class Group extends BaseModel {
     @Transient
     private boolean shared = false;
 
+
+    @Transient
+    @JsonProperty("groupId")
+    private @NotNull Long groupId = 0L;
+
+    @Transient
+    @JsonProperty("serverGroupId")
+    private @NotNull Long serverGroupId = 0L;
+
+
     @JsonIgnore
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "group", fetch = FetchType.EAGER)
     @Fetch(value = FetchMode.SUBSELECT)
@@ -83,6 +94,7 @@ public final class Group extends BaseModel {
     private List<Group> groups;
 
     @Nullable
+    @JsonIgnore
     @JoinColumn(name = "group_id", referencedColumnName = "id")
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
 //    @Where(clause = "deleted = 0")
@@ -100,6 +112,18 @@ public final class Group extends BaseModel {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     @ManyToOne
     private User user;
+
+    @Override
+    public void switchId() {
+        Long tmp = serverId;
+        serverId = id;
+        id = tmp;
+
+        tmp = serverGroupId;
+        serverGroupId = groupId;
+        groupId = tmp;
+    }
+
 
     @Override
     public boolean equals(Object o) {

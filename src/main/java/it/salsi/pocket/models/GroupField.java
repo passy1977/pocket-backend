@@ -24,11 +24,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 package it.salsi.pocket.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import it.salsi.pocket.core.BaseModel;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -58,7 +56,14 @@ public final class GroupField extends BaseModel {
     //@JsonProperty("hidden")
     private Boolean isHidden = false;
 
+    @Transient
+    private @NotNull Long groupId = 0L;
+
+    @Transient
+    private @NotNull Long serverGroupId = 0L;
+
     @ToString.Exclude
+    @JsonIgnore
     @JoinColumn(name = "group_id", referencedColumnName = "id")
     @ManyToOne
 //    @Where(clause = "deleted = 0")
@@ -70,6 +75,18 @@ public final class GroupField extends BaseModel {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     @ManyToOne
     private User user;
+
+    @Override
+    public void switchId() {
+        Long tmp = serverId;
+        serverId = id;
+        id = tmp;
+
+        tmp = serverGroupId;
+        serverGroupId = groupId;
+        groupId = tmp;
+    }
+
 
     @Override
     public boolean equals(Object o) {
