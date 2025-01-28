@@ -30,7 +30,10 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 
 @Log
@@ -65,5 +68,15 @@ public record ApplicationStartup(@NotNull DatabaseManager databaseManager,
             log.warning(e.getLocalizedMessage());
         }
         userManager.checkAll();
+    }
+
+    @EventListener
+    public void handleContextRefresh(final @NotNull ContextRefreshedEvent event) {
+        final var applicationContext = event.getApplicationContext();
+        final var requestMappingHandlerMapping = applicationContext
+                .getBean("requestMappingHandlerMapping", RequestMappingHandlerMapping.class);
+        final var map = requestMappingHandlerMapping
+                .getHandlerMethods();
+        map.forEach((key, value) -> log.info(key + " "+ value));
     }
 }

@@ -19,8 +19,7 @@ final public class RSAHelper  {
 
     private final @NotNull String algorithm;
 
-    @NotNull
-    private final KeyPair pair;
+    private final int keySize;
 
     @Nullable
     private PrivateKey privateKey = null;
@@ -31,15 +30,9 @@ final public class RSAHelper  {
     public static final String ALGORITHM = "RSA";
     public static final int KEY_SIZE = 2048;
 
-    public RSAHelper(@NotNull String algorithm, int keySize) throws CommonsException {
+    public RSAHelper(@NotNull String algorithm, int keySize) {
         this.algorithm = algorithm;
-        try {
-            final var generator = KeyPairGenerator.getInstance(algorithm);
-            generator.initialize(keySize);
-            pair = generator.generateKeyPair();
-        } catch (NoSuchAlgorithmException e) {
-            throw new CommonsException(e);
-        }
+        this.keySize = keySize;
     }
 
     public byte @Nullable [] getPrivateKey() {
@@ -56,9 +49,16 @@ final public class RSAHelper  {
         return publicKey.getEncoded();
     }
 
-    public void enroll() {
-        privateKey = pair.getPrivate();
-        publicKey = pair.getPublic();
+    public void enroll() throws CommonsException {
+        try {
+            final var generator = KeyPairGenerator.getInstance(algorithm);
+            generator.initialize(keySize);
+            final var pair = generator.generateKeyPair();
+            privateKey = pair.getPrivate();
+            publicKey = pair.getPublic();
+        } catch (NoSuchAlgorithmException e) {
+            throw new CommonsException(e);
+        }
     }
 
 
@@ -114,8 +114,12 @@ final public class RSAHelper  {
         }
     }
 
-    public @NotNull String decryptFromString(@NotNull final String buffer) throws CommonsException {
-        return decrypt(buffer.getBytes(StandardCharsets.UTF_8));
+    public @NotNull String decryptFromURLBase64(final @NotNull String base64) throws CommonsException {
+        return decrypt(Base64.getDecoder().decode(
+                base64.replace('_', '/')
+                        .replace('-', '+')
+        ));
     }
+
 
 }

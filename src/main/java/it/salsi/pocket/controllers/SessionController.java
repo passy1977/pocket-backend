@@ -21,6 +21,7 @@ import java.time.Instant;
 import java.util.*;
 
 import static it.salsi.pocket.Constant.DIVISOR;
+import static it.salsi.pocket.security.RSAHelper.*;
 
 @Log
 @Service
@@ -36,66 +37,79 @@ public record SessionController(
         @Autowired @NotNull CacheManager cacheManager
         ) {
 
-    public @NotNull ResponseEntity<Container> getFullData(@NotNull final String uuid,
-                                                          @NotNull final Long timestampLastUpdate,
-                                                          @NotNull final String email,
-                                                          @NotNull final String passwd) throws CommonsException {
+    public @NotNull ResponseEntity<Container> getData(@NotNull final String uuid,
+                                                      @NotNull final String crypt,
+                                                      @NotNull final Long timestampLastUpdate,
+                                                      @NotNull final String email,
+                                                      @NotNull final String passwd) throws CommonsException {
 
 
         final var optUser = userRepository.findByEmailAndPasswd(email, passwd);
         if(optUser.isEmpty()) {
-            return ResponseEntity.status(401).build();
+            return ResponseEntity.status(600).build();
         }
 
         final var now = Instant.now(Clock.systemUTC()).getEpochSecond();
 
         Device device = null;
         RSAHelper rsaHelper = null;
-        String newPasswd = null;
         if(cacheManager.has(uuid)) {
-            var cacheRecord = cacheManager.get(uuid);
+            final var cacheRecord = cacheManager.get(uuid);
             if(cacheRecord.isPresent()) {
                 device = cacheRecord.get().device();
                 rsaHelper = cacheRecord.get().rsaHelper();
-                newPasswd = cacheRecord.get().passwd();
+
+                final var decryptSplit = rsaHelper.decryptFromURLBase64(crypt).split("["+DIVISOR.value+"]");
+                if(decryptSplit.length != 2)
+                {
+                    return ResponseEntity.status(601).build();
+                }
+
+                if(Integer.parseInt(decryptSplit[1]) != device.getId())
+                {
+                    return ResponseEntity.status(602).build();
+                }
             }
         } else {
-            var optDevice = deviceRepository.findByUuid(uuid);
+            final var optDevice = deviceRepository.findByUuid(uuid);
             if(optDevice.isEmpty()) {
-                return ResponseEntity.notFound().build();
+                return ResponseEntity.status(604).build();
             }
 
             device = optDevice.get();
-            rsaHelper = new RSAHelper(RSAHelper.ALGORITHM, RSAHelper.KEY_SIZE);
-            rsaHelper.loadPrivateKey(Base64.getDecoder().decode(device.getPrivateKey()));
+            rsaHelper = new RSAHelper(ALGORITHM, KEY_SIZE);
             rsaHelper.loadPublicKey(Base64.getDecoder().decode(device.getPublicKey()));
+            rsaHelper.loadPrivateKey(Base64.getDecoder().decode(device.getPrivateKey()));
 
-            byte[] array = new byte[32];
-            new Random().nextBytes(array);
-            newPasswd = new String(array, StandardCharsets.UTF_8);
+            final var decryptSplit = rsaHelper.decryptFromURLBase64(crypt).split("["+DIVISOR.value+"]");
+            if(decryptSplit.length != 2)
+            {
+                return ResponseEntity.status(601).build();
+            }
+
+            if(Integer.parseInt(decryptSplit[1]) != device.getId())
+            {
+                return ResponseEntity.status(602).build();
+            }
+
             cacheManager.add(new CacheRecord(
                     uuid,
-                    newPasswd,
+                    decryptSplit[0],
                     device,
                     rsaHelper,
                     now
             ));
         }
-        assert device != null;
-
-
+        if(device == null) {
+            return ResponseEntity.status(603).build();
+        }
 
         device.setTimestampLastLogin(now);
         deviceRepository.save(device);
 
-        //user_id|device_uuid|pwd|random
-        final var token = (device.getUser().getId() + DIVISOR.value + device.getUuid() + DIVISOR.value + newPasswd + DIVISOR.value + UUID.randomUUID()).getBytes(StandardCharsets.UTF_8);
-
-        
 
         return ResponseEntity.ok(
                 new Container(
-                        rsaHelper.encryptToString(token),
                         optUser.get(),
                         device,
                         groupController.getAll(uuid, timestampLastUpdate),

@@ -28,7 +28,7 @@ import it.salsi.commons.utils.Crypto;
 import it.salsi.commons.utils.CryptoBuilder;
 import it.salsi.pocket.security.PasswordEncoder;
 import it.salsi.pocket.security.RSAHelper;
-import it.salsi.pocket.security.TokenHelper;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Value;

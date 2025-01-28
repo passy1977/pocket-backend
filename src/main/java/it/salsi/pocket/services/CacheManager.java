@@ -12,7 +12,7 @@ public interface CacheManager {
 
     record CacheRecord(
             @NotNull String uuid,
-            @NotNull String passwd,
+            @NotNull String secret,
             @NotNull Device device,
             @NotNull RSAHelper rsaHelper,
             long timestampCreation

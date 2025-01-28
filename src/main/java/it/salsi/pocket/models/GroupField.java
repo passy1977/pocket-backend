@@ -78,6 +78,8 @@ public final class GroupField extends BaseModel {
 
     @Override
     public void switchId() {
+        groupId = group.getId();
+
         Long tmp = serverId;
         serverId = id;
         id = tmp;

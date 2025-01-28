@@ -92,6 +92,8 @@ public final class Field extends BaseModel {
 
     @Override
     public void switchId() {
+        groupId = group.getId();
+
         Long tmp = serverId;
         serverId = id;
         id = tmp;

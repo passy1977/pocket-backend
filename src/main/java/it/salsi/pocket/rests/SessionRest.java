@@ -24,14 +24,15 @@ public class SessionRest {
         this.sessionController = sessionController;
     }
 
-    @GetMapping("/{uuid}/{timestampLastUpdate}/{email}/{passwd}")
+    @GetMapping("/{uuid}/{crypt}/{timestampLastUpdate}/{email}/{passwd}")
     public @NotNull ResponseEntity<Container> getFullData(@PathVariable @NotNull final String uuid,
-                                                    @PathVariable @NotNull final Long timestampLastUpdate,
-                                                    @PathVariable @NotNull final String email,
-                                                    @PathVariable @NotNull final String passwd,
-                                                    @NotNull final HttpServletRequest request) throws CommonsException
+                                                          @PathVariable @NotNull final String crypt,
+                                                          @PathVariable @NotNull final Long timestampLastUpdate,
+                                                          @PathVariable @NotNull final String email,
+                                                          @PathVariable @NotNull final String passwd,
+                                                          @NotNull final HttpServletRequest request) throws CommonsException
     {
-        return sessionController.getFullData(uuid, timestampLastUpdate, email, passwd);
+        return sessionController.getData(uuid, crypt, timestampLastUpdate, email, passwd);
     }
 
 }

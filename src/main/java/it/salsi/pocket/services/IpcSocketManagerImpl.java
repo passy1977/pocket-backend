@@ -10,6 +10,7 @@ import it.salsi.pocket.repositories.DeviceRepository;
 import it.salsi.pocket.repositories.UserRepository;
 import it.salsi.pocket.security.PasswordEncoder;
 import it.salsi.pocket.security.RSAHelper;
+
 import lombok.Setter;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
@@ -28,6 +29,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static it.salsi.pocket.Constant.*;
+import static it.salsi.pocket.security.RSAHelper.ALGORITHM;
 import static it.salsi.pocket.services.IpcSocketManagerImpl.Response.*;
 
 @Setter
@@ -65,6 +67,7 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
 
         @JsonProperty("hostPublicKey")
         private @NotNull String _publicKey;
+
 
         public DeviceExtended(@NotNull final Device device, @Nullable final String host) {
             setId(device.getId());
@@ -187,7 +190,7 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
     }
 
     //cmd|email|uuid
-    private @NotNull Optional<Device>  handleDevice(@NotNull final PrintWriter out, final String @NotNull [] split) {
+    private @NotNull Optional<DeviceExtended>  handleDevice(@NotNull final PrintWriter out, final String @NotNull [] split) {
         if(split.length < 3) {
             out.println(WRONG_PARAMS.value);
             return Optional.empty();
@@ -214,6 +217,8 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
 
         Device ret = null;
 
+        String privateKey = "";
+
         switch (cmd) {
             case "ADD_DEVICE":
                 if(atmDevice.get().isPresent()) {
@@ -223,7 +228,7 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
                 ret = new Device(user.get());
 
                 try {
-                    var rsaHelper = new RSAHelper("RSA", 2048);
+                    var rsaHelper = new RSAHelper(ALGORITHM, RSAHelper.KEY_SIZE);
                     rsaHelper.enroll();
 
                     ret.setPrivateKey(Base64.getEncoder().encodeToString(rsaHelper.getPrivateKey()));
@@ -259,7 +264,10 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
         }
 
 
-        return Optional.ofNullable(ret);
+        if(ret == null) {
+            return Optional.empty();
+        }
+        return Optional.of(new DeviceExtended(ret, serverUrl));
     }
 
     /**
@@ -341,7 +349,7 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
                                         handleDevice(out, split).ifPresent( d -> {
                                             final var mapper = new ObjectMapper();
                                             try {
-                                                out.println(mapper.writeValueAsString(new DeviceExtended(d, serverUrl)));
+                                                out.println(mapper.writeValueAsString(d));
                                                 out.println(0);
                                             } catch (JsonProcessingException e) {
                                                 out.println(e.getMessage());
@@ -362,7 +370,7 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
             log.severe(e.getMessage());
         } finally {
             try {
-                Thread.sleep(10_000);
+                Thread.sleep(1_000);
             } catch (InterruptedException ex) {
                 log.severe(ex.getMessage());
             }
