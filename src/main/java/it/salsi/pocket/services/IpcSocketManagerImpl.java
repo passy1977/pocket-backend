@@ -25,6 +25,7 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -231,8 +232,9 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
                     var rsaHelper = new RSAHelper(ALGORITHM, RSAHelper.KEY_SIZE);
                     rsaHelper.enroll();
 
-                    ret.setPrivateKey(Base64.getEncoder().encodeToString(rsaHelper.getPrivateKey()));
-                    ret.setPublicKey(Base64.getEncoder().encodeToString(rsaHelper.getPublicKey()));
+                    ret.setPrivateKey(Objects.requireNonNull(rsaHelper.getPrivateKeyString()));
+                    ret.setPublicKey(Objects.requireNonNull(rsaHelper.getPublicKeyString()));
+
                 } catch (CommonsException e) {
                     out.println(e.getMessage());
                     out.println(0);

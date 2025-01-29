@@ -14,6 +14,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
+import java.util.Objects;
 
 final public class RSAHelper  {
 
@@ -26,6 +27,18 @@ final public class RSAHelper  {
 
     @Nullable
     private PublicKey publicKey = null;
+
+    private static @NotNull String bytesToHex(byte @NotNull [] hash) {
+        StringBuilder hexString = new StringBuilder(2 * hash.length);
+        for (byte b : hash) {
+            String hex = Integer.toHexString(0xff & b);
+            if (hex.length() == 1) {
+                hexString.append('0');
+            }
+            hexString.append(hex);
+        }
+        return hexString.toString();
+    }
 
     public static final String ALGORITHM = "RSA";
     public static final int KEY_SIZE = 2048;
@@ -42,11 +55,39 @@ final public class RSAHelper  {
         return privateKey.getEncoded();
     }
 
+    public @Nullable String getPrivateKeyString() {
+        final var ret = getPrivateKey();
+        if(ret == null) {
+            return null;
+        }
+
+        return """
+-----BEGIN RSA PRIVATE KEY-----
+{}
+-----END RSA PRIVATE KEY-----
+""".replace("{}", Base64.getEncoder().encodeToString(ret));
+    }
+
     public byte @Nullable [] getPublicKey() {
         if(publicKey == null) {
             return null;
         }
         return publicKey.getEncoded();
+    }
+
+    public @Nullable String getPublicKeyString() {
+        if(publicKey == null || publicKey.getFormat() == null) {
+            return null;
+        }
+        if (!publicKey.getFormat().equals("X.509")) {
+            throw new IllegalArgumentException("Expected X.509 format key");
+        }
+
+        return """
+-----BEGIN PUBLIC KEY-----
+{}
+-----END PUBLIC KEY-----
+""".replace("{}", Base64.getEncoder().encodeToString(publicKey.getEncoded()));
     }
 
     public void enroll() throws CommonsException {
