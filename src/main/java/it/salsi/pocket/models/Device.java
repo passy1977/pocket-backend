@@ -24,6 +24,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 package it.salsi.pocket.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import it.salsi.commons.CommonsException;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -34,8 +35,10 @@ import lombok.ToString;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.util.StringTokenizer;
 import java.util.UUID;
 
+import static it.salsi.pocket.Constant.DIVISOR;
 import static it.salsi.pocket.models.Device.Status.ACTIVE;
 
 @ToString
@@ -98,13 +101,41 @@ public class Device {
     @Lob
     private String note;
 
+    @ToString.Exclude
     @JsonIgnore
     @Lob
     private String publicKey;
 
+    @ToString.Exclude
     @JsonIgnore
     @Lob
     private String privateKey;
+
+
+    public @NotNull  String getPublicKey() throws CommonsException {
+        if(publicKey.isEmpty()) {
+            return "";
+        }
+
+        final var tokenizer = new StringTokenizer(publicKey, "[\n]");
+        if(tokenizer.countTokens() != 3) {
+            throw new CommonsException("Token number != 3");
+        }
+        tokenizer.nextToken();
+        return tokenizer.nextToken();
+    }
+
+    public @NotNull  String getPrivateKey() throws CommonsException {
+        if(privateKey.isEmpty()) {
+            return "";
+        }
+        final var tokenizer = new StringTokenizer(privateKey, "[\n]");
+        if(tokenizer.countTokens() != 3) {
+            throw new CommonsException("Token number != 3");
+        }
+        tokenizer.nextToken();
+        return tokenizer.nextToken();
+    }
 
     public void updateTimestampLastLogin() {
         timestampLastLogin = Instant.now(Clock.systemUTC()).getEpochSecond();

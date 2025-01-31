@@ -65,10 +65,17 @@ public record SessionController(
                     return ResponseEntity.status(601).build();
                 }
 
-                if(Integer.parseInt(decryptSplit[1]) != device.getId())
+                if(Integer.parseInt(decryptSplit[0]) != device.getId())
                 {
                     return ResponseEntity.status(602).build();
                 }
+
+                if(!decryptSplit[1].equals(cacheRecord.get().secret()))
+                {
+                    cacheManager.rm(cacheRecord.get());
+                    return ResponseEntity.status(605).build();
+                }
+
             }
         } else {
             final var optDevice = deviceRepository.findByUuid(uuid);
@@ -87,14 +94,14 @@ public record SessionController(
                 return ResponseEntity.status(601).build();
             }
 
-            if(Integer.parseInt(decryptSplit[1]) != device.getId())
+            if(Integer.parseInt(decryptSplit[0]) != device.getId())
             {
                 return ResponseEntity.status(602).build();
             }
 
             cacheManager.add(new CacheRecord(
                     uuid,
-                    decryptSplit[0],
+                    decryptSplit[1],
                     device,
                     rsaHelper,
                     now

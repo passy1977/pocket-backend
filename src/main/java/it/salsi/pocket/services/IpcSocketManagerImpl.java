@@ -79,7 +79,12 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
             setNote(device.getNote());
             this._userId = device.getUser().getId();
             this._host = host;
-            this._publicKey = device.getPublicKey();
+            try {
+                this._publicKey = device.getPublicKey();
+            } catch (CommonsException e) {
+                log.severe(e.getMessage());
+                this._publicKey = "";
+            }
         }
 
 
