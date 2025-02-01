@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.*;
@@ -56,8 +55,10 @@ public record SessionController(
         if(cacheManager.has(uuid)) {
             final var cacheRecord = cacheManager.get(uuid);
             if(cacheRecord.isPresent()) {
-                device = cacheRecord.get().device();
-                rsaHelper = cacheRecord.get().rsaHelper();
+                var record = cacheRecord.get();
+                device = record.getDevice();
+                rsaHelper = record.getRsaHelper();
+
 
                 final var decryptSplit = rsaHelper.decryptFromURLBase64(crypt).split("["+DIVISOR.value+"]");
                 if(decryptSplit.length != 2)
@@ -70,9 +71,9 @@ public record SessionController(
                     return ResponseEntity.status(602).build();
                 }
 
-                if(!decryptSplit[1].equals(cacheRecord.get().secret()))
+                if(!decryptSplit[1].equals(record.getSecret()))
                 {
-                    cacheManager.rm(cacheRecord.get());
+                    cacheManager.rm(record);
                     return ResponseEntity.status(605).build();
                 }
 
@@ -117,6 +118,7 @@ public record SessionController(
 
         return ResponseEntity.ok(
                 new Container(
+                        now,
                         optUser.get(),
                         device,
                         groupController.getAll(uuid, timestampLastUpdate),

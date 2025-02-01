@@ -16,20 +16,16 @@ public final class CacheManagerImpl implements CacheManager {
     @NotNull
     private final Map<String, CacheRecord> map = new HashMap<>();
 
-    public CacheManagerImpl() {
-
-    }
-
     public boolean add(@NotNull final CacheRecord record) {
-        if(map.containsKey(record.uuid())) {
+        if(map.containsKey(record.getUuid())) {
             return false;
         }
-        map.put(record.uuid(), record);
+        map.put(record.getUuid(), record);
         return true;
     }
 
     public @NotNull Optional<CacheRecord> get(@NotNull final CacheRecord record) {
-        return get(record.uuid());
+        return get(record.getUuid());
     }
 
     public @NotNull Optional<CacheRecord> get(@NotNull final String uuid) {
@@ -40,14 +36,14 @@ public final class CacheManagerImpl implements CacheManager {
     }
 
     public boolean rm(@NotNull final CacheRecord record) {
-        if(!map.containsKey(record.uuid())) {
+        if(!map.containsKey(record.getUuid())) {
             return false;
         }
-        return map.remove(record.uuid()) != null;
+        return map.remove(record.getUuid()) != null;
     }
 
     public boolean has(@NotNull final CacheRecord record) {
-        return has(record.uuid());
+        return has(record.getUuid());
     }
 
     public boolean has(@NotNull final String uuid) {

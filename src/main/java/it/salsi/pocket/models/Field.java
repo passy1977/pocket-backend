@@ -62,7 +62,6 @@ public final class Field extends BaseModel {
     @NotNull
     private Long groupFieldId = 0L;
 
-//    @JsonInclude
     @Transient
     @NotNull
     private Long serverGroupFieldId = 0L;
@@ -85,17 +84,11 @@ public final class Field extends BaseModel {
     @ToString.Exclude
     @JoinColumn(name = "group_id", referencedColumnName = "id")
     @ManyToOne
-    //@Where(clause = "deleted = 0")
     @SQLRestriction("deleted = 0")
     private Group group;
 
-
     @Override
     public void switchId() {
-        if(group != null) {
-            groupId = group.getId();
-        }
-
         Long tmp = serverId;
         serverId = id;
         id = tmp;
@@ -104,9 +97,15 @@ public final class Field extends BaseModel {
         serverGroupFieldId = groupFieldId;
         groupFieldId = tmp;
 
-        tmp = serverGroupId;
-        serverGroupId = groupId;
-        groupId = tmp;
+        if(group != null) {
+            if(group.getId() == 0 && group.getServerId() > 0) {
+                serverGroupId = group.getServerId();
+            } else if(group.getId() > 0 && group.getServerId() == 0) {
+                serverGroupId = group.getId();
+            } else {
+                serverGroupId = 0L;
+            }
+        }
     }
 
     @Override
@@ -117,8 +116,4 @@ public final class Field extends BaseModel {
         return id != null && Objects.equals(id, field.id);
     }
 
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
 }

@@ -115,17 +115,19 @@ public final class Group extends BaseModel {
 
     @Override
     public void switchId() {
-        if(group != null) {
-            groupId = group.getId();
-        }
-
         Long tmp = serverId;
         serverId = id;
         id = tmp;
 
-        tmp = serverGroupId;
-        serverGroupId = groupId;
-        groupId = tmp;
+        if(group != null) {
+            if(group.getId() == 0 && group.getServerGroupId() > 0) {
+                serverGroupId = group.getServerGroupId();
+            } else if(group.getId() > 0 && group.getServerGroupId() == 0) {
+                serverGroupId = group.getId();
+            } else {
+                serverGroupId = 0L;
+            }
+        }
     }
 
 

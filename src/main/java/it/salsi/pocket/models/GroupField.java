@@ -66,9 +66,9 @@ public final class GroupField extends BaseModel {
     @JsonIgnore
     @JoinColumn(name = "group_id", referencedColumnName = "id")
     @ManyToOne
-//    @Where(clause = "deleted = 0")
     @SQLRestriction("deleted = 0")
     private Group group;
+
 
     @ToString.Exclude
     @JsonIgnore
@@ -78,17 +78,19 @@ public final class GroupField extends BaseModel {
 
     @Override
     public void switchId() {
-        if(group != null) {
-            groupId = group.getId();
-        }
-
         Long tmp = serverId;
         serverId = id;
         id = tmp;
 
-        tmp = serverGroupId;
-        serverGroupId = groupId;
-        groupId = tmp;
+        if(group != null) {
+            if(group.getId() == 0 && group.getServerId() > 0) {
+                serverGroupId = group.getServerId();
+            } else if(group.getId() > 0 && group.getServerId() == 0) {
+                serverGroupId = group.getId();
+            } else {
+                serverGroupId = 0L;
+            }
+        }
     }
 
 
