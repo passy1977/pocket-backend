@@ -120,9 +120,9 @@ public final class Group extends BaseModel {
         id = tmp;
 
         if(group != null) {
-            if(group.getId() == 0 && group.getServerGroupId() > 0) {
-                serverGroupId = group.getServerGroupId();
-            } else if(group.getId() > 0 && group.getServerGroupId() == 0) {
+            if(group.getId() == 0 && group.getServerId() > 0) {
+                serverGroupId = group.getServerId();
+            } else if(group.getId() > 0 && group.getServerId() == 0) {
                 serverGroupId = group.getId();
             } else {
                 serverGroupId = 0L;
@@ -139,8 +139,4 @@ public final class Group extends BaseModel {
         return id != null && Objects.equals(id, group.id);
     }
 
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
 }

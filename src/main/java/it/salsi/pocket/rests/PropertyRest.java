@@ -39,6 +39,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.List;
 
+@Deprecated
 @RestController
 @RequestMapping("${server.api-version}/property/")
 public record PropertyRest(@NotNull PropertyRepository repository,

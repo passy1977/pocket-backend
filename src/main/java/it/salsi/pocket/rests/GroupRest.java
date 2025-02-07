@@ -37,6 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.Optional;
 
+@Deprecated
 @Log
 @RestController
 @RequestMapping("${server.api-version}/group/")

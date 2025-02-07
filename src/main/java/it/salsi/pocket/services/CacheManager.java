@@ -20,20 +20,20 @@ public interface CacheManager {
         @NotNull String secret;
         @NotNull Device device;
         @NotNull RSAHelper rsaHelper;
-        long timestampCreation;
+        long timestampLastUpdate;
 
         public CacheRecord(
                 @NotNull String uuid,
                 @NotNull String secret,
                 @NotNull Device device,
                 @NotNull RSAHelper rsaHelper,
-                long timestampCreation
+                long timestampLastUpdate
         ) {
             this.uuid = uuid;
             this.secret = secret;
             this.device = device;
             this.rsaHelper = rsaHelper;
-            this.timestampCreation = timestampCreation;
+            this.timestampLastUpdate = timestampLastUpdate;
         }
 
     }

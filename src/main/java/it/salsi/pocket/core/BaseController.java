@@ -44,5 +44,4 @@ public class BaseController <T extends BaseModel, Y extends BaseRepository<T>> {
         } else return List.of();
     }
 
-
 }

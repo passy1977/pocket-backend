@@ -81,7 +81,7 @@ abstract public class BaseModel implements Cloneable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        BaseModel baseModel = (BaseModel) o;
+        final var baseModel = (BaseModel) o;
         return id != null && Objects.equals(id, baseModel.id);
     }
 

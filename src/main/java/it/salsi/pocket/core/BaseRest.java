@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
+@Deprecated
 @SuppressWarnings("Duplicates")
 @Log
 public class BaseRest<T extends BaseModel, Y extends BaseRepository<T>> {

@@ -49,7 +49,7 @@ import java.util.*;
 import static it.salsi.pocket.Constant.*;
 import static it.salsi.pocket.models.User.Status.ACTIVE;
 
-
+@Deprecated
 @Log
 @RestController
 @RequestMapping("${server.api-version}/user/")
