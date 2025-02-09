@@ -23,13 +23,25 @@ import it.salsi.pocket.models.Device;
 import it.salsi.pocket.models.User;
 import it.salsi.pocket.repositories.DeviceRepository;
 import it.salsi.pocket.repositories.UserRepository;
+import lombok.Setter;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Log
 public class BaseController <T extends BaseModel, Y extends BaseRepository<T>> {
+
+    @FunctionalInterface
+    protected interface OnStore<T> {
+        @NotNull
+        T perform(@NotNull final T t);
+    }
 
     @NotNull
     final private Y repository;
@@ -39,6 +51,10 @@ public class BaseController <T extends BaseModel, Y extends BaseRepository<T>> {
 
     @NotNull
     final private DeviceRepository deviceRepository;
+
+    @Setter
+    @Nullable
+    private BaseController.OnStore<T> onStore;
 
     public BaseController(@Autowired @NotNull final Y repository,
                     @Autowired @NotNull final DeviceRepository deviceRepository,
@@ -50,6 +66,7 @@ public class BaseController <T extends BaseModel, Y extends BaseRepository<T>> {
     }
 
 
+    @NotNull
     public Iterable<T> getAll(@NotNull final String token,
                               @NotNull final Long timestampLastUpdate
     ) {
@@ -61,6 +78,59 @@ public class BaseController <T extends BaseModel, Y extends BaseRepository<T>> {
             ret.forEach(T::switchId);
             return ret;
         } else return List.of();
+    }
+
+    @NotNull
+    public Iterable<T> store(@NotNull final String uuid
+            , @NotNull final Long now
+            , @Nullable final Iterable<T> elements
+    ) {
+
+        if(elements == null) {
+            return List.of();
+        }
+
+        List<T> ret = new ArrayList<>();
+
+        final var device = deviceRepository.findByUuid(uuid);
+        if (device.isPresent()) {
+            if (device.get().getStatus() != Device.Status.ACTIVE) return List.of();
+            if (device.get().getUser().getStatus() != User.Status.ACTIVE) return List.of();
+
+            for(final var it : elements) {
+                if(!it.deleted) {
+                    it.setUser(device.get().getUser());
+                    it.setTimestampLastUpdate(now);
+
+                    final var tmp = it.id;
+                    it.id = it.serverId;
+                    it.serverId = tmp;
+
+                    try {
+
+                        var original = new AtomicReference<T>();
+                        Optional.ofNullable(onStore).ifPresent(onStore -> original.set(onStore.perform(it)));
+
+                        @SuppressWarnings("unchecked") final var base = (T) repository.save(original.get()).clone();
+                        base.postStore(original.get()); 
+
+                        ret.add(base);
+                    } catch (CloneNotSupportedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                else
+                {
+                    //todo: handle deleted
+                }
+            }
+        }
+
+        if (!ret.isEmpty()) {
+            ret.forEach(BaseModel::switchId);
+        }
+
+        return ret;
     }
 
 }

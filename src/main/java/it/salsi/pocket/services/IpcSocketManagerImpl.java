@@ -43,7 +43,6 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -99,10 +98,13 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
             this._userId = device.getUser().getId();
             this._host = host;
             try {
-                this._publicKey = device.getPublicKey();
+
+                _publicKey = "-----BEGIN PUBLIC KEY-----\n";
+                _publicKey += device.getPublicKey() + "\n";
+                _publicKey += "-----END PUBLIC KEY-----\n";
             } catch (CommonsException e) {
                 log.severe(e.getMessage());
-                this._publicKey = "";
+                _publicKey = "";
             }
         }
 

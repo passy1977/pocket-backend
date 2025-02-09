@@ -25,20 +25,54 @@ import it.salsi.pocket.core.BaseController;
 import it.salsi.pocket.models.Field;
 import it.salsi.pocket.repositories.DeviceRepository;
 import it.salsi.pocket.repositories.FieldRepository;
+import it.salsi.pocket.repositories.GroupRepository;
 import it.salsi.pocket.repositories.UserRepository;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.Optional;
 
 @Log
 @Service
 public final class FieldController extends BaseController<Field, FieldRepository> {
 
     public FieldController(
-            @NotNull final FieldRepository repository,
-            @NotNull final DeviceRepository deviceRepository,
-            @NotNull final UserRepository userRepository
+            @Autowired @NotNull final FieldRepository repository,
+            @Autowired @NotNull final GroupRepository groupRepository,
+            @Autowired @NotNull final DeviceRepository deviceRepository,
+            @Autowired @NotNull final UserRepository userRepository
     ) {
         super(repository, deviceRepository, userRepository);
+
+        setOnStore((@NotNull final var field) -> {
+
+            var tmp = field.getGroupId();
+            field.setGroupId(field.getServerGroupId());
+            field.setServerGroupId(tmp);
+
+            tmp = field.getGroupFieldId();
+            field.setGroupFieldId(field.getServerGroupFieldId());
+            field.setServerGroupFieldId(tmp);
+
+            groupRepository.findById(field.getGroupId()).ifPresent(group -> {
+                field.setGroup(group);
+
+                Optional.ofNullable(group.getFields()).ifPresentOrElse(
+                        fields -> fields.add(field),
+                        () -> {
+                            if (group.getFields() != null) {
+                                group.setFields(new ArrayList<>());
+                                group.getFields().add(field);
+                            }
+                        }
+                );
+            });
+
+            return field;
+        });
+
     }
 }

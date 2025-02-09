@@ -31,7 +31,9 @@ import it.salsi.pocket.services.CacheManager.CacheRecord;
 import jakarta.validation.Valid;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -41,6 +43,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.StreamSupport;
 
 import static it.salsi.pocket.controllers.SessionController.ErrorCode.*;
 import static it.salsi.pocket.Constant.DIVISOR;
@@ -48,17 +51,7 @@ import static it.salsi.pocket.security.RSAHelper.*;
 
 @Log
 @Service
-public record SessionController(
-        @Autowired @NotNull UserRepository userRepository,
-        @Autowired @NotNull DeviceRepository deviceRepository,
-        @Autowired @NotNull GroupController groupController,
-        @Autowired @NotNull GroupFieldController groupFieldController,
-        @Autowired @NotNull FieldController fieldController,
-        @Autowired @NotNull Crypto crypto,
-        @Autowired @NotNull PasswordEncoder passwordEncoder,
-        @Autowired @NotNull RSAHelper rsaHelper,
-        @Autowired @NotNull CacheManager cacheManager
-        ) {
+public class SessionController {
 
     enum ErrorCode {
 
@@ -81,11 +74,47 @@ public record SessionController(
         public final int code;
     }
 
+
+    private final @NotNull UserRepository userRepository;
+    private final @NotNull DeviceRepository deviceRepository;
+    private final @NotNull GroupController groupController;
+    private final @NotNull GroupFieldController groupFieldController;
+    private final @NotNull FieldController fieldController;
+    private final @NotNull Crypto crypto;
+    private final @NotNull PasswordEncoder passwordEncoder;
+    private final @NotNull RSAHelper rsaHelper;
+    private final @NotNull CacheManager cacheManager;
+
+    @Value("${server.check-timestamp-last-update}")
+    @Nullable
+    private Boolean checkTimestampLastUpdate;
+
+    public SessionController(
+            @Autowired @NotNull final UserRepository userRepository,
+            @Autowired @NotNull final DeviceRepository deviceRepository,
+            @Autowired @NotNull final GroupController groupController,
+            @Autowired @NotNull final GroupFieldController groupFieldController,
+            @Autowired @NotNull final FieldController fieldController,
+            @Autowired @NotNull final Crypto crypto,
+            @Autowired @NotNull final PasswordEncoder passwordEncoder,
+            @Autowired @NotNull final RSAHelper rsaHelper,
+            @Autowired @NotNull final CacheManager cacheManager
+    ) {
+        this.userRepository = userRepository;
+        this.deviceRepository = deviceRepository;
+        this.groupController = groupController;
+        this.groupFieldController = groupFieldController;
+        this.fieldController = fieldController;
+        this.crypto = crypto;
+        this.passwordEncoder = passwordEncoder;
+        this.rsaHelper = rsaHelper;
+        this.cacheManager = cacheManager;
+    }
+
     public @NotNull ResponseEntity<Container> getData(@NotNull final String uuid,
                                                       @NotNull final String crypt,
                                                       @NotNull final String email,
                                                       @NotNull final String passwd) throws CommonsException {
-
 
         final var optUser = userRepository.findByEmailAndPasswd(email, passwd);
         if(optUser.isEmpty()) {
@@ -194,21 +223,20 @@ public record SessionController(
     }
 
     @PostMapping("/{uuid}/{crypt}")
-    public @NotNull ResponseEntity<Container> setData(@PathVariable @NotNull final String uuid,
-                                                      @PathVariable @NotNull final String crypt,
-                                                      @Valid @NotNull @RequestBody final Container container
+    public @NotNull ResponseEntity<Container> setData(@NotNull final String uuid,
+                                                      @NotNull final String crypt,
+                                                      @NotNull final Container container
     ) throws CommonsException  {
         final var now = Instant.now(Clock.systemUTC()).getEpochSecond();
 
         long timestampLastUpdate = 0;
         Device device = null;
-        RSAHelper rsaHelper = null;
         if(cacheManager.has(uuid)) {
             final var cacheRecord = cacheManager.get(uuid);
             if(cacheRecord.isPresent()) {
                 var record = cacheRecord.get();
                 device = record.getDevice();
-                rsaHelper = record.getRsaHelper();
+                final var rsaHelper = record.getRsaHelper();
 
                 final var decryptSplit = rsaHelper.decryptFromURLBase64(crypt).split("["+DIVISOR.value+"]");
                 if(decryptSplit.length != 4)
@@ -229,11 +257,13 @@ public record SessionController(
                     return ResponseEntity.status(SECRET_NOT_MATCH.code).build();
                 }
 
-                timestampLastUpdate = Long.parseLong(decryptSplit[2]);
-                if(timestampLastUpdate != record.getTimestampLastUpdate())
-                {
-                    cacheManager.rm(record);
-                    return ResponseEntity.status(TIMESTAMP_LAST_UPDATE_NOT_MATCH.code).build();
+                if(checkTimestampLastUpdate != null && checkTimestampLastUpdate) {
+                    timestampLastUpdate = Long.parseLong(decryptSplit[2]);
+                    if(timestampLastUpdate != record.getTimestampLastUpdate())
+                    {
+                        cacheManager.rm(record);
+                        return ResponseEntity.status(TIMESTAMP_LAST_UPDATE_NOT_MATCH.code).build();
+                    }
                 }
 
                 if(Long.parseLong(decryptSplit[3]) != device.getUser().getId())
@@ -248,25 +278,33 @@ public record SessionController(
         }
 
 
-
-
-
-
         if(device == null) {
             return ResponseEntity.status(DEVICE_NOT_FOUND.code).build();
         }
 
-        device.setTimestampLastLogin(now);
-        deviceRepository.save(device);
+
+        final var groups = groupController.store(uuid, now, container.groups());
+        final var groupFields = groupFieldController.store(uuid, now, container.groupsFields());
+        final var fields = fieldController.store(uuid, now, container.fields());
+
+        if(
+                StreamSupport.stream(groups.spliterator(), false).findFirst().isPresent()
+                || StreamSupport.stream(groupFields.spliterator(), false).findFirst().isPresent()
+                || StreamSupport.stream(fields.spliterator(), false).findFirst().isPresent()
+        )
+        {
+            device.setTimestampLastUpdate(now);
+            deviceRepository.save(device);
+        }
 
         return ResponseEntity.ok(
                 new Container(
                         now,
-                        null,
-                        null,
-                        groupController.getAll(uuid, timestampLastUpdate),
-                        groupFieldController.getAll(uuid, timestampLastUpdate),
-                        fieldController.getAll(uuid, timestampLastUpdate)
+                        device.getUser(),
+                        device,
+                        groups,
+                        groupFields,
+                        fields
                 ));
     }
 

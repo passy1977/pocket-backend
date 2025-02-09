@@ -109,7 +109,7 @@ public class Device {
     private String privateKey;
 
 
-    public @NotNull  String getPublicKey() throws CommonsException {
+    public @NotNull String getPublicKey() throws CommonsException {
         if(publicKey.isEmpty()) {
             return "";
         }
@@ -122,7 +122,7 @@ public class Device {
         return tokenizer.nextToken();
     }
 
-    public @NotNull  String getPrivateKey() throws CommonsException {
+    public @NotNull String getPrivateKey() throws CommonsException {
         if(privateKey.isEmpty()) {
             return "";
         }

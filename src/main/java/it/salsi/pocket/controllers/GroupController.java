@@ -26,17 +26,65 @@ import it.salsi.pocket.repositories.GroupRepository;
 import it.salsi.pocket.repositories.UserRepository;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.Optional;
 
 @Log
 @Service
 public final class GroupController extends BaseController<Group, GroupRepository> {
 
     public GroupController(
-            @NotNull final GroupRepository repository,
-            @NotNull final DeviceRepository deviceRepository,
-            @NotNull final UserRepository userRepository
+            @Autowired @NotNull final GroupRepository repository,
+            @Autowired @NotNull final DeviceRepository deviceRepository,
+            @Autowired @NotNull final UserRepository userRepository
     ) {
         super(repository, deviceRepository, userRepository);
+
+        setOnStore( (@NotNull final var group) -> {
+
+            final var tmp = group.getGroupId();
+            group.setGroupId(group.getServerGroupId());
+            group.setServerGroupId(tmp);
+
+            repository.findById(group.getGroupId()).ifPresent(parent -> {
+                group.setGroup(parent);
+
+                Optional.ofNullable(parent.getGroups()).ifPresentOrElse(
+                        groups -> groups.add(group),
+                        () -> {
+                            if (group.getGroups() != null) {
+                                group.setGroups(new ArrayList<>());
+                                group.getGroups().add(group);
+                            }
+                        }
+                );
+            });
+
+            return group;
+        });
+
     }
+
+    @NotNull
+    public Iterable<Group> store(@NotNull final String uuid
+            , @NotNull final Long now
+            , @Nullable final Iterable<Group> elements
+    ) {
+
+        var ret = super.store(uuid, now, elements);
+
+        for(var it : ret) {
+
+            //repository.findById()
+        }
+
+
+        return ret;
+    }
+
+
 }

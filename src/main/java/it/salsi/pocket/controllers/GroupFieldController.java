@@ -23,10 +23,14 @@ import it.salsi.pocket.core.BaseController;
 import it.salsi.pocket.models.GroupField;
 import it.salsi.pocket.repositories.DeviceRepository;
 import it.salsi.pocket.repositories.GroupFieldRepository;
+import it.salsi.pocket.repositories.GroupRepository;
 import it.salsi.pocket.repositories.UserRepository;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.Optional;
 
 @Log
 @Service
@@ -34,9 +38,33 @@ public final class GroupFieldController extends BaseController<GroupField, Group
 
     public GroupFieldController(
             @NotNull final GroupFieldRepository repository,
+            @NotNull final GroupRepository groupRepository,
             @NotNull final DeviceRepository deviceRepository,
             @NotNull final UserRepository userRepository
     ) {
         super(repository, deviceRepository, userRepository);
+
+        setOnStore((@NotNull final var groupField)  -> {
+
+            final var tmp = groupField.getGroupId();
+            groupField.setGroupId(groupField.getServerGroupId());
+            groupField.setServerGroupId(tmp);
+
+            groupRepository.findById(groupField.getGroupId()).ifPresent(group -> {
+                groupField.setGroup(group);
+
+                Optional.ofNullable(group.getGroupFields()).ifPresentOrElse(
+                        groupFields -> groupFields.add(groupField),
+                        () -> {
+                            if (group.getGroupFields() != null) {
+                                group.setGroupFields(new ArrayList<>());
+                                group.getGroupFields().add(groupField);
+                            }
+                        }
+                );
+            });
+
+            return groupField;
+        });
     }
 }

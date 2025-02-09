@@ -33,6 +33,7 @@ import org.hibernate.Hibernate;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.SQLRestriction;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -40,11 +41,10 @@ import java.util.Objects;
 
 @Getter
 @Setter
-@ToString
 @RequiredArgsConstructor
 @Entity(name = "groups")
 @SuppressWarnings("JpaDataSourceORMInspection")
-public final class Group extends BaseModel {
+public final class Group extends BaseModel<Group> {
 
     @EqualsAndHashCode.Include
     @Size(max = 256, message = "max size exceeded; maximum 256 char")
@@ -77,7 +77,7 @@ public final class Group extends BaseModel {
 
 
     @JsonIgnore
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "group", fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.MERGE, mappedBy = "group", fetch = FetchType.EAGER)
     @Fetch(value = FetchMode.SUBSELECT)
 //    @Where(clause = "deleted = 0")
     @SQLRestriction("deleted = 0")
@@ -85,7 +85,7 @@ public final class Group extends BaseModel {
 
     @Nullable
     @JsonIgnore
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "group", fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.MERGE, mappedBy = "group", fetch = FetchType.EAGER)
 //    @Where(clause = "deleted = 0")
     @SQLRestriction("deleted = 0")
     private List<Group> groups;
@@ -99,7 +99,7 @@ public final class Group extends BaseModel {
     private Group group;
 
     @JsonIgnore
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "group", fetch = FetchType.LAZY)
+    @OneToMany(cascade = CascadeType.MERGE, mappedBy = "group", fetch = FetchType.LAZY)
 //    @Where(clause = "deleted = 0")
     @SQLRestriction("deleted = 0")
     @ToString.Exclude
@@ -127,6 +127,11 @@ public final class Group extends BaseModel {
         }
     }
 
+    @Override
+    public void postStore(final Group group)
+    {
+
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -136,4 +141,9 @@ public final class Group extends BaseModel {
         return id != null && Objects.equals(id, group.id);
     }
 
+    @Contract(pure = true)
+    @Override
+    public @org.jetbrains.annotations.NotNull String toString() {
+        return String.valueOf(id);
+    }
 }

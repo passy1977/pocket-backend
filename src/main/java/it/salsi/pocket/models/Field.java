@@ -32,12 +32,11 @@ import org.hibernate.annotations.SQLRestriction;
 
 import java.util.Objects;
 
-@ToString
 @Getter
 @Setter
 @RequiredArgsConstructor
 @Entity(name = "fields")
-public final class Field extends BaseModel {
+public final class Field extends BaseModel<Field> {
 
     @EqualsAndHashCode.Include
     @Size(max = 256, message = "max size exceeded; maximum 256 char")
@@ -106,6 +105,12 @@ public final class Field extends BaseModel {
     }
 
     @Override
+    public void postStore(final Field field)
+    {
+
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
@@ -113,4 +118,8 @@ public final class Field extends BaseModel {
         return id != null && Objects.equals(id, field.id);
     }
 
+    @Override
+    public String toString() {
+        return String.valueOf(id);
+    }
 }

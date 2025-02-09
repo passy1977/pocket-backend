@@ -33,13 +33,12 @@ import org.hibernate.annotations.SQLRestriction;
 import java.util.Objects;
 
 
-@ToString
 @Getter
 @Setter
 @RequiredArgsConstructor
 @Entity(name = "group_fields")
 @SuppressWarnings("JpaDataSourceORMInspection")
-public final class GroupField extends BaseModel {
+public final class GroupField extends BaseModel<GroupField> {
 
     @EqualsAndHashCode.Include
     @Size(max = 256, message = "max size exceeded; maximum 256 char")
@@ -89,6 +88,11 @@ public final class GroupField extends BaseModel {
         }
     }
 
+    @Override
+    public void postStore(final GroupField groupField)
+    {
+
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -98,4 +102,8 @@ public final class GroupField extends BaseModel {
         return id != null && Objects.equals(id, that.id);
     }
 
+    @Override
+    public String toString() {
+        return String.valueOf(id);
+    }
 }

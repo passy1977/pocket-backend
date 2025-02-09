@@ -40,7 +40,7 @@ import java.util.Objects;
 @Setter
 @ToString
 @RequiredArgsConstructor
-abstract public class BaseModel implements Cloneable {
+abstract public class BaseModel<T extends BaseModel> implements Cloneable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     protected Long id = 0L;
@@ -64,12 +64,14 @@ abstract public class BaseModel implements Cloneable {
         return super.clone();
     }
 
-    abstract public void setUser(@NotNull User user);
+    public abstract void setUser(@NotNull User user);
 
     @NotNull
-    abstract public User getUser();
+    public abstract User getUser();
 
     public abstract void switchId();
+
+    public abstract void postStore(final T t);
 
     @Override
     public boolean equals(Object o) {
