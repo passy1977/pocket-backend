@@ -4,7 +4,6 @@ package it.salsi.pocket.security;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.springframework.context.annotation.Configuration;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
