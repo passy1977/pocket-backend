@@ -196,7 +196,7 @@ public record SessionController(
     @PostMapping("/{uuid}/{crypt}")
     public @NotNull ResponseEntity<Container> setData(@PathVariable @NotNull final String uuid,
                                                       @PathVariable @NotNull final String crypt,
-                                                      @Valid @NotNull @RequestBody final List<Container> list
+                                                      @Valid @NotNull @RequestBody final Container container
     ) throws CommonsException  {
         final var now = Instant.now(Clock.systemUTC()).getEpochSecond();
 

@@ -51,12 +51,12 @@ public class SessionRest {
         return sessionController.getData(uuid, crypt, email, passwd);
     }
 
-    @PostMapping("/{uuid}/{crypt}/{timestampLastUpdate}")
+    @PostMapping("/{uuid}/{crypt}")
     public @NotNull ResponseEntity<Container> setData(@PathVariable @NotNull final String uuid,
                                                           @PathVariable @NotNull final String crypt,
-                                                          @Valid @NotNull @RequestBody final List<Container> list) throws CommonsException
+                                                          @Valid @NotNull @RequestBody final Container container) throws CommonsException
     {
-        return sessionController.setData(uuid, crypt, list);
+        return sessionController.setData(uuid, crypt, container);
     }
 
 
