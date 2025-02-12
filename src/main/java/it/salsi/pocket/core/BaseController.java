@@ -112,7 +112,7 @@ public class BaseController <T extends BaseModel, Y extends BaseRepository<T>> {
                         Optional.ofNullable(onStore).ifPresent(onStore -> original.set(onStore.perform(it)));
 
                         @SuppressWarnings("unchecked") final var base = (T) repository.save(original.get()).clone();
-                        base.postStore(original.get()); 
+                        base.postStore(original.get());
 
                         ret.add(base);
                     } catch (CloneNotSupportedException e) {

@@ -42,13 +42,11 @@ public class SessionRest {
         this.sessionController = sessionController;
     }
 
-    @GetMapping("/{uuid}/{crypt}/{email}/{passwd}")
+    @GetMapping("/{uuid}/{crypt}")
     public @NotNull ResponseEntity<Container> getData(@PathVariable @NotNull final String uuid,
-                                                          @PathVariable @NotNull final String crypt,
-                                                          @PathVariable @NotNull final String email,
-                                                          @PathVariable @NotNull final String passwd) throws CommonsException
+                                                          @PathVariable @NotNull final String crypt) throws CommonsException
     {
-        return sessionController.getData(uuid, crypt, email, passwd);
+        return sessionController.getData(uuid, crypt);
     }
 
     @PostMapping("/{uuid}/{crypt}")

@@ -28,7 +28,6 @@ import it.salsi.pocket.security.PasswordEncoder;
 import it.salsi.pocket.security.RSAHelper;
 import it.salsi.pocket.services.CacheManager;
 import it.salsi.pocket.services.CacheManager.CacheRecord;
-import jakarta.validation.Valid;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,9 +35,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+
 
 import java.time.Clock;
 import java.time.Instant;
@@ -65,7 +63,7 @@ public class SessionController {
         CACHE_NOT_FOND(607),
         SECRET_EMPTY(608),
         TIMESTAMP_LAST_NOT_PARSABLE(609),
-        FOO(0);
+        OK(0);
 
         ErrorCode(int code) {
             this.code = code;
@@ -82,7 +80,7 @@ public class SessionController {
     private final @NotNull FieldController fieldController;
     private final @NotNull Crypto crypto;
     private final @NotNull PasswordEncoder passwordEncoder;
-    private final @NotNull RSAHelper rsaHelper;
+
     private final @NotNull CacheManager cacheManager;
 
     @Value("${server.check-timestamp-last-update}")
@@ -97,7 +95,6 @@ public class SessionController {
             @Autowired @NotNull final FieldController fieldController,
             @Autowired @NotNull final Crypto crypto,
             @Autowired @NotNull final PasswordEncoder passwordEncoder,
-            @Autowired @NotNull final RSAHelper rsaHelper,
             @Autowired @NotNull final CacheManager cacheManager
     ) {
         this.userRepository = userRepository;
@@ -107,23 +104,17 @@ public class SessionController {
         this.fieldController = fieldController;
         this.crypto = crypto;
         this.passwordEncoder = passwordEncoder;
-        this.rsaHelper = rsaHelper;
         this.cacheManager = cacheManager;
     }
 
     public @NotNull ResponseEntity<Container> getData(@NotNull final String uuid,
-                                                      @NotNull final String crypt,
-                                                      @NotNull final String email,
-                                                      @NotNull final String passwd) throws CommonsException {
+                                                      @NotNull final String crypt) throws CommonsException {
 
-        final var optUser = userRepository.findByEmailAndPasswd(email, passwd);
-        if(optUser.isEmpty()) {
-            return ResponseEntity.status(USER_NOT_FOUND.code).build();
-        }
 
         final var now = Instant.now(Clock.systemUTC()).getEpochSecond();
 
         long timestampLastUpdate = 0;
+        Optional<User> optUser = Optional.empty();
         Device device = null;
         RSAHelper rsaHelper = null;
         if(cacheManager.has(uuid)) {
@@ -133,9 +124,8 @@ public class SessionController {
                 device = record.getDevice();
                 rsaHelper = record.getRsaHelper();
 
-
                 final var decryptSplit = rsaHelper.decryptFromURLBase64(crypt).split("["+DIVISOR.value+"]");
-                if(decryptSplit.length != 3)
+                if(decryptSplit.length != 5)
                 {
                     cacheManager.rm(record);
                     return ResponseEntity.status(WRONG_SIZE_TOKEN.code).build();
@@ -160,6 +150,10 @@ public class SessionController {
                     return ResponseEntity.status(TIMESTAMP_LAST_UPDATE_NOT_MATCH.code).build();
                 }
 
+                optUser =  userRepository.findByEmailAndPasswd(decryptSplit[3], passwordEncoder.encode(decryptSplit[4]));
+                if(optUser.isEmpty()) {
+                    return ResponseEntity.status(USER_NOT_FOUND.code).build();
+                }
             }
         } else {
             final var optDevice = deviceRepository.findByUuid(uuid);
@@ -173,7 +167,7 @@ public class SessionController {
             rsaHelper.loadPrivateKey(Base64.getDecoder().decode(device.getPrivateKey()));
 
             final var decryptSplit = rsaHelper.decryptFromURLBase64(crypt).split("["+DIVISOR.value+"]");
-            if(decryptSplit.length != 3)
+            if(decryptSplit.length != 5)
             {
                 return ResponseEntity.status(WRONG_SIZE_TOKEN.code).build();
             }
@@ -194,6 +188,11 @@ public class SessionController {
             } catch (final NumberFormatException e) {
                 System.err.println(e.getMessage());
                 return ResponseEntity.status(TIMESTAMP_LAST_NOT_PARSABLE.code).build();
+            }
+
+            optUser =  userRepository.findByEmailAndPasswd(decryptSplit[3], passwordEncoder.encode(decryptSplit[4]));
+            if(optUser.isEmpty()) {
+                return ResponseEntity.status(USER_NOT_FOUND.code).build();
             }
 
             cacheManager.add(new CacheRecord(
@@ -230,6 +229,7 @@ public class SessionController {
         final var now = Instant.now(Clock.systemUTC()).getEpochSecond();
 
         long timestampLastUpdate = 0;
+        Optional<User> optUser = Optional.empty();
         Device device = null;
         if(cacheManager.has(uuid)) {
             final var cacheRecord = cacheManager.get(uuid);
@@ -239,7 +239,7 @@ public class SessionController {
                 final var rsaHelper = record.getRsaHelper();
 
                 final var decryptSplit = rsaHelper.decryptFromURLBase64(crypt).split("["+DIVISOR.value+"]");
-                if(decryptSplit.length != 4)
+                if(decryptSplit.length != 5)
                 {
                     cacheManager.rm(record);
                     return ResponseEntity.status(WRONG_SIZE_TOKEN.code).build();
@@ -266,10 +266,9 @@ public class SessionController {
                     }
                 }
 
-                if(Long.parseLong(decryptSplit[3]) != device.getUser().getId())
-                {
-                    cacheManager.rm(record);
-                    return ResponseEntity.status(USER_ID_NOT_MATCH.code).build();
+                optUser =  userRepository.findByEmailAndPasswd(decryptSplit[3], passwordEncoder.encode(decryptSplit[4]));
+                if(optUser.isEmpty()) {
+                    return ResponseEntity.status(USER_NOT_FOUND.code).build();
                 }
 
             }
@@ -300,7 +299,7 @@ public class SessionController {
         return ResponseEntity.ok(
                 new Container(
                         now,
-                        device.getUser(),
+                        optUser.get(),
                         device,
                         groups,
                         groupFields,
