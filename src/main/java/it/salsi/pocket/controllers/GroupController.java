@@ -44,7 +44,11 @@ public final class GroupController extends BaseController<Group, GroupRepository
     ) {
         super(repository, deviceRepository, userRepository);
 
-        setOnStore( (@NotNull final var group) -> {
+        setOnStore( (@NotNull final var mapIdObjects, @NotNull final var group) -> {
+
+            if(group.getServerGroupId() == 0 && mapIdObjects.containsKey(group.getGroupId())) {
+                group.setServerGroupId(mapIdObjects.get(group.getGroupId()));
+            }
 
             final var tmp = group.getGroupId();
             group.setGroupId(group.getServerGroupId());
@@ -67,23 +71,6 @@ public final class GroupController extends BaseController<Group, GroupRepository
             return group;
         });
 
-    }
-
-    @NotNull
-    public Iterable<Group> store(@NotNull final String uuid
-            , @NotNull final Long now
-            , @Nullable final Iterable<Group> elements
-    ) {
-
-        var ret = super.store(uuid, now, elements);
-
-        for(var it : ret) {
-
-            //repository.findById()
-        }
-
-
-        return ret;
     }
 
 

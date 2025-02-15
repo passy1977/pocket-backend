@@ -29,9 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Log
@@ -40,14 +38,11 @@ public class BaseController <T extends BaseModel, Y extends BaseRepository<T>> {
     @FunctionalInterface
     protected interface OnStore<T> {
         @NotNull
-        T perform(@NotNull final T t);
+        T perform(Map<Long, Long> mapIdObjects, @NotNull final T t);
     }
 
     @NotNull
     final private Y repository;
-
-    @NotNull
-    final private UserRepository userRepository;
 
     @NotNull
     final private DeviceRepository deviceRepository;
@@ -62,7 +57,6 @@ public class BaseController <T extends BaseModel, Y extends BaseRepository<T>> {
     ) {
         this.repository = repository;
         this.deviceRepository = deviceRepository;
-        this.userRepository = userRepository;
     }
 
 
@@ -92,45 +86,83 @@ public class BaseController <T extends BaseModel, Y extends BaseRepository<T>> {
 
         List<T> ret = new ArrayList<>();
 
+        Map<Long, Long> mapIdObjects = new HashMap<>();
+
         final var device = deviceRepository.findByUuid(uuid);
         if (device.isPresent()) {
             if (device.get().getStatus() != Device.Status.ACTIVE) return List.of();
             if (device.get().getUser().getStatus() != User.Status.ACTIVE) return List.of();
 
             for(final var it : elements) {
-                if(!it.deleted) {
-                    it.setUser(device.get().getUser());
-                    it.setTimestampLastUpdate(now);
-
-                    final var tmp = it.id;
-                    it.id = it.serverId;
-                    it.serverId = tmp;
-
-                    try {
-
-                        var original = new AtomicReference<T>();
-                        Optional.ofNullable(onStore).ifPresent(onStore -> original.set(onStore.perform(it)));
-
-                        @SuppressWarnings("unchecked") final var base = (T) repository.save(original.get()).clone();
-                        base.postStore(original.get());
-
-                        ret.add(base);
-                    } catch (CloneNotSupportedException e) {
-                        throw new RuntimeException(e);
-                    }
+                if(it.deleted) {
+                    continue;
                 }
-                else
-                {
-                    //todo: handle deleted
+                it.setUser(device.get().getUser());
+                it.setTimestampLastUpdate(now);
+
+                final var tmp = it.id;
+                it.id = it.serverId;
+                it.serverId = tmp;
+
+                try {
+
+                    var original = new AtomicReference<T>();
+                    Optional.ofNullable(onStore).ifPresent(onStore -> original.set(onStore.perform(mapIdObjects, it)));
+
+                    @SuppressWarnings("unchecked") final var base = (T) repository.save(original.get()).clone();
+
+                    base.postStore(original.get());
+
+                    mapIdObjects.put(base.getId(), base.getServerId());
+
+                    ret.add(base);
+                } catch (CloneNotSupportedException e) {
+                    throw new RuntimeException(e);
                 }
+
             }
         }
 
-        if (!ret.isEmpty()) {
-            ret.forEach(BaseModel::switchId);
+        return ret;
+    }
+
+    public boolean delete(@NotNull final String uuid
+            , @NotNull final Long now
+            , @Nullable final Iterable<T> elements
+    ) {
+        if(elements == null) {
+            return false;
         }
 
-        return ret;
+        final var device = deviceRepository.findByUuid(uuid);
+        if (device.isPresent()) {
+            if (device.get().getStatus() != Device.Status.ACTIVE) return false;
+            if (device.get().getUser().getStatus() != User.Status.ACTIVE) return false;
+
+            for(final var it : elements) {
+                if(!it.deleted) {
+                    continue;
+                }
+                it.setUser(device.get().getUser());
+                it.setTimestampLastUpdate(now);
+
+                final var tmp = it.id;
+                it.id = it.serverId;
+                it.serverId = tmp;
+
+                var t = repository.findById(it.id);
+                if(t.isPresent()) {
+                    t.get().setDeleted(true);
+                    repository.save(t.get());
+                    return true;
+                } else {
+                    return false;
+                }
+
+            }
+        }
+
+        return false;
     }
 
 }

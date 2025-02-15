@@ -22,6 +22,7 @@ package it.salsi.pocket.rests;
 import it.salsi.commons.CommonsException;
 import it.salsi.pocket.controllers.SessionController;
 import it.salsi.pocket.models.Container;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +34,7 @@ import java.util.List;
 
 @Log
 @RestController
-@RequestMapping("${server.api-version}/session/")
+@RequestMapping("${server.api-version}/")
 public class SessionRest {
 
     private @NotNull final SessionController sessionController;
@@ -52,7 +53,8 @@ public class SessionRest {
     @PostMapping("/{uuid}/{crypt}")
     public @NotNull ResponseEntity<Container> setData(@PathVariable @NotNull final String uuid,
                                                           @PathVariable @NotNull final String crypt,
-                                                          @Valid @NotNull @RequestBody final Container container) throws CommonsException
+                                                          @Valid @NotNull @RequestBody final Container container
+                                                        ) throws CommonsException
     {
         return sessionController.setData(uuid, crypt, container);
     }

@@ -286,10 +286,17 @@ public class SessionController {
         final var groupFields = groupFieldController.store(uuid, now, container.groupsFields());
         final var fields = fieldController.store(uuid, now, container.fields());
 
+        final var fieldsDeleted = fieldController.delete(uuid, now, container.fields());
+        final var groupFieldsDeleted = groupFieldController.delete(uuid, now, container.groupsFields());
+        final var groupsDeleted = groupController.delete(uuid, now, container.groups());
+
         if(
                 StreamSupport.stream(groups.spliterator(), false).findFirst().isPresent()
                 || StreamSupport.stream(groupFields.spliterator(), false).findFirst().isPresent()
                 || StreamSupport.stream(fields.spliterator(), false).findFirst().isPresent()
+                || fieldsDeleted
+                || groupFieldsDeleted
+                || groupsDeleted
         )
         {
             device.setTimestampLastUpdate(now);

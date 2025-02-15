@@ -44,7 +44,7 @@ public final class GroupFieldController extends BaseController<GroupField, Group
     ) {
         super(repository, deviceRepository, userRepository);
 
-        setOnStore((@NotNull final var groupField)  -> {
+        setOnStore((@NotNull final var mapIdObjects, @NotNull final var groupField)  -> {
 
             final var tmp = groupField.getGroupId();
             groupField.setGroupId(groupField.getServerGroupId());

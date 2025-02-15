@@ -89,9 +89,14 @@ public final class GroupField extends BaseModel<GroupField> {
     }
 
     @Override
-    public void postStore(final GroupField groupField)
-    {
+    public void postStore(final @org.jetbrains.annotations.NotNull GroupField groupField) {
+        serverId = id;
+        id = groupField.getServerId();
 
+        if(this.group != null) {
+            serverGroupId = this.group.getId();
+        }
+        groupId = groupField.getServerGroupId();
     }
 
     @Override

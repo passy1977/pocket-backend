@@ -105,9 +105,17 @@ public final class Field extends BaseModel<Field> {
     }
 
     @Override
-    public void postStore(final Field field)
-    {
+    public void postStore(final @org.jetbrains.annotations.NotNull Field field) {
+        serverId = id;
+        id = field.getServerId();
 
+        if(this.group != null) {
+            serverGroupId = this.group.getId();
+        }
+        groupId = field.getServerGroupId();
+
+        serverGroupFieldId = groupFieldId;
+        groupFieldId = field.getServerGroupFieldId();
     }
 
     @Override

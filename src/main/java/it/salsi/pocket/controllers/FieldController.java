@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Optional;
 
 @Log
@@ -47,7 +48,7 @@ public final class FieldController extends BaseController<Field, FieldRepository
     ) {
         super(repository, deviceRepository, userRepository);
 
-        setOnStore((@NotNull final var field) -> {
+        setOnStore((@NotNull final var mapIdObjects, @NotNull final var field) -> {
 
             var tmp = field.getGroupId();
             field.setGroupId(field.getServerGroupId());

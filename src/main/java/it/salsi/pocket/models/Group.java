@@ -128,8 +128,14 @@ public final class Group extends BaseModel<Group> {
     }
 
     @Override
-    public void postStore(final Group group)
-    {
+    public void postStore(final @org.jetbrains.annotations.NotNull Group group) {
+        serverId = id;
+        id = group.getServerId();
+
+        if(this.group != null) {
+            serverGroupId = this.group.getId();
+        }
+        groupId = group.getServerGroupId();
 
     }
 
