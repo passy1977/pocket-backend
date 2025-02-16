@@ -22,6 +22,7 @@ package it.salsi.pocket.services;
 
 import it.salsi.commons.CommonsException;
 import it.salsi.commons.utils.NumberUtils;
+import it.salsi.pocket.models.Device;
 import it.salsi.pocket.models.Property;
 import it.salsi.pocket.models.User;
 import it.salsi.pocket.repositories.*;
@@ -33,6 +34,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static it.salsi.pocket.Constant.*;
@@ -142,16 +145,23 @@ public final class DatabaseManagerImpl implements DatabaseManager {
                         userRepository.findAll().forEach(user -> {
                             if (user.getStatus() != User.Status.DELETED) {
 
-                                //TODO: fix device invalidation
-//                                if (deviceRepository.countAllByUserAndTimestampLastUpdateBeforeAndStatusIsNot(user, user.getTimestampLastUpdate(), Device.Status.INVALIDATED) == 0) {
-//                                    log.info("Start deleting data");
-//
-//                                    fieldRepository.findByUserAndDeletedAndTimestampLastUpdateLessThan(user, true, user.getTimestampLastUpdate()).forEach(fieldRepository::delete);
-//                                    groupFieldRepository.findByUserAndDeletedAndTimestampLastUpdateLessThan(user, true, user.getTimestampLastUpdate()).forEach(groupFieldRepository::delete);
-//                                    groupRepository.findByUserAndDeletedAndTimestampLastUpdateLessThan(user, true, user.getTimestampLastUpdate()).forEach(groupRepository::delete);
-//
-//                                    log.info("End deleting data");
-//                                }
+                                var timestampLastUpdate = 0L;
+                                for(final var device : user.getDevices()) {
+                                    if(device.getTimestampLastUpdate() < timestampLastUpdate ) {
+                                        timestampLastUpdate = device.getTimestampLastUpdate();
+                                    }
+                                }
+
+
+                                if (deviceRepository.countAllByUserAndTimestampLastUpdateBeforeAndStatusIsNot(user, timestampLastUpdate, Device.Status.INVALIDATED) == 0) {
+                                    log.info("Start deleting data, timestampLastUpdate:" + timestampLastUpdate);
+
+                                    fieldRepository.findByUserAndDeletedAndTimestampLastUpdateLessThan(user, true, timestampLastUpdate).forEach(fieldRepository::delete);
+                                    groupFieldRepository.findByUserAndDeletedAndTimestampLastUpdateLessThan(user, true, timestampLastUpdate).forEach(groupFieldRepository::delete);
+                                    groupRepository.findByUserAndDeletedAndTimestampLastUpdateLessThan(user, true, timestampLastUpdate).forEach(groupRepository::delete);
+
+                                    log.info("End deleting data");
+                                }
 
                             }
                         });

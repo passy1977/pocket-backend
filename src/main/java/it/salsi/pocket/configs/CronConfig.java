@@ -54,8 +54,8 @@ public class CronConfig {
     }
 
 
-    @Scheduled(cron = "55 23 * * * ?")
-    final public void authTokenExpiration() {
+    @Scheduled(cron = "${server.services-cron}")
+    final public void servicesCron() {
         try {
             devicesManager.invalidateAll();
             databaseManager.cleanOldData();

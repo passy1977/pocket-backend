@@ -38,29 +38,10 @@ import static it.salsi.pocket.Constant.CRYPTO_IV;
 @Configuration
 public class Config {
 
-    @Value("${server.auth.passwd}")
-    @Nullable
-    private String authPasswd;
-
     @NotNull
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new PasswordEncoder();
-    }
-
-    @NotNull
-    @Bean
-    public Crypto getCrypto() throws CommonsException {
-        if (authPasswd == null) {
-            throw new CommonsException("Key null");
-        }
-        return new CryptoBuilder()
-                .setDecodeBase64Callback(Base64.getUrlDecoder()::decode)
-                .setEncodeBase64Callback(Base64.getUrlEncoder()::encode)
-                .setKey(authPasswd)
-                .setIV(CRYPTO_IV.value)
-                .setCipher("AES/CBC/PKCS5Padding")
-                .build();
     }
 
     @NotNull

@@ -30,15 +30,9 @@ import java.util.Optional;
 
 public interface DeviceRepository extends CrudRepository<Device, Long> {
 
-    //TODO:Handle this situation
     Optional<Device> findByUuid(@NotNull final String uuid);
 
     Optional<Device> findByUserAndUuid(@NotNull final User user, @NotNull final String uuid);
-
-    @SuppressWarnings("UnusedReturnValue")
-            //TODO:Handle this situation
-//    @Transactional
-//    Long deleteByToken(@NotNull final String token);
 
     Long countAllByUserAndTimestampLastUpdateBeforeAndStatusIsNot(@NotNull final User user, @NotNull final Long beforeDate, @NotNull final Device.Status statusNotIn);
 

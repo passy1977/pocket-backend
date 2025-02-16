@@ -105,7 +105,6 @@ public final class DevicesManagerImpl implements DevicesManager {
                                     device.setStatus(Device.Status.INVALIDATED);
                                     deviceRepository.save(device);
                                 }
-
                             }
 
                         } catch (NumberFormatException e) {

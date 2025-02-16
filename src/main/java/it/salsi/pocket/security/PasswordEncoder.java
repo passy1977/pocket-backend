@@ -30,13 +30,6 @@ public class PasswordEncoder {
 
     }
 
-    public boolean matches(@NotNull final CharSequence rawPassword, @NotNull final String encodedPassword) {
-        if (md == null) {
-            return false;
-        }
-        return encode(rawPassword).equals(encodedPassword);
-    }
-
     @NotNull
     private static String bytesToHex(final byte @NotNull [] hashInBytes) {
         final var sb = new StringBuilder();
