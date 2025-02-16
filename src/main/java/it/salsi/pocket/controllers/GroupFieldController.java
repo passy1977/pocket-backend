@@ -25,16 +25,27 @@ import it.salsi.pocket.repositories.DeviceRepository;
 import it.salsi.pocket.repositories.GroupFieldRepository;
 import it.salsi.pocket.repositories.GroupRepository;
 import it.salsi.pocket.repositories.UserRepository;
+import lombok.Setter;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
+@Setter
 @Log
 @Service
 public final class GroupFieldController extends BaseController<GroupField, GroupFieldRepository> {
+
+    @NotNull
+    private final Map<Long, Long> mapId = new HashMap<>();
+
+    @Nullable
+    private Map<Long, Long> groupMapId = null;
 
     public GroupFieldController(
             @NotNull final GroupFieldRepository repository,
@@ -44,7 +55,11 @@ public final class GroupFieldController extends BaseController<GroupField, Group
     ) {
         super(repository, deviceRepository, userRepository);
 
-        setOnStore((@NotNull final var mapIdObjects, @NotNull final var groupField)  -> {
+        setOnStore((@NotNull final var groupField)  -> {
+
+            if(groupMapId != null &&  groupField.getServerGroupId() == 0 && groupMapId.containsKey(groupField.getGroupId())) {
+                groupField.setServerGroupId(groupMapId.get(groupField.getGroupId()));
+            }
 
             final var tmp = groupField.getGroupId();
             groupField.setGroupId(groupField.getServerGroupId());
@@ -67,4 +82,25 @@ public final class GroupFieldController extends BaseController<GroupField, Group
             return groupField;
         });
     }
+
+
+    public void clean() {
+        mapId.clear();
+    }
+
+    @NotNull
+    public Map<Long, Long> getMapId() {
+        return mapId;
+    }
+
+    public void add(long id, long serverId) {
+        if(!mapId.containsKey(id)) {
+            mapId.put(id, serverId);
+        }
+    }
+
+    public void add(final @NotNull GroupField groupField) {
+        add(groupField.getId(), groupField.getServerId());
+    }
+
 }

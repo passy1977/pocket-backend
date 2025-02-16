@@ -39,7 +39,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static it.salsi.pocket.Constant.PROPERTY_INVALIDATOR_ENABLE;
 import static it.salsi.pocket.Constant.PROPERTY_INVALIDATOR_MAX_LOGIN_DAYS;
-import static java.time.Instant.*;
+import static java.time.Instant.ofEpochSecond;
 
 @Log
 @Service

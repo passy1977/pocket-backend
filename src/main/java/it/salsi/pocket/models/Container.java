@@ -19,6 +19,7 @@
 
 package it.salsi.pocket.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,6 +28,8 @@ public record Container(
         @Nullable User user,
         @Nullable Device device,
         @NotNull Iterable<Group> groups,
-        @NotNull Iterable<GroupField> groupsFields,
+
+        @JsonProperty("groupsFields")
+        @NotNull Iterable<GroupField> groupFields,
         @NotNull Iterable<Field> fields
 ) {}

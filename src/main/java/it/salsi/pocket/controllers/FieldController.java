@@ -23,12 +23,11 @@ package it.salsi.pocket.controllers;
 
 import it.salsi.pocket.core.BaseController;
 import it.salsi.pocket.models.Field;
-import it.salsi.pocket.repositories.DeviceRepository;
-import it.salsi.pocket.repositories.FieldRepository;
-import it.salsi.pocket.repositories.GroupRepository;
-import it.salsi.pocket.repositories.UserRepository;
+import it.salsi.pocket.repositories.*;
+import lombok.Setter;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -36,27 +35,35 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.Optional;
 
+@Setter
 @Log
 @Service
 public final class FieldController extends BaseController<Field, FieldRepository> {
 
+    @Nullable
+    private Map<Long, Long> groupMapId = null;
+
+    @Nullable
+    private Map<Long, Long> groupFieldMapId = null;
+
     public FieldController(
             @Autowired @NotNull final FieldRepository repository,
             @Autowired @NotNull final GroupRepository groupRepository,
+            @Autowired @NotNull final GroupFieldRepository groupFieldRepository,
             @Autowired @NotNull final DeviceRepository deviceRepository,
             @Autowired @NotNull final UserRepository userRepository
     ) {
         super(repository, deviceRepository, userRepository);
 
-        setOnStore((@NotNull final var mapIdObjects, @NotNull final var field) -> {
+        setOnStore((@NotNull final var field) -> {
+
+            if(groupMapId != null && field.getServerGroupId() == 0 && groupMapId.containsKey(field.getGroupId())) {
+                field.setServerGroupId(groupMapId.get(field.getGroupId()));
+            }
 
             var tmp = field.getGroupId();
             field.setGroupId(field.getServerGroupId());
             field.setServerGroupId(tmp);
-
-            tmp = field.getGroupFieldId();
-            field.setGroupFieldId(field.getServerGroupFieldId());
-            field.setServerGroupFieldId(tmp);
 
             groupRepository.findById(field.getGroupId()).ifPresent(group -> {
                 field.setGroup(group);
@@ -72,8 +79,15 @@ public final class FieldController extends BaseController<Field, FieldRepository
                 );
             });
 
+            if(groupFieldMapId != null && field.getServerGroupFieldId() == 0 && groupFieldMapId.containsKey(field.getGroupFieldId())) {
+                field.setServerGroupFieldId(groupFieldMapId.get(field.getGroupFieldId()));
+            }
+
+            tmp = field.getGroupFieldId();
+            field.setGroupFieldId(field.getServerGroupFieldId());
+            field.setServerGroupFieldId(tmp);
+
             return field;
         });
-
     }
 }

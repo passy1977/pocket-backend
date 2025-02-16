@@ -20,7 +20,6 @@
 package it.salsi.pocket.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import it.salsi.pocket.core.BaseModel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;

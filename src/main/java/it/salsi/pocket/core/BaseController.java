@@ -19,7 +19,11 @@ package it.salsi.pocket.core;
  *
  ***************************************************************************/
 
+import it.salsi.pocket.controllers.GroupController;
+import it.salsi.pocket.controllers.GroupFieldController;
 import it.salsi.pocket.models.Device;
+import it.salsi.pocket.models.Group;
+import it.salsi.pocket.models.GroupField;
 import it.salsi.pocket.models.User;
 import it.salsi.pocket.repositories.DeviceRepository;
 import it.salsi.pocket.repositories.UserRepository;
@@ -29,7 +33,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Log
@@ -38,7 +44,7 @@ public class BaseController <T extends BaseModel, Y extends BaseRepository<T>> {
     @FunctionalInterface
     protected interface OnStore<T> {
         @NotNull
-        T perform(Map<Long, Long> mapIdObjects, @NotNull final T t);
+        T perform(@NotNull final T t);
     }
 
     @NotNull
@@ -58,7 +64,6 @@ public class BaseController <T extends BaseModel, Y extends BaseRepository<T>> {
         this.repository = repository;
         this.deviceRepository = deviceRepository;
     }
-
 
     @NotNull
     public Iterable<T> getAll(@NotNull final String token,
@@ -86,7 +91,6 @@ public class BaseController <T extends BaseModel, Y extends BaseRepository<T>> {
 
         List<T> ret = new ArrayList<>();
 
-        Map<Long, Long> mapIdObjects = new HashMap<>();
 
         final var device = deviceRepository.findByUuid(uuid);
         if (device.isPresent()) {
@@ -107,13 +111,25 @@ public class BaseController <T extends BaseModel, Y extends BaseRepository<T>> {
                 try {
 
                     var original = new AtomicReference<T>();
-                    Optional.ofNullable(onStore).ifPresent(onStore -> original.set(onStore.perform(mapIdObjects, it)));
+                    Optional.ofNullable(onStore).ifPresent(onStore -> original.set(onStore.perform(it)));
 
                     @SuppressWarnings("unchecked") final var base = (T) repository.save(original.get()).clone();
 
                     base.postStore(original.get());
 
-                    mapIdObjects.put(base.getId(), base.getServerId());
+                    switch (this) {
+                        case @NotNull final GroupController gc -> {
+                            if (base instanceof final @NotNull Group g) {
+                                gc.add(g);
+                            }
+                        }
+                        case @NotNull final GroupFieldController gfc -> {
+                            if(base instanceof final @NotNull GroupField gf) {
+                                gfc.add(gf);
+                            }
+                        }
+                        default -> {}
+                    }
 
                     ret.add(base);
                 } catch (CloneNotSupportedException e) {

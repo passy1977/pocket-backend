@@ -19,7 +19,6 @@
 
 package it.salsi.pocket.services;
 
-import it.salsi.commons.CommonsException;
 import it.salsi.pocket.models.User;
 import it.salsi.pocket.repositories.UserRepository;
 import it.salsi.pocket.security.PasswordEncoder;

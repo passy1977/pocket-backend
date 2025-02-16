@@ -35,7 +35,6 @@ import java.time.Instant;
 import java.util.StringTokenizer;
 import java.util.UUID;
 
-import static it.salsi.pocket.Constant.DIVISOR;
 import static it.salsi.pocket.models.Device.Status.ACTIVE;
 
 @ToString

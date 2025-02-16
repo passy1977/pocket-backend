@@ -26,16 +26,20 @@ import it.salsi.pocket.repositories.GroupRepository;
 import it.salsi.pocket.repositories.UserRepository;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Log
 @Service
 public final class GroupController extends BaseController<Group, GroupRepository> {
+
+    @NotNull
+    private final Map<Long, Long> mapId = new HashMap<>();
 
     public GroupController(
             @Autowired @NotNull final GroupRepository repository,
@@ -44,10 +48,10 @@ public final class GroupController extends BaseController<Group, GroupRepository
     ) {
         super(repository, deviceRepository, userRepository);
 
-        setOnStore( (@NotNull final var mapIdObjects, @NotNull final var group) -> {
+        setOnStore( (@NotNull final var group) -> {
 
-            if(group.getServerGroupId() == 0 && mapIdObjects.containsKey(group.getGroupId())) {
-                group.setServerGroupId(mapIdObjects.get(group.getGroupId()));
+            if(group.getServerGroupId() == 0 && mapId.containsKey(group.getGroupId())) {
+                group.setServerGroupId(mapId.get(group.getGroupId()));
             }
 
             final var tmp = group.getGroupId();
@@ -73,5 +77,23 @@ public final class GroupController extends BaseController<Group, GroupRepository
 
     }
 
+    public void clean() {
+        mapId.clear();
+    }
+
+    @NotNull
+    public Map<Long, Long> getMapId() {
+        return mapId;
+    }
+
+    public void add(long id, long serverId) {
+        if(!mapId.containsKey(id)) {
+            mapId.put(id, serverId);
+        }
+    }
+
+    public void add(final @NotNull Group group) {
+        add(group.getId(), group.getServerId());
+    }
 
 }

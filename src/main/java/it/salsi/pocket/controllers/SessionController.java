@@ -20,8 +20,9 @@
 package it.salsi.pocket.controllers;
 
 import it.salsi.commons.CommonsException;
-import it.salsi.commons.utils.Crypto;
-import it.salsi.pocket.models.*;
+import it.salsi.pocket.models.Container;
+import it.salsi.pocket.models.Device;
+import it.salsi.pocket.models.User;
 import it.salsi.pocket.repositories.DeviceRepository;
 import it.salsi.pocket.repositories.UserRepository;
 import it.salsi.pocket.security.PasswordEncoder;
@@ -37,15 +38,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PostMapping;
 
-
 import java.time.Clock;
 import java.time.Instant;
-import java.util.*;
+import java.util.Base64;
+import java.util.Optional;
 import java.util.stream.StreamSupport;
 
-import static it.salsi.pocket.controllers.SessionController.ErrorCode.*;
 import static it.salsi.pocket.Constant.DIVISOR;
-import static it.salsi.pocket.security.RSAHelper.*;
+import static it.salsi.pocket.controllers.SessionController.ErrorCode.*;
+import static it.salsi.pocket.security.RSAHelper.ALGORITHM;
+import static it.salsi.pocket.security.RSAHelper.KEY_SIZE;
 
 @Log
 @Service
@@ -78,9 +80,7 @@ public class SessionController {
     private final @NotNull GroupController groupController;
     private final @NotNull GroupFieldController groupFieldController;
     private final @NotNull FieldController fieldController;
-    private final @NotNull Crypto crypto;
     private final @NotNull PasswordEncoder passwordEncoder;
-
     private final @NotNull CacheManager cacheManager;
 
     @Value("${server.check-timestamp-last-update}")
@@ -93,7 +93,6 @@ public class SessionController {
             @Autowired @NotNull final GroupController groupController,
             @Autowired @NotNull final GroupFieldController groupFieldController,
             @Autowired @NotNull final FieldController fieldController,
-            @Autowired @NotNull final Crypto crypto,
             @Autowired @NotNull final PasswordEncoder passwordEncoder,
             @Autowired @NotNull final CacheManager cacheManager
     ) {
@@ -101,8 +100,10 @@ public class SessionController {
         this.deviceRepository = deviceRepository;
         this.groupController = groupController;
         this.groupFieldController = groupFieldController;
+        this.groupFieldController.setGroupMapId(groupController.getMapId());
         this.fieldController = fieldController;
-        this.crypto = crypto;
+        this.fieldController.setGroupMapId(groupController.getMapId());
+        this.fieldController.setGroupFieldMapId(groupFieldController.getMapId());
         this.passwordEncoder = passwordEncoder;
         this.cacheManager = cacheManager;
     }
@@ -281,13 +282,14 @@ public class SessionController {
             return ResponseEntity.status(DEVICE_NOT_FOUND.code).build();
         }
 
+        groupController.clean();
 
         final var groups = groupController.store(uuid, now, container.groups());
-        final var groupFields = groupFieldController.store(uuid, now, container.groupsFields());
+        final var groupFields = groupFieldController.store(uuid, now, container.groupFields());
         final var fields = fieldController.store(uuid, now, container.fields());
 
         final var fieldsDeleted = fieldController.delete(uuid, now, container.fields());
-        final var groupFieldsDeleted = groupFieldController.delete(uuid, now, container.groupsFields());
+        final var groupFieldsDeleted = groupFieldController.delete(uuid, now, container.groupFields());
         final var groupsDeleted = groupController.delete(uuid, now, container.groups());
 
         if(

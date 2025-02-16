@@ -22,15 +22,12 @@ package it.salsi.pocket.rests;
 import it.salsi.commons.CommonsException;
 import it.salsi.pocket.controllers.SessionController;
 import it.salsi.pocket.models.Container;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Log
 @RestController

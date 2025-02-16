@@ -25,7 +25,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.NoRepositoryBean;
 
-import java.util.Date;
 import java.util.Optional;
 
 @NoRepositoryBean

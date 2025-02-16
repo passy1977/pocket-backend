@@ -29,7 +29,6 @@ import it.salsi.pocket.repositories.DeviceRepository;
 import it.salsi.pocket.repositories.UserRepository;
 import it.salsi.pocket.security.PasswordEncoder;
 import it.salsi.pocket.security.RSAHelper;
-
 import lombok.Setter;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +38,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.util.Arrays;
@@ -47,7 +49,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static it.salsi.pocket.Constant.*;
+import static it.salsi.pocket.Constant.DIVISOR;
 import static it.salsi.pocket.security.RSAHelper.ALGORITHM;
 import static it.salsi.pocket.services.IpcSocketManagerImpl.Response.*;
 
