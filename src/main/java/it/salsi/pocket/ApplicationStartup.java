@@ -59,8 +59,8 @@ public record ApplicationStartup(@NotNull DatabaseManager databaseManager,
     public void onApplicationEvent(@NotNull final ApplicationReadyEvent applicationReadyEvent) {
         try {
             databaseManager.init();
-            devicesManager.invalidateAll();
-            databaseManager.cleanOldData();
+//            devicesManager.invalidateAll();
+//            databaseManager.cleanOldData();
             propertiesManager.checkAll();
             ipcSocketManager.start();
         } catch (CommonsException e) {
