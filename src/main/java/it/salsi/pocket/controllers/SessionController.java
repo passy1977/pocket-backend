@@ -65,7 +65,7 @@ public class SessionController {
         CACHE_NOT_FOND(607),
         SECRET_EMPTY(608),
         TIMESTAMP_LAST_NOT_PARSABLE(609),
-        OK(0);
+        OK(200);
 
         ErrorCode(int code) {
             this.code = code;
