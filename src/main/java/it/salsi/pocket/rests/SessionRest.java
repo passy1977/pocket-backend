@@ -56,5 +56,13 @@ public class SessionRest {
         return sessionController.setData(uuid, crypt, container);
     }
 
+    @DeleteMapping("/{uuid}/{crypt}")
+    public @NotNull ResponseEntity<?> delete(@PathVariable @NotNull final String uuid,
+                                                      @PathVariable @NotNull final String crypt
+    ) throws CommonsException
+    {
+        return sessionController.delete(uuid, crypt);
+    }
+
 
 }

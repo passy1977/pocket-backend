@@ -5,12 +5,12 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.4.1</version>
+		<version>3.4.2</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>it.salsi</groupId>
 	<artifactId>pocket</artifactId>
-	<version>5.0.0.b1</version>
+	<version>5.0.0</version>
 	<name>pocket</name>
 	<description>Pocket5 backend</description>
 	<url/>
@@ -28,7 +28,7 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
-		<spring-boot-admin.version>3.4.1</spring-boot-admin.version>
+		<spring-boot-admin.version>3.4.2</spring-boot-admin.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -51,7 +51,7 @@
 		<dependency>
 			<groupId>org.mariadb.jdbc</groupId>
 			<artifactId>mariadb-java-client</artifactId>
-			<version>3.5.1</version>
+			<version>3.5.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
@@ -76,7 +76,7 @@
 		<dependency>
 			<groupId>org.jetbrains</groupId>
 			<artifactId>annotations</artifactId>
-			<version>25.0.0</version>
+			<version>26.0.2</version>
 			<scope>provided</scope>
 		</dependency>
 

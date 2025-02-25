@@ -22,8 +22,8 @@ package it.salsi.pocket.configs;
 
 
 import it.salsi.commons.CommonsException;
+import it.salsi.pocket.services.CacheManager;
 import it.salsi.pocket.services.DatabaseManager;
-import it.salsi.pocket.services.DevicesManager;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,22 +43,22 @@ public class CronConfig {
     private final DatabaseManager databaseManager;
 
     @NotNull
-    private final DevicesManager devicesManager;
+    private final CacheManager cacheManager;
 
     public CronConfig(
             @Autowired @NotNull final DatabaseManager databaseManager,
-            @Autowired @NotNull final DevicesManager devicesManager
+            @Autowired @NotNull final CacheManager cacheManager
     ) {
         this.databaseManager = databaseManager;
-        this.devicesManager = devicesManager;
+        this.cacheManager = cacheManager;
     }
 
 
     @Scheduled(cron = "${server.services-cron}")
     final public void servicesCron() {
         try {
-            devicesManager.invalidateAll();
             databaseManager.cleanOldData();
+            cacheManager.invalidate();
         } catch (CommonsException e) {
             log.severe(e.getMessage());
         }

@@ -19,21 +19,59 @@
 
 package it.salsi.pocket.services;
 
+import it.salsi.pocket.models.User;
+import it.salsi.pocket.repositories.PropertyRepository;
+import it.salsi.pocket.repositories.UserRepository;
+import it.salsi.pocket.security.PasswordEncoder;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
+import static it.salsi.pocket.Constant.*;
+import static java.time.Instant.ofEpochSecond;
 
 @Log
 @Service
 public final class CacheManagerImpl implements CacheManager {
 
     @NotNull
+    private final PropertyRepository propertyRepository;
+
+    @NotNull
+    private final UserRepository userRepository;
+
+    @NotNull
+    private final PasswordEncoder passwordEncoder;
+
+    @Value("${server.auth.user}")
+    @Nullable
+    private String authUser;
+
+    @Value("${server.auth.passwd}")
+    @Nullable
+    private String authPasswd;
+
+    @NotNull
     private final Map<String, CacheRecord> map = new HashMap<>();
+
+    public CacheManagerImpl(@Autowired @NotNull final PropertyRepository propertyRepository
+            , @Autowired @NotNull final UserRepository userRepository
+            , @Autowired @NotNull final PasswordEncoder passwordEncoder) {
+        this.propertyRepository = propertyRepository;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     public boolean add(@NotNull final CacheRecord record) {
         if(map.containsKey(record.getUuid())) {
@@ -69,4 +107,46 @@ public final class CacheManagerImpl implements CacheManager {
         return map.containsKey(uuid);
     }
 
+    public void invalidate() {
+        log.info("Start invalidate");
+
+        AtomicReference<User> adminUser = new AtomicReference<>(new User());
+        userRepository.findByEmail(authUser).ifPresentOrElse(
+                adminUser::set,
+                () -> adminUser.set(userRepository.save(new User(authUser, authUser, passwordEncoder.encode(authPasswd))))
+        );
+
+        propertyRepository.getByUserIdAndKey(adminUser.get().getId(), PROPERTY_INVALIDATOR_ENABLE).ifPresentOrElse(invalidatorEnable -> {
+            if (Boolean.TRUE.toString().equals(invalidatorEnable.getValue())) {
+                try {
+                    propertyRepository.getByUserIdAndKey(adminUser.get().getId(), PROPERTY_INVALIDATOR_CACHE_MAX_MINUTES).ifPresentOrElse(invalidatorCacheMaxMinutes -> {
+                        log.info("Start invalidator thread: " + Thread.currentThread().getName());
+
+                        final var now = Instant.now(Clock.systemUTC()).getEpochSecond();
+
+                        for(final var key : map.keySet()) {
+                            
+                            final var maxMinutes = Integer.parseInt(invalidatorCacheMaxMinutes.getValue());
+                            if (ChronoUnit.MINUTES.between(ofEpochSecond(map.get(key).getTimestampLastUpdate()), ofEpochSecond(now)) > maxMinutes) {
+                                
+                                
+                            }
+                        }
+
+
+                    }, () -> log.severe("cron invalidator not stared: invalid conversion date"));
+
+
+                } catch (NumberFormatException e) {
+                    log.severe("cron invalidator disabled");
+                }
+
+            } else {
+                log.warning("cron invalidator not stared: invalid date");
+            }
+
+        }, () -> log.warning("cron invalidator disabled"));
+
+
+    }
 }

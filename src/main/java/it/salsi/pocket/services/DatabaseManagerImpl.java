@@ -144,17 +144,20 @@ public final class DatabaseManagerImpl implements DatabaseManager {
 
                         userRepository.findAll().forEach(user -> {
                             if (user.getStatus() != User.Status.DELETED) {
+                                if(user.getDevices().isEmpty()) {
+                                    return;
+                                }
 
                                 var timestampLastUpdate = 0L;
                                 for(final var device : user.getDevices()) {
-                                    if(device.getTimestampLastUpdate() < timestampLastUpdate ) {
+                                    if(device.getTimestampLastUpdate() > timestampLastUpdate ) {
                                         timestampLastUpdate = device.getTimestampLastUpdate();
                                     }
                                 }
 
 
                                 if (deviceRepository.countAllByUserAndTimestampLastUpdateBeforeAndStatusIsNot(user, timestampLastUpdate, Device.Status.INVALIDATED) == 0) {
-                                    log.info("Start deleting data, timestampLastUpdate:" + timestampLastUpdate);
+                                    log.info("Start deleting data, user:" + user.getEmail() + "timestampLastUpdate:" + timestampLastUpdate);
 
                                     fieldRepository.findByUserAndDeletedAndTimestampLastUpdateLessThan(user, true, timestampLastUpdate).forEach(fieldRepository::delete);
                                     groupFieldRepository.findByUserAndDeletedAndTimestampLastUpdateLessThan(user, true, timestampLastUpdate).forEach(groupFieldRepository::delete);

@@ -20,9 +20,8 @@
 
 package it.salsi.pocket.services;
 
-import it.salsi.commons.CommonsException;
 
-;
+import it.salsi.commons.CommonsException;
 
 public interface DatabaseManager {
 

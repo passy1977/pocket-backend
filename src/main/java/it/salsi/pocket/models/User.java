@@ -81,7 +81,7 @@ public final class User implements Cloneable {
     @Column(nullable = false)
     private Long timestampCreation = 0L;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "user", fetch = FetchType.EAGER)
     @JsonIgnore
     private Set<Device> devices;
 

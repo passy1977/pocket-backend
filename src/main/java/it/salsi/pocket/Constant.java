@@ -34,6 +34,7 @@ public enum Constant {
     PROPERTY_DB_VERSION("dbVersion"),
     PROPERTY_INVALIDATOR_ENABLE("invalidatorEnable"),
     PROPERTY_INVALIDATOR_MAX_LOGIN_DAYS("invalidatorMaxLoginDays"),
+    PROPERTY_INVALIDATOR_CACHE_MAX_MINUTES("invalidatorCacheMaxMinutes"),
     PROPERTY_CLEAN_DATA_ENABLE("cleanDataEnable"),
     DIVISOR("|"),
     FOO("");
@@ -45,6 +46,7 @@ public enum Constant {
             case "dbVersion" -> PROPERTY_DB_VERSION;
             case "invalidatorEnable" -> PROPERTY_INVALIDATOR_ENABLE;
             case "invalidatorMaxLoginDays" -> PROPERTY_INVALIDATOR_MAX_LOGIN_DAYS;
+            case "invalidatorCacheMaxMinutes" -> PROPERTY_INVALIDATOR_CACHE_MAX_MINUTES;
             case "cleanDataEnable" -> PROPERTY_CLEAN_DATA_ENABLE;
             default -> FOO;
         };
@@ -81,6 +83,7 @@ public enum Constant {
             case PROPERTY_CLEAN_DATA_ENABLE -> new MetaProperty(this, BOOLEAN, "Enable old data deleting", false, true, true, false);
             case PROPERTY_INVALIDATOR_ENABLE -> new MetaProperty(this, BOOLEAN, "Enable invalidate unused account", false, true, true, false);
             case PROPERTY_INVALIDATOR_MAX_LOGIN_DAYS -> new MetaProperty(this, INTEGER, "Day after that a client will be disable", 30, true, true, false);
+            case PROPERTY_INVALIDATOR_CACHE_MAX_MINUTES -> new MetaProperty(this, INTEGER, "Amount of minutes after that a login cache will be delete", 10, true, true, false);
             default -> new MetaProperty(FOO, STRING, "", "", false, true, false);
         };
     }
@@ -91,6 +94,7 @@ public enum Constant {
             case "dbVersion" -> PROPERTY_DB_VERSION.getMetaProperty();
             case "invalidatorEnable" -> PROPERTY_INVALIDATOR_ENABLE.getMetaProperty();
             case "invalidatorMaxLoginDays" -> PROPERTY_INVALIDATOR_MAX_LOGIN_DAYS.getMetaProperty();
+            case "invalidatorCacheMaxMinutes" -> PROPERTY_INVALIDATOR_CACHE_MAX_MINUTES.getMetaProperty();
             case "cleanDataEnable" -> PROPERTY_CLEAN_DATA_ENABLE.getMetaProperty();
             default -> FOO.getMetaProperty();
         };

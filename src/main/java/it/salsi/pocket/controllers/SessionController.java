@@ -20,6 +20,7 @@
 package it.salsi.pocket.controllers;
 
 import it.salsi.commons.CommonsException;
+import it.salsi.commons.messages.Success;
 import it.salsi.pocket.models.Container;
 import it.salsi.pocket.models.Device;
 import it.salsi.pocket.models.User;
@@ -34,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -155,6 +157,8 @@ public class SessionController {
                 if(optUser.isEmpty()) {
                     return ResponseEntity.status(USER_NOT_FOUND.code).build();
                 }
+
+                record.setTimestampLastUpdate(now);
             }
         } else {
             final var optDevice = deviceRepository.findByUuid(uuid);
@@ -272,6 +276,7 @@ public class SessionController {
                     return ResponseEntity.status(USER_NOT_FOUND.code).build();
                 }
 
+                record.setTimestampLastUpdate(now);
             }
         } else {
             return ResponseEntity.status(CACHE_NOT_FOND.code).build();
@@ -314,6 +319,73 @@ public class SessionController {
                         groupFields,
                         fields
                 ));
+    }
+
+    @PostMapping("/{uuid}/{crypt}")
+    public @NotNull ResponseEntity<?> delete(@NotNull final String uuid,
+                                            @NotNull final String crypt
+    ) throws CommonsException {
+
+        Optional<CacheRecord> cacheRecord;
+        long timestampLastUpdate;
+        Optional<User> optUser;
+        Device device = null;
+        if(cacheManager.has(uuid)) {
+            cacheRecord = cacheManager.get(uuid);
+            if(cacheRecord.isPresent()) {
+                var record = cacheRecord.get();
+                device = record.getDevice();
+                final var rsaHelper = record.getRsaHelper();
+
+                final var decryptSplit = rsaHelper.decryptFromURLBase64(crypt).split("["+DIVISOR.value+"]");
+                if(decryptSplit.length != 5)
+                {
+                    cacheManager.rm(record);
+                    return ResponseEntity.status(WRONG_SIZE_TOKEN.code).build();
+                }
+
+                if(Long.parseLong(decryptSplit[0]) != device.getId())
+                {
+                    cacheManager.rm(record);
+                    return ResponseEntity.status(DEVICE_ID_NOT_MATCH.code).build();
+                }
+
+                if(!decryptSplit[1].equals(record.getSecret()))
+                {
+                    cacheManager.rm(record);
+                    return ResponseEntity.status(SECRET_NOT_MATCH.code).build();
+                }
+
+                if(checkTimestampLastUpdate != null && checkTimestampLastUpdate) {
+                    timestampLastUpdate = Long.parseLong(decryptSplit[2]);
+                    if(timestampLastUpdate != record.getTimestampLastUpdate())
+                    {
+                        cacheManager.rm(record);
+                        return ResponseEntity.status(TIMESTAMP_LAST_UPDATE_NOT_MATCH.code).build();
+                    }
+                }
+
+                optUser =  userRepository.findByEmailAndPasswd(decryptSplit[3], passwordEncoder.encode(decryptSplit[4]));
+                if(optUser.isEmpty()) {
+                    return ResponseEntity.status(USER_NOT_FOUND.code).build();
+                }
+
+            }
+        } else {
+            return new ResponseEntity< Success<?> >(HttpStatus.OK);
+        }
+
+
+        if(device == null) {
+            return ResponseEntity.status(DEVICE_NOT_FOUND.code).build();
+        }
+
+        if(cacheManager.rm(cacheRecord.get())) {
+            return new ResponseEntity< Success<?> >(HttpStatus.OK);
+        } else {
+            return new ResponseEntity< Success<?> >(HttpStatus.NOT_FOUND);
+        }
+
     }
 
 }

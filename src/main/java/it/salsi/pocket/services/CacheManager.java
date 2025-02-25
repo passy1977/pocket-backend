@@ -69,4 +69,6 @@ public interface CacheManager {
 
     boolean has(@NotNull final String uuid);
 
+    void invalidate();
+
 }
