@@ -63,6 +63,8 @@ public interface CacheManager {
 
     @NotNull Optional<CacheRecord> get(@NotNull final String uuid);
 
+    boolean rm(@NotNull final String uuid);
+
     boolean rm(@NotNull final CacheRecord record);
 
     boolean has(@NotNull final CacheRecord record);

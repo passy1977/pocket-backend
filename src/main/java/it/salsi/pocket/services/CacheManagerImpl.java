@@ -73,6 +73,7 @@ public final class CacheManagerImpl implements CacheManager {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Override
     public boolean add(@NotNull final CacheRecord record) {
         if(map.containsKey(record.getUuid())) {
             return false;
@@ -81,10 +82,12 @@ public final class CacheManagerImpl implements CacheManager {
         return true;
     }
 
+    @Override
     public @NotNull Optional<CacheRecord> get(@NotNull final CacheRecord record) {
         return get(record.getUuid());
     }
 
+    @Override
     public @NotNull Optional<CacheRecord> get(@NotNull final String uuid) {
         if(!map.containsKey(uuid)) {
             return Optional.empty();
@@ -92,21 +95,30 @@ public final class CacheManagerImpl implements CacheManager {
         return Optional.ofNullable(map.get(uuid));
     }
 
-    public boolean rm(@NotNull final CacheRecord record) {
-        if(!map.containsKey(record.getUuid())) {
+    @Override
+    public boolean rm(@NotNull String uuid) {
+        if(!map.containsKey(uuid)) {
             return false;
         }
-        return map.remove(record.getUuid()) != null;
+        return map.remove(uuid) != null;
     }
 
+    @Override
+    public boolean rm(@NotNull final CacheRecord record) {
+        return rm(record.getUuid());
+    }
+
+    @Override
     public boolean has(@NotNull final CacheRecord record) {
         return has(record.getUuid());
     }
 
+    @Override
     public boolean has(@NotNull final String uuid) {
         return map.containsKey(uuid);
     }
 
+    @Override
     public void invalidate() {
         log.info("Start invalidate");
 
@@ -128,8 +140,8 @@ public final class CacheManagerImpl implements CacheManager {
                             
                             final var maxMinutes = Integer.parseInt(invalidatorCacheMaxMinutes.getValue());
                             if (ChronoUnit.MINUTES.between(ofEpochSecond(map.get(key).getTimestampLastUpdate()), ofEpochSecond(now)) > maxMinutes) {
-                                
-                                
+                                log.info("Invalidate: " + key);
+                                map.remove(key);
                             }
                         }
 

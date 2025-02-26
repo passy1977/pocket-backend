@@ -121,93 +121,56 @@ public class SessionController {
         Device device = null;
         RSAHelper rsaHelper = null;
         if(cacheManager.has(uuid)) {
-            final var cacheRecord = cacheManager.get(uuid);
-            if(cacheRecord.isPresent()) {
-                var record = cacheRecord.get();
-                device = record.getDevice();
-                rsaHelper = record.getRsaHelper();
-
-                final var decryptSplit = rsaHelper.decryptFromURLBase64(crypt).split("["+DIVISOR.value+"]");
-                if(decryptSplit.length != 5)
-                {
-                    cacheManager.rm(record);
-                    return ResponseEntity.status(WRONG_SIZE_TOKEN.code).build();
-                }
-
-                if(Long.parseLong(decryptSplit[0]) != device.getId())
-                {
-                    cacheManager.rm(record);
-                    return ResponseEntity.status(WRONG_SIZE_TOKEN.code).build();
-                }
-
-                if(!decryptSplit[1].equals(record.getSecret()))
-                {
-                    cacheManager.rm(record);
-                    return ResponseEntity.status(SECRET_NOT_MATCH.code).build();
-                }
-
-                timestampLastUpdate = Long.parseLong(decryptSplit[2]);
-                if(timestampLastUpdate != record.getTimestampLastUpdate())
-                {
-                    cacheManager.rm(record);
-                    return ResponseEntity.status(TIMESTAMP_LAST_UPDATE_NOT_MATCH.code).build();
-                }
-
-                optUser =  userRepository.findByEmailAndPasswd(decryptSplit[3], passwordEncoder.encode(decryptSplit[4]));
-                if(optUser.isEmpty()) {
-                    return ResponseEntity.status(USER_NOT_FOUND.code).build();
-                }
-
-                record.setTimestampLastUpdate(now);
-            }
-        } else {
-            final var optDevice = deviceRepository.findByUuid(uuid);
-            if(optDevice.isEmpty()) {
-                return ResponseEntity.status(DEVICE_NOT_FOUND.code).build();
-            }
-
-            device = optDevice.get();
-            rsaHelper = new RSAHelper(ALGORITHM, KEY_SIZE);
-            rsaHelper.loadPublicKey(Base64.getDecoder().decode(device.getPublicKey()));
-            rsaHelper.loadPrivateKey(Base64.getDecoder().decode(device.getPrivateKey()));
-
-            final var decryptSplit = rsaHelper.decryptFromURLBase64(crypt).split("["+DIVISOR.value+"]");
-            if(decryptSplit.length != 5)
-            {
-                return ResponseEntity.status(WRONG_SIZE_TOKEN.code).build();
-            }
-
-            if(Long.parseLong(decryptSplit[0]) != device.getId())
-            {
-                return ResponseEntity.status(DEVICE_ID_NOT_MATCH.code).build();
-            }
-
-            final var secret = decryptSplit[1];
-            if(secret.isEmpty())
-            {
-                return ResponseEntity.status(SECRET_EMPTY.code).build();
-            }
-
-            try {
-                timestampLastUpdate = Long.parseLong(decryptSplit[2]);
-            } catch (final NumberFormatException e) {
-                System.err.println(e.getMessage());
-                return ResponseEntity.status(TIMESTAMP_LAST_NOT_PARSABLE.code).build();
-            }
-
-            optUser =  userRepository.findByEmailAndPasswd(decryptSplit[3], passwordEncoder.encode(decryptSplit[4]));
-            if(optUser.isEmpty()) {
-                return ResponseEntity.status(USER_NOT_FOUND.code).build();
-            }
-
-            cacheManager.add(new CacheRecord(
-                    uuid,
-                    secret,
-                    device,
-                    rsaHelper,
-                    now
-            ));
+            cacheManager.rm(uuid);
         }
+
+        final var optDevice = deviceRepository.findByUuid(uuid);
+        if(optDevice.isEmpty()) {
+            return ResponseEntity.status(DEVICE_NOT_FOUND.code).build();
+        }
+
+        device = optDevice.get();
+        rsaHelper = new RSAHelper(ALGORITHM, KEY_SIZE);
+        rsaHelper.loadPublicKey(Base64.getDecoder().decode(device.getPublicKey()));
+        rsaHelper.loadPrivateKey(Base64.getDecoder().decode(device.getPrivateKey()));
+
+        final var decryptSplit = rsaHelper.decryptFromURLBase64(crypt).split("["+DIVISOR.value+"]");
+        if(decryptSplit.length != 5)
+        {
+            return ResponseEntity.status(WRONG_SIZE_TOKEN.code).build();
+        }
+
+        if(Long.parseLong(decryptSplit[0]) != device.getId())
+        {
+            return ResponseEntity.status(DEVICE_ID_NOT_MATCH.code).build();
+        }
+
+        final var secret = decryptSplit[1];
+        if(secret.isEmpty())
+        {
+            return ResponseEntity.status(SECRET_EMPTY.code).build();
+        }
+
+        try {
+            timestampLastUpdate = Long.parseLong(decryptSplit[2]);
+        } catch (final NumberFormatException e) {
+            System.err.println(e.getMessage());
+            return ResponseEntity.status(TIMESTAMP_LAST_NOT_PARSABLE.code).build();
+        }
+
+        optUser =  userRepository.findByEmailAndPasswd(decryptSplit[3], passwordEncoder.encode(decryptSplit[4]));
+        if(optUser.isEmpty()) {
+            return ResponseEntity.status(USER_NOT_FOUND.code).build();
+        }
+
+        cacheManager.add(new CacheRecord(
+                uuid,
+                secret,
+                device,
+                rsaHelper,
+                now
+        ));
+
         if(device == null) {
             return ResponseEntity.status(DEVICE_NOT_FOUND.code).build();
         }

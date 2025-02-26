@@ -56,12 +56,11 @@ public class CronConfig {
 
     @Scheduled(cron = "${server.services-cron}")
     final public void servicesCron() {
-        try {
-            databaseManager.cleanOldData();
-            cacheManager.invalidate();
-        } catch (CommonsException e) {
-            log.severe(e.getMessage());
-        }
-
+//        try {
+//            databaseManager.cleanOldData();
+//        } catch (CommonsException e) {
+//            log.severe(e.getMessage());
+//        }
+        cacheManager.invalidate();
     }
 }

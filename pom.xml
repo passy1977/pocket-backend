@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>it.salsi</groupId>
-	<artifactId>pocket</artifactId>
+	<artifactId>pocket-backend</artifactId>
 	<version>5.0.0</version>
 	<name>pocket-backend</name>
 	<description>Pocket 5 backend</description>
