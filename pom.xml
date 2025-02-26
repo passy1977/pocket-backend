@@ -11,8 +11,8 @@
 	<groupId>it.salsi</groupId>
 	<artifactId>pocket</artifactId>
 	<version>5.0.0</version>
-	<name>pocket</name>
-	<description>Pocket5 backend</description>
+	<name>pocket-backend</name>
+	<description>Pocket 5 backend</description>
 	<url/>
 	<licenses>
 		<license/>
