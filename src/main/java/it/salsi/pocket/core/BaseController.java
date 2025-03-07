@@ -142,18 +142,20 @@ public class BaseController <T extends BaseModel, Y extends BaseRepository<T>> {
         return ret;
     }
 
-    public boolean delete(@NotNull final String uuid
+    public Iterable<T> delete(@NotNull final String uuid
             , @NotNull final Long now
             , @Nullable final Iterable<T> elements
     ) {
         if(elements == null) {
-            return false;
+            return List.of();
         }
+
+        List<T> ret = new ArrayList<>();
 
         final var device = deviceRepository.findByUuid(uuid);
         if (device.isPresent()) {
-            if (device.get().getStatus() != Device.Status.ACTIVE) return false;
-            if (device.get().getUser().getStatus() != User.Status.ACTIVE) return false;
+            if (device.get().getStatus() != Device.Status.ACTIVE) return List.of();
+            if (device.get().getUser().getStatus() != User.Status.ACTIVE) return List.of();
 
             for(final var it : elements) {
                 if(!it.deleted) {
@@ -162,23 +164,35 @@ public class BaseController <T extends BaseModel, Y extends BaseRepository<T>> {
                 it.setUser(device.get().getUser());
                 it.setTimestampLastUpdate(now);
 
-                final var tmp = it.id;
+                var tmp = it.id;
                 it.id = it.serverId;
                 it.serverId = tmp;
 
                 var t = repository.findById(it.id);
                 if(t.isPresent()) {
                     t.get().setDeleted(true);
-                    repository.save(t.get());
-                    return true;
+
+                    try {
+                        var elm = (T)repository.save(t.get()).clone();
+
+                        elm.serverId = elm.id;
+                        elm.id = tmp;
+
+                        ret.add(elm);
+                        return ret;
+                    } catch (CloneNotSupportedException e) {
+                        log.severe(e.getMessage());
+                        return List.of();
+                    }
+
                 } else {
-                    return false;
+                    return List.of();
                 }
 
             }
         }
 
-        return false;
+        return List.of();
     }
 
 }

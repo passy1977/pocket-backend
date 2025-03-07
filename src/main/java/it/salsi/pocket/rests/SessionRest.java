@@ -48,20 +48,20 @@ public class SessionRest {
     }
 
     @PostMapping("/{uuid}/{crypt}")
-    public @NotNull ResponseEntity<Container> setData(@PathVariable @NotNull final String uuid,
+    public @NotNull ResponseEntity<Container> persist(@PathVariable @NotNull final String uuid,
                                                           @PathVariable @NotNull final String crypt,
                                                           @Valid @NotNull @RequestBody final Container container
                                                         ) throws CommonsException
     {
-        return sessionController.setData(uuid, crypt, container);
+        return sessionController.persist(uuid, crypt, container);
     }
 
     @DeleteMapping("/{uuid}/{crypt}")
-    public @NotNull ResponseEntity<?> delete(@PathVariable @NotNull final String uuid,
+    public @NotNull ResponseEntity<?> deleteCacheRecord(@PathVariable @NotNull final String uuid,
                                                       @PathVariable @NotNull final String crypt
     ) throws CommonsException
     {
-        return sessionController.delete(uuid, crypt);
+        return sessionController.deleteCacheRecord(uuid, crypt);
     }
 
 

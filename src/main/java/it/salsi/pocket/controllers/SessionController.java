@@ -43,6 +43,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Base64;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
 
@@ -171,10 +173,6 @@ public class SessionController {
                 now
         ));
 
-        if(device == null) {
-            return ResponseEntity.status(DEVICE_NOT_FOUND.code).build();
-        }
-
         device.setTimestampLastLogin(now);
         deviceRepository.save(device);
 
@@ -190,7 +188,7 @@ public class SessionController {
     }
 
     @PostMapping("/{uuid}/{crypt}")
-    public @NotNull ResponseEntity<Container> setData(@NotNull final String uuid,
+    public @NotNull ResponseEntity<Container> persist(@NotNull final String uuid,
                                                       @NotNull final String crypt,
                                                       @NotNull final Container container
     ) throws CommonsException  {
@@ -256,21 +254,23 @@ public class SessionController {
         final var groupFields = groupFieldController.store(uuid, now, container.groupFields());
         final var fields = fieldController.store(uuid, now, container.fields());
 
-        final var fieldsDeleted = fieldController.delete(uuid, now, container.fields());
-        final var groupFieldsDeleted = groupFieldController.delete(uuid, now, container.groupFields());
         final var groupsDeleted = groupController.delete(uuid, now, container.groups());
+        final var groupFieldsDeleted = groupFieldController.delete(uuid, now, container.groupFields());
+        final var fieldsDeleted = fieldController.delete(uuid, now, container.fields());
 
         if(
                 StreamSupport.stream(groups.spliterator(), false).findFirst().isPresent()
                 || StreamSupport.stream(groupFields.spliterator(), false).findFirst().isPresent()
                 || StreamSupport.stream(fields.spliterator(), false).findFirst().isPresent()
-                || fieldsDeleted
-                || groupFieldsDeleted
-                || groupsDeleted
+                || StreamSupport.stream(groupsDeleted.spliterator(), false).findFirst().isPresent()
+                || StreamSupport.stream(groupFieldsDeleted.spliterator(), false).findFirst().isPresent()
+                || StreamSupport.stream(fieldsDeleted.spliterator(), false).findFirst().isPresent()
         )
         {
             device.setTimestampLastUpdate(now);
             deviceRepository.save(device);
+
+
         }
 
         return ResponseEntity.ok(
@@ -278,15 +278,15 @@ public class SessionController {
                         now,
                         optUser.get(),
                         device,
-                        groups,
-                        groupFields,
-                        fields
+                        concat(groups, groupsDeleted),
+                        concat(groupFields, groupFieldsDeleted),
+                        concat(fields, fieldsDeleted)
                 ));
     }
 
     @PostMapping("/{uuid}/{crypt}")
-    public @NotNull ResponseEntity<?> delete(@NotNull final String uuid,
-                                            @NotNull final String crypt
+    public @NotNull ResponseEntity<?> deleteCacheRecord(@NotNull final String uuid,
+                                                        @NotNull final String crypt
     ) throws CommonsException {
 
         Optional<CacheRecord> cacheRecord;
@@ -349,6 +349,20 @@ public class SessionController {
             return new ResponseEntity< Success<?> >(HttpStatus.NOT_FOUND);
         }
 
+    }
+
+    public static <T> @NotNull List<T> concat(Iterable<? extends T> a, Iterable<? extends T> b) {
+        var merged = new LinkedList<T>();
+
+        for (T item : a) {
+            merged.add(item);
+        }
+
+        for (T item : b) {
+            merged.add(item);
+        }
+
+        return merged;
     }
 
 }
