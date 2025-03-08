@@ -179,17 +179,14 @@ public class BaseController <T extends BaseModel, Y extends BaseRepository<T>> {
                         elm.id = tmp;
 
                         ret.add(elm);
-                        return ret;
                     } catch (CloneNotSupportedException e) {
                         log.severe(e.getMessage());
                         return List.of();
                     }
 
-                } else {
-                    return List.of();
                 }
-
             }
+            return ret;
         }
 
         return List.of();
