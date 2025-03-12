@@ -165,6 +165,9 @@ public class SessionController {
             return ResponseEntity.status(USER_NOT_FOUND.code).build();
         }
 
+        device.setTimestampLastLogin(now);
+        device = deviceRepository.save(device);
+
         cacheManager.add(new CacheRecord(
                 uuid,
                 secret,
@@ -173,8 +176,6 @@ public class SessionController {
                 now
         ));
 
-        device.setTimestampLastLogin(now);
-        deviceRepository.save(device);
 
         return ResponseEntity.ok(
                 new Container(
@@ -269,8 +270,6 @@ public class SessionController {
         {
             device.setTimestampLastUpdate(now);
             deviceRepository.save(device);
-
-
         }
 
         return ResponseEntity.ok(
