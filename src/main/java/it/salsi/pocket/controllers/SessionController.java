@@ -64,7 +64,7 @@ public class SessionController {
         DEVICE_ID_NOT_MATCH(602),
         DEVICE_NOT_FOUND(603),
         SECRET_NOT_MATCH(604),
-        USER_ID_NOT_MATCH(605),
+        PASSWD_ERROR(605),
         TIMESTAMP_LAST_UPDATE_NOT_MATCH(606),
         CACHE_NOT_FOND(607),
         SECRET_EMPTY(608),
@@ -188,7 +188,6 @@ public class SessionController {
         ));
     }
 
-    @PostMapping("/{uuid}/{crypt}")
     public @NotNull ResponseEntity<Container> persist(@NotNull final String uuid,
                                                       @NotNull final String crypt,
                                                       @NotNull final Container container
@@ -284,6 +283,78 @@ public class SessionController {
     }
 
     @PostMapping("/{uuid}/{crypt}")
+    public @NotNull ResponseEntity<Boolean> changePasswd(@NotNull final String uuid,
+                                                      @NotNull final String crypt
+    ) throws CommonsException  {
+        final var now = Instant.now(Clock.systemUTC()).getEpochSecond();
+
+        long timestampLastUpdate = 0;
+        Optional<User> optUser = Optional.empty();
+        Device device = null;
+        String newPasswd = null;
+        if(cacheManager.has(uuid)) {
+            final var cacheRecord = cacheManager.get(uuid);
+            if(cacheRecord.isPresent()) {
+                var record = cacheRecord.get();
+                device = record.getDevice();
+                final var rsaHelper = record.getRsaHelper();
+
+                final var decryptSplit = rsaHelper.decryptFromURLBase64(crypt).split("["+DIVISOR.value+"]");
+                if(decryptSplit.length != 6)
+                {
+                    cacheManager.rm(record);
+                    return ResponseEntity.status(WRONG_SIZE_TOKEN.code).build();
+                }
+
+                if(Long.parseLong(decryptSplit[0]) != device.getId())
+                {
+                    cacheManager.rm(record);
+                    return ResponseEntity.status(DEVICE_ID_NOT_MATCH.code).build();
+                }
+
+                if(!decryptSplit[1].equals(record.getSecret()))
+                {
+                    cacheManager.rm(record);
+                    return ResponseEntity.status(SECRET_NOT_MATCH.code).build();
+                }
+
+                if(checkTimestampLastUpdate != null && checkTimestampLastUpdate) {
+                    timestampLastUpdate = Long.parseLong(decryptSplit[2]);
+                    if(timestampLastUpdate != record.getTimestampLastUpdate())
+                    {
+                        cacheManager.rm(record);
+                        return ResponseEntity.status(TIMESTAMP_LAST_UPDATE_NOT_MATCH.code).build();
+                    }
+                }
+
+                optUser =  userRepository.findByEmailAndPasswd(decryptSplit[3], passwordEncoder.encode(decryptSplit[4]));
+                if(optUser.isEmpty()) {
+                    return ResponseEntity.status(USER_NOT_FOUND.code).build();
+                }
+
+                newPasswd = decryptSplit[4];
+
+                record.setTimestampLastUpdate(now);
+            }
+        } else {
+            return ResponseEntity.status(CACHE_NOT_FOND.code).build();
+        }
+
+        if(device == null) {
+            return ResponseEntity.status(DEVICE_NOT_FOUND.code).build();
+        }
+
+        if(newPasswd == null) {
+            return ResponseEntity.status(PASSWD_ERROR.code).build();
+        }
+
+        optUser.get().setPasswd(passwordEncoder.encode(newPasswd));
+
+        userRepository.save(optUser.get());
+
+        return ResponseEntity.ok(true);
+    }
+
     public @NotNull ResponseEntity<?> deleteCacheRecord(@NotNull final String uuid,
                                                         @NotNull final String crypt
     ) throws CommonsException {
@@ -350,7 +421,7 @@ public class SessionController {
 
     }
 
-    public static <T> @NotNull List<T> concat(Iterable<? extends T> a, Iterable<? extends T> b) {
+    public static <T> @NotNull List<T> concat(@NotNull Iterable<? extends T> a, Iterable<? extends T> b) {
         var merged = new LinkedList<T>();
 
         for (T item : a) {

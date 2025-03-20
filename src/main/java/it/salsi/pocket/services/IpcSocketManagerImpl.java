@@ -301,14 +301,14 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
     }
 
     /**
-     * ADD_USER|test@test.it|pwd|user
-     * MOD_USER|test@test.it|pwd1|user1
-     * RM_USER|test@test.it
-     * GET_USER|test@test.it
+     * ADD_USER|test@test.com|pwd|user
+     * MOD_USER|test@test.com|pwd1|user1
+     * RM_USER|test@test.com
+     * GET_USER|test@test.com
      *
-     * ADD_DEVICE|test@test.it|pwd
-     * RM_DEVICE|test@test.it|pwd|47a48e92-c521-4f07-a4b3-757c889a0816
-     * GET_DEVICE|test@test.it|pwd|47a48e92-c521-4f07-a4b3-757c889a0816
+     * ADD_DEVICE|test@test.com|12345678123456781234567812345678
+     * RM_DEVICE|test@test.com|pwd|47a48e92-c521-4f07-a4b3-757c889a0816
+     * GET_DEVICE|test@test.com|pwd|47a48e92-c521-4f07-a4b3-757c889a0816
      */
     @Async
     @Override
