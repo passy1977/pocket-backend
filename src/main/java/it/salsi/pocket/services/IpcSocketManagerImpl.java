@@ -81,10 +81,10 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
 
 
         @JsonProperty("userId")
-        private @NotNull Long _userId;
+        private final @NotNull Long _userId;
 
         @JsonProperty("host")
-        private @Nullable String _host;
+        private final @Nullable String _host;
 
         @JsonProperty("hostPublicKey")
         private @NotNull String _publicKey;

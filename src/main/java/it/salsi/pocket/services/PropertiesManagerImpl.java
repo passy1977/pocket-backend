@@ -25,7 +25,6 @@ import it.salsi.pocket.models.Property;
 import it.salsi.pocket.models.User;
 import it.salsi.pocket.repositories.PropertyRepository;
 import it.salsi.pocket.repositories.UserRepository;
-import it.salsi.pocket.security.EncoderHelper;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,15 +53,10 @@ public final class PropertiesManagerImpl implements PropertiesManager {
     @NotNull
     private final UserRepository userRepository;
 
-    @NotNull
-    private final EncoderHelper encoderHelper;
-
     public PropertiesManagerImpl(@Autowired @NotNull final PropertyRepository propertyRepository,
-                                 @Autowired @NotNull final UserRepository userRepository,
-                                 @Autowired @NotNull final EncoderHelper encoderHelper) {
+                                 @Autowired @NotNull final UserRepository userRepository) {
         this.propertyRepository = propertyRepository;
         this.userRepository = userRepository;
-        this.encoderHelper = encoderHelper;
     }
 
     @Override
@@ -78,10 +72,7 @@ public final class PropertiesManagerImpl implements PropertiesManager {
 
 
         AtomicReference<User> adminUser = new AtomicReference<>(new User());
-        userRepository.findByEmail(authUser).ifPresentOrElse(
-                adminUser::set,
-                () -> adminUser.set(userRepository.save(new User(authUser, authUser, encoderHelper.encode(authPasswd))))
-        );
+        userRepository.findByEmail(authUser).ifPresent(adminUser::set);
 
 
         for (final var constant : Constant.values()) {

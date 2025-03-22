@@ -29,8 +29,6 @@ import it.salsi.pocket.models.GroupField;
 import it.salsi.pocket.models.User;
 import it.salsi.pocket.repositories.DeviceRepository;
 import it.salsi.pocket.repositories.UserRepository;
-import it.salsi.pocket.security.EncoderHelper;
-import it.salsi.pocket.security.RSAHelper;
 import lombok.Setter;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;

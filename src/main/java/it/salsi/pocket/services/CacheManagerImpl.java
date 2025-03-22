@@ -127,10 +127,7 @@ public final class CacheManagerImpl implements CacheManager {
         assert authPasswd != null;
         assert authPasswd.length() == 32;
         AtomicReference<User> adminUser = new AtomicReference<>(new User());
-        userRepository.findByEmail(authUser).ifPresentOrElse(
-                adminUser::set,
-                () -> adminUser.set(userRepository.save(new User(authUser, authUser, encoderHelper.encode(authPasswd))))
-        );
+        userRepository.findByEmail(authUser).ifPresent(adminUser::set);
 
         propertyRepository.getByUserIdAndKey(adminUser.get().getId(), PROPERTY_INVALIDATOR_ENABLE).ifPresentOrElse(invalidatorEnable -> {
             if (Boolean.TRUE.toString().equals(invalidatorEnable.getValue())) {

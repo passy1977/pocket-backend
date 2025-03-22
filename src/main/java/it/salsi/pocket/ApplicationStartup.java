@@ -55,13 +55,13 @@ public record ApplicationStartup(@NotNull DatabaseManager databaseManager,
     @Override
     public void onApplicationEvent(@NotNull final ApplicationReadyEvent applicationReadyEvent) {
         try {
+            userManager.checkAll();
             databaseManager.init();
             propertiesManager.checkAll();
             ipcSocketManager.start();
         } catch (CommonsException e) {
             log.warning(e.getLocalizedMessage());
         }
-        userManager.checkAll();
     }
 
     @EventListener

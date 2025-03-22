@@ -99,10 +99,7 @@ public final class DatabaseManagerImpl implements DatabaseManager {
         }
 
         AtomicReference<User> adminUser = new AtomicReference<>(new User());
-        userRepository.findByEmail(authUser).ifPresentOrElse(
-                adminUser::set,
-                () -> adminUser.set(userRepository.save(new User(authUser, authUser, encoderHelper.encode(authPasswd))))
-        );
+        userRepository.findByEmail(authUser).ifPresent(adminUser::set);
 
         propertyRepository.getByUserIdAndKey(adminUser.get().getId(), PROPERTY_DB_VERSION).ifPresentOrElse(property -> {
             Integer version = (Integer) PROPERTY_DB_VERSION.getMetaProperty().defaultValue();
@@ -134,10 +131,7 @@ public final class DatabaseManagerImpl implements DatabaseManager {
         }
 
         AtomicReference<User> adminUser = new AtomicReference<>(new User());
-        userRepository.findByEmail(authUser).ifPresentOrElse(
-                adminUser::set,
-                () -> adminUser.set(userRepository.save(new User(authUser, authUser, encoderHelper.encode(authPasswd))))
-        );
+        userRepository.findByEmail(authUser).ifPresent(adminUser::set);
 
         propertyRepository.getByUserIdAndKey(adminUser.get().getId(), PROPERTY_CLEAN_DATA_ENABLE).ifPresentOrElse(invalidatorEnable -> {
 
