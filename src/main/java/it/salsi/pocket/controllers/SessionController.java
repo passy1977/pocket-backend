@@ -26,7 +26,7 @@ import it.salsi.pocket.models.Device;
 import it.salsi.pocket.models.User;
 import it.salsi.pocket.repositories.DeviceRepository;
 import it.salsi.pocket.repositories.UserRepository;
-import it.salsi.pocket.security.PasswordEncoder;
+import it.salsi.pocket.security.EncoderHelper;
 import it.salsi.pocket.security.RSAHelper;
 import it.salsi.pocket.services.CacheManager;
 import it.salsi.pocket.services.CacheManager.CacheRecord;
@@ -84,7 +84,7 @@ public class SessionController {
     private final @NotNull GroupController groupController;
     private final @NotNull GroupFieldController groupFieldController;
     private final @NotNull FieldController fieldController;
-    private final @NotNull PasswordEncoder passwordEncoder;
+    private final @NotNull EncoderHelper encoderHelper;
     private final @NotNull CacheManager cacheManager;
 
     @Value("${server.check-timestamp-last-update}")
@@ -97,7 +97,7 @@ public class SessionController {
             @Autowired @NotNull final GroupController groupController,
             @Autowired @NotNull final GroupFieldController groupFieldController,
             @Autowired @NotNull final FieldController fieldController,
-            @Autowired @NotNull final PasswordEncoder passwordEncoder,
+            @Autowired @NotNull final EncoderHelper encoderHelper,
             @Autowired @NotNull final CacheManager cacheManager
     ) {
         this.userRepository = userRepository;
@@ -108,7 +108,7 @@ public class SessionController {
         this.fieldController = fieldController;
         this.fieldController.setGroupMapId(groupController.getMapId());
         this.fieldController.setGroupFieldMapId(groupFieldController.getMapId());
-        this.passwordEncoder = passwordEncoder;
+        this.encoderHelper = encoderHelper;
         this.cacheManager = cacheManager;
     }
 
@@ -160,7 +160,7 @@ public class SessionController {
             return ResponseEntity.status(TIMESTAMP_LAST_NOT_PARSABLE.code).build();
         }
 
-        optUser =  userRepository.findByEmailAndPasswd(decryptSplit[3], passwordEncoder.encode(decryptSplit[4]));
+        optUser =  userRepository.findByEmailAndPasswd(decryptSplit[3], encoderHelper.encode(decryptSplit[4]));
         if(optUser.isEmpty()) {
             return ResponseEntity.status(USER_NOT_FOUND.code).build();
         }
@@ -232,7 +232,7 @@ public class SessionController {
                     }
                 }
 
-                optUser =  userRepository.findByEmailAndPasswd(decryptSplit[3], passwordEncoder.encode(decryptSplit[4]));
+                optUser =  userRepository.findByEmailAndPasswd(decryptSplit[3], encoderHelper.encode(decryptSplit[4]));
                 if(optUser.isEmpty()) {
                     return ResponseEntity.status(USER_NOT_FOUND.code).build();
                 }
@@ -284,7 +284,8 @@ public class SessionController {
 
     @PostMapping("/{uuid}/{crypt}")
     public @NotNull ResponseEntity<Boolean> changePasswd(@NotNull final String uuid,
-                                                      @NotNull final String crypt
+                                                        @NotNull final String crypt,
+                                                         @NotNull final Boolean changePasswdDataOnServer
     ) throws CommonsException  {
         final var now = Instant.now(Clock.systemUTC()).getEpochSecond();
 
@@ -292,12 +293,13 @@ public class SessionController {
         Optional<User> optUser = Optional.empty();
         Device device = null;
         String newPasswd = null;
+        RSAHelper rsaHelper = null;
         if(cacheManager.has(uuid)) {
             final var cacheRecord = cacheManager.get(uuid);
             if(cacheRecord.isPresent()) {
                 var record = cacheRecord.get();
                 device = record.getDevice();
-                final var rsaHelper = record.getRsaHelper();
+                rsaHelper = record.getRsaHelper();
 
                 final var decryptSplit = rsaHelper.decryptFromURLBase64(crypt).split("["+DIVISOR.value+"]");
                 if(decryptSplit.length != 6)
@@ -327,12 +329,12 @@ public class SessionController {
                     }
                 }
 
-                optUser =  userRepository.findByEmailAndPasswd(decryptSplit[3], passwordEncoder.encode(decryptSplit[4]));
+                optUser =  userRepository.findByEmailAndPasswd(decryptSplit[3], encoderHelper.encode(decryptSplit[4]));
                 if(optUser.isEmpty()) {
                     return ResponseEntity.status(USER_NOT_FOUND.code).build();
                 }
 
-                newPasswd = decryptSplit[4];
+                newPasswd = decryptSplit[5];
 
                 record.setTimestampLastUpdate(now);
             }
@@ -348,9 +350,21 @@ public class SessionController {
             return ResponseEntity.status(PASSWD_ERROR.code).build();
         }
 
-        optUser.get().setPasswd(passwordEncoder.encode(newPasswd));
+        final var user= optUser.get();
 
-        userRepository.save(optUser.get());
+        if(changePasswdDataOnServer) {
+            final var aes = encoderHelper.getCrypto(newPasswd);
+            groupController.changePasswd(user, aes);
+            groupFieldController.changePasswd(user, aes);
+            fieldController.changePasswd(user, aes);
+            device.setTimestampLastUpdate(now);
+        }
+
+        device.setTimestampLastLogin(now);
+        deviceRepository.save(device);
+
+        user.setPasswd(encoderHelper.encode(newPasswd));
+        userRepository.save(user);
 
         return ResponseEntity.ok(true);
     }
@@ -398,7 +412,7 @@ public class SessionController {
                     }
                 }
 
-                optUser =  userRepository.findByEmailAndPasswd(decryptSplit[3], passwordEncoder.encode(decryptSplit[4]));
+                optUser =  userRepository.findByEmailAndPasswd(decryptSplit[3], encoderHelper.encode(decryptSplit[4]));
                 if(optUser.isEmpty()) {
                     return ResponseEntity.status(USER_NOT_FOUND.code).build();
                 }

@@ -19,6 +19,8 @@ package it.salsi.pocket.core;
  *
  ***************************************************************************/
 
+import it.salsi.commons.CommonsException;
+import it.salsi.commons.utils.Crypto;
 import it.salsi.pocket.controllers.GroupController;
 import it.salsi.pocket.controllers.GroupFieldController;
 import it.salsi.pocket.models.Device;
@@ -27,6 +29,8 @@ import it.salsi.pocket.models.GroupField;
 import it.salsi.pocket.models.User;
 import it.salsi.pocket.repositories.DeviceRepository;
 import it.salsi.pocket.repositories.UserRepository;
+import it.salsi.pocket.security.EncoderHelper;
+import it.salsi.pocket.security.RSAHelper;
 import lombok.Setter;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +43,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Log
-public class BaseController <T extends BaseModel, Y extends BaseRepository<T>> {
+public abstract class BaseController <T extends BaseModel, Y extends BaseRepository<T>> {
 
     @FunctionalInterface
     protected interface OnStore<T> {
@@ -191,5 +195,7 @@ public class BaseController <T extends BaseModel, Y extends BaseRepository<T>> {
 
         return List.of();
     }
+
+    public abstract void changePasswd(@NotNull final User user, @NotNull final Crypto aes) throws CommonsException;
 
 }

@@ -21,25 +21,19 @@
 package it.salsi.pocket.configs;
 
 import it.salsi.commons.CommonsException;
-import it.salsi.commons.utils.Crypto;
-import it.salsi.commons.utils.CryptoBuilder;
-import it.salsi.pocket.security.PasswordEncoder;
+import it.salsi.pocket.security.EncoderHelper;
 import it.salsi.pocket.security.RSAHelper;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.Base64;
-
-import static it.salsi.pocket.Constant.CRYPTO_IV;
 
 @Configuration
 public class Config {
 
     @NotNull
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new PasswordEncoder();
+    public EncoderHelper encoderHelper() {
+        return new EncoderHelper();
     }
 
     @NotNull

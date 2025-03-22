@@ -25,7 +25,7 @@ import it.salsi.pocket.models.Property;
 import it.salsi.pocket.models.User;
 import it.salsi.pocket.repositories.PropertyRepository;
 import it.salsi.pocket.repositories.UserRepository;
-import it.salsi.pocket.security.PasswordEncoder;
+import it.salsi.pocket.security.EncoderHelper;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,20 +55,23 @@ public final class PropertiesManagerImpl implements PropertiesManager {
     private final UserRepository userRepository;
 
     @NotNull
-    private final PasswordEncoder passwordEncoder;
+    private final EncoderHelper encoderHelper;
 
     public PropertiesManagerImpl(@Autowired @NotNull final PropertyRepository propertyRepository,
                                  @Autowired @NotNull final UserRepository userRepository,
-                                 @Autowired @NotNull final PasswordEncoder passwordEncoder) {
+                                 @Autowired @NotNull final EncoderHelper encoderHelper) {
         this.propertyRepository = propertyRepository;
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
+        this.encoderHelper = encoderHelper;
     }
 
     @Override
     public void checkAll() throws CommonsException {
         if(authUser == null || authPasswd == null) {
             throw new CommonsException("authUser or authPasswd not set");
+        }
+        if(authPasswd.length() != 32) {
+            throw new CommonsException("authPasswd must be 32 byte");
         }
 
         log.info("Start checks");
@@ -77,7 +80,7 @@ public final class PropertiesManagerImpl implements PropertiesManager {
         AtomicReference<User> adminUser = new AtomicReference<>(new User());
         userRepository.findByEmail(authUser).ifPresentOrElse(
                 adminUser::set,
-                () -> adminUser.set(userRepository.save(new User(authUser, authUser, passwordEncoder.encode(authPasswd))))
+                () -> adminUser.set(userRepository.save(new User(authUser, authUser, encoderHelper.encode(authPasswd))))
         );
 
 

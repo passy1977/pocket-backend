@@ -21,9 +21,14 @@
 package it.salsi.pocket.controllers;
 
 
+import it.salsi.commons.CommonsException;
+import it.salsi.commons.utils.Crypto;
 import it.salsi.pocket.core.BaseController;
+import it.salsi.pocket.models.Device;
 import it.salsi.pocket.models.Field;
+import it.salsi.pocket.models.User;
 import it.salsi.pocket.repositories.*;
+import it.salsi.pocket.security.EncoderHelper;
 import lombok.Setter;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
@@ -46,6 +51,9 @@ public final class FieldController extends BaseController<Field, FieldRepository
     @Nullable
     private Map<Long, Long> groupFieldMapId = null;
 
+    private @NotNull final FieldRepository repository;
+    private @NotNull final DeviceRepository deviceRepository;
+
     public FieldController(
             @Autowired @NotNull final FieldRepository repository,
             @Autowired @NotNull final GroupRepository groupRepository,
@@ -54,6 +62,8 @@ public final class FieldController extends BaseController<Field, FieldRepository
             @Autowired @NotNull final UserRepository userRepository
     ) {
         super(repository, deviceRepository, userRepository);
+        this.repository = repository;
+        this.deviceRepository = deviceRepository;
 
         setOnStore((@NotNull final var field) -> {
 
@@ -89,5 +99,13 @@ public final class FieldController extends BaseController<Field, FieldRepository
 
             return field;
         });
+    }
+
+    @Override
+    public void changePasswd(@NotNull final User user, @NotNull final Crypto aes) throws CommonsException {
+        for(var it : repository.findByUser(user)) {
+            it.setTitle(aes.encryptToString(it.getTitle()));
+            it.setValue(aes.encryptToString(it.getValue()));
+        }
     }
 }

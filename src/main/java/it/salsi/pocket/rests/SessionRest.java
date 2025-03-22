@@ -56,12 +56,13 @@ public class SessionRest {
         return sessionController.persist(uuid, crypt, container);
     }
 
-    @PutMapping("/{uuid}/{crypt}")
+    @PutMapping("/{uuid}/{crypt}/{changePasswdDataOnServer}")
     public @NotNull ResponseEntity<Boolean> changePasswd(@PathVariable @NotNull final String uuid,
-                                                      @PathVariable @NotNull final String crypt
+                                                        @PathVariable @NotNull final String crypt,
+                                                        @PathVariable(required = false) @NotNull final Boolean changePasswdDataOnServer
     ) throws CommonsException
     {
-        return sessionController.changePasswd(uuid, crypt);
+        return sessionController.changePasswd(uuid, crypt, changePasswdDataOnServer);
     }
 
 

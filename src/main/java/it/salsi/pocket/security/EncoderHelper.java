@@ -1,18 +1,27 @@
 package it.salsi.pocket.security;
 
 
+import it.salsi.commons.CommonsException;
+import it.salsi.commons.utils.Crypto;
+import it.salsi.commons.utils.CryptoBuilder;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 
 @Log
-public class PasswordEncoder {
+public class EncoderHelper {
 
     @Nullable
     private MessageDigest md;
+
+    @Value("${server.aes.crc.iv}")
+    @Nullable
+    private String aesCrcIv;
 
     @NotNull
     public String encode(@NotNull final CharSequence rawPassword) {
@@ -27,7 +36,6 @@ public class PasswordEncoder {
         }
 
         return bytesToHex(md.digest(rawPassword.toString().getBytes()));
-
     }
 
     @NotNull
@@ -37,6 +45,22 @@ public class PasswordEncoder {
             sb.append(Integer.toString((hashInByte & 0xff) + 0x100, 16).substring(1));
         }
         return sb.toString();
+    }
+
+    public @NotNull Crypto getCrypto(@NotNull final String authPasswd) throws CommonsException {
+        if(aesCrcIv == null) {
+            throw new CommonsException("AES CRC IV not set");
+        }
+        if(aesCrcIv.length() != 16) {
+            throw new CommonsException("AES CRC IV must be 16 byte");
+        }
+        return new CryptoBuilder()
+                .setDecodeBase64Callback(Base64.getDecoder()::decode)
+                .setEncodeBase64Callback(Base64.getEncoder()::encode)
+                .setKey(authPasswd)
+                .setIV(aesCrcIv)
+                .setCipher("AES/CBC/PKCS5Padding")
+                .build();
     }
 
 }

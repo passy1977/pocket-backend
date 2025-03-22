@@ -31,8 +31,8 @@ import java.util.Optional;
 public interface BaseRepository<T> extends CrudRepository<T, Long> {
 
 //    Optional<T> findByUserAndId(@NotNull final User userId, @NotNull final Long id);
-//
-//    Iterable<T> findByUser(@NotNull final User userId);
+
+    Iterable<T> findByUser(@NotNull final User userId);
 
     Iterable<T> findByUserAndTimestampLastUpdateGreaterThan(@NotNull final User userId, @NotNull final Long dateTimeLastUpdate);
 

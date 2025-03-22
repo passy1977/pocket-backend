@@ -26,7 +26,7 @@ import it.salsi.pocket.models.Device;
 import it.salsi.pocket.models.Property;
 import it.salsi.pocket.models.User;
 import it.salsi.pocket.repositories.*;
-import it.salsi.pocket.security.PasswordEncoder;
+import it.salsi.pocket.security.EncoderHelper;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,8 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.time.Clock;
-import java.time.Instant;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static it.salsi.pocket.Constant.*;
@@ -71,7 +69,7 @@ public final class DatabaseManagerImpl implements DatabaseManager {
     private final FieldRepository fieldRepository;
 
     @NotNull
-    private final PasswordEncoder passwordEncoder;
+    private final EncoderHelper encoderHelper;
 
     public DatabaseManagerImpl(@Autowired @NotNull final UserRepository userRepository,
                                @Autowired @NotNull final DeviceRepository deviceRepository,
@@ -79,7 +77,7 @@ public final class DatabaseManagerImpl implements DatabaseManager {
                                @Autowired @NotNull final GroupRepository groupRepository,
                                @Autowired @NotNull final GroupFieldRepository groupFieldRepository,
                                @Autowired @NotNull final FieldRepository fieldRepository,
-                               @Autowired @NotNull final PasswordEncoder passwordEncoder
+                               @Autowired @NotNull final EncoderHelper encoderHelper
     ) {
         this.userRepository = userRepository;
         this.deviceRepository = deviceRepository;
@@ -87,7 +85,7 @@ public final class DatabaseManagerImpl implements DatabaseManager {
         this.groupRepository = groupRepository;
         this.groupFieldRepository = groupFieldRepository;
         this.fieldRepository = fieldRepository;
-        this.passwordEncoder = passwordEncoder;
+        this.encoderHelper = encoderHelper;
     }
 
 
@@ -96,11 +94,14 @@ public final class DatabaseManagerImpl implements DatabaseManager {
         if(authUser == null || authPasswd == null) {
             throw new CommonsException("authUser or authPasswd not set");
         }
+        if(authPasswd.length() != 32) {
+            throw new CommonsException("authPasswd must be 32 byte");
+        }
 
         AtomicReference<User> adminUser = new AtomicReference<>(new User());
         userRepository.findByEmail(authUser).ifPresentOrElse(
                 adminUser::set,
-                () -> adminUser.set(userRepository.save(new User(authUser, authUser, passwordEncoder.encode(authPasswd))))
+                () -> adminUser.set(userRepository.save(new User(authUser, authUser, encoderHelper.encode(authPasswd))))
         );
 
         propertyRepository.getByUserIdAndKey(adminUser.get().getId(), PROPERTY_DB_VERSION).ifPresentOrElse(property -> {
@@ -128,11 +129,14 @@ public final class DatabaseManagerImpl implements DatabaseManager {
         if(authUser == null || authPasswd == null) {
             throw new CommonsException("authUser or authPasswd not set");
         }
+        if(authPasswd.length() != 32) {
+            throw new CommonsException("authPasswd must be 32 byte");
+        }
 
         AtomicReference<User> adminUser = new AtomicReference<>(new User());
         userRepository.findByEmail(authUser).ifPresentOrElse(
                 adminUser::set,
-                () -> adminUser.set(userRepository.save(new User(authUser, authUser, passwordEncoder.encode(authPasswd))))
+                () -> adminUser.set(userRepository.save(new User(authUser, authUser, encoderHelper.encode(authPasswd))))
         );
 
         propertyRepository.getByUserIdAndKey(adminUser.get().getId(), PROPERTY_CLEAN_DATA_ENABLE).ifPresentOrElse(invalidatorEnable -> {

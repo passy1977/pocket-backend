@@ -27,7 +27,7 @@ import it.salsi.pocket.models.Device;
 import it.salsi.pocket.models.User;
 import it.salsi.pocket.repositories.DeviceRepository;
 import it.salsi.pocket.repositories.UserRepository;
-import it.salsi.pocket.security.PasswordEncoder;
+import it.salsi.pocket.security.EncoderHelper;
 import it.salsi.pocket.security.RSAHelper;
 import lombok.Setter;
 import lombok.extern.java.Log;
@@ -120,7 +120,7 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
 
     private @NotNull final UserRepository userRepository;
 
-    private @NotNull final PasswordEncoder passwordEncoder;
+    private @NotNull final EncoderHelper encoderHelper;
 
     @Value("${server.url}")
     @Nullable
@@ -139,11 +139,11 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
     public IpcSocketManagerImpl(
             @Autowired @NotNull final DeviceRepository deviceRepository,
             @Autowired @NotNull final UserRepository userRepository,
-            @Autowired @NotNull final PasswordEncoder passwordEncoder
+            @Autowired @NotNull final EncoderHelper encoderHelper
     ) {
         this.deviceRepository = deviceRepository;
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
+        this.encoderHelper = encoderHelper;
         if(socketPort == null) {
             socketPort = SOCKET_PORT;
         }
@@ -171,7 +171,7 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
                     return Optional.empty();
                 }
 
-                ret = new User(split[3], email, passwordEncoder.encode(split[2]));
+                ret = new User(split[3], email, encoderHelper.encode(split[2]));
 
                 userRepository.save(ret);
                 break;
@@ -187,7 +187,7 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
                 ret = optUser.get();
                 ret.setName(split[3]);
                 ret.setEmail(email);
-                ret.setPasswd(passwordEncoder.encode(split[2]));
+                ret.setPasswd(encoderHelper.encode(split[2]));
 
                 userRepository.save(ret);
 
@@ -234,7 +234,7 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
         final var atmDevice = new AtomicReference<Optional<Device>>(Optional.empty());
         final var user = new AtomicReference<User>(null);
 
-        userRepository.findByEmailAndPasswd(email, passwordEncoder.encode(passwd)).ifPresent( u-> {
+        userRepository.findByEmailAndPasswd(email, encoderHelper.encode(passwd)).ifPresent( u-> {
             user.set(u);
             atmDevice.set(deviceRepository.findByUserAndUuid(u, uuid));
         });
@@ -317,6 +317,8 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
         log.info("Start socket");
         passwd = null;
 
+        assert authPasswd != null;
+        assert authPasswd.length() == 32;
         assert socketPort != null;
         try (final var serverSocket = new ServerSocket(socketPort, 0, InetAddress.getByName(null))) {
 
@@ -327,11 +329,6 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
                 try(final var in = new BufferedReader(new InputStreamReader(client.getInputStream()))) {
 
                     try(final var out = new PrintWriter(client.getOutputStream(), true)) {
-
-                        if(authPasswd == null) {
-                            out.println("Auth passwd non set");
-                            continue;
-                        }
 
                         while(loop && !client.isClosed()) {
 
@@ -357,38 +354,37 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
                                     continue;
                                 }
 
-                                if(authPasswd != null) {
-                                    final var split = Arrays
-                                            .stream(line.split("["+DIVISOR.value+"]"))
-                                            .map(String::trim)
-                                            .toArray(String[]::new);
+                                final var split = Arrays
+                                        .stream(line.split("["+DIVISOR.value+"]"))
+                                        .map(String::trim)
+                                        .toArray(String[]::new);
 
-                                    if(split[0].contains("_USER")) {
-                                        handleUser(out, split).ifPresent( u -> {
-                                            final var mapper = new ObjectMapper();
-                                            try {
+                                if(split[0].contains("_USER")) {
+                                    handleUser(out, split).ifPresent( u -> {
+                                        final var mapper = new ObjectMapper();
+                                        try {
 
-                                                out.println(mapper.writeValueAsString(u));
-                                                out.println(0);
-                                            } catch (JsonProcessingException e) {
-                                                out.println(e.getMessage());
-                                                out.println(ERROR.value);
-                                            }
-                                        });
-                                    } else if(split[0].contains("_DEVICE")) {
-                                        handleDevice(out, split).ifPresent( d -> {
-                                            final var mapper = new ObjectMapper();
-                                            try {
-                                                out.println(mapper.writeValueAsString(d));
-                                                out.println(0);
-                                            } catch (JsonProcessingException e) {
-                                                out.println(e.getMessage());
-                                                out.println(ERROR.value);
-                                            }
-                                        });
-                                    }
-
+                                            out.println(mapper.writeValueAsString(u));
+                                            out.println(0);
+                                        } catch (JsonProcessingException e) {
+                                            out.println(e.getMessage());
+                                            out.println(ERROR.value);
+                                        }
+                                    });
+                                } else if(split[0].contains("_DEVICE")) {
+                                    handleDevice(out, split).ifPresent( d -> {
+                                        final var mapper = new ObjectMapper();
+                                        try {
+                                            out.println(mapper.writeValueAsString(d));
+                                            out.println(0);
+                                        } catch (JsonProcessingException e) {
+                                            out.println(e.getMessage());
+                                            out.println(ERROR.value);
+                                        }
+                                    });
                                 }
+
+
                             }
                         }
                     }
