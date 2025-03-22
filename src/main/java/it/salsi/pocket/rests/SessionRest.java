@@ -56,7 +56,7 @@ public class SessionRest {
         return sessionController.persist(uuid, crypt, container);
     }
 
-    @PostMapping("/{uuid}/{crypt}")
+    @PutMapping("/{uuid}/{crypt}")
     public @NotNull ResponseEntity<Boolean> changePasswd(@PathVariable @NotNull final String uuid,
                                                       @PathVariable @NotNull final String crypt
     ) throws CommonsException
