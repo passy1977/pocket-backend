@@ -12,6 +12,10 @@ import org.springframework.beans.factory.annotation.Value;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.List;
+import java.util.Vector;
+
+import static it.salsi.pocket.security.RSAHelper.KEY_SIZE;
 
 @Log
 public class EncoderHelper {
@@ -22,6 +26,9 @@ public class EncoderHelper {
     @Value("${server.aes.crc.iv}")
     @Nullable
     private String aesCrcIv;
+
+    private static final int KEY_SIZE = 32;
+    private static final char PADDING = '$';
 
     @NotNull
     public String encode(@NotNull final CharSequence rawPassword) {
@@ -54,10 +61,22 @@ public class EncoderHelper {
         if(aesCrcIv.length() != 16) {
             throw new CommonsException("AES CRC IV must be 16 byte");
         }
+
+        var localAuthPasswd = new char[KEY_SIZE];
+        byte i = 0;
+        for (; i < authPasswd.length() && i < KEY_SIZE; i++)
+        {
+            localAuthPasswd[i] = authPasswd.charAt(i);
+        }
+        for (; i < KEY_SIZE; i++)
+        {
+            localAuthPasswd[i] = PADDING;
+        }
+
         return new CryptoBuilder()
                 .setDecodeBase64Callback(Base64.getDecoder()::decode)
                 .setEncodeBase64Callback(Base64.getEncoder()::encode)
-                .setKey(authPasswd)
+                .setKey(String.valueOf(localAuthPasswd))
                 .setIV(aesCrcIv)
                 .setCipher("AES/CBC/PKCS5Padding")
                 .build();

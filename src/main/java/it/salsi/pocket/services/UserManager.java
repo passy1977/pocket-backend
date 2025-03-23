@@ -19,6 +19,8 @@
 
 package it.salsi.pocket.services;
 
+import it.salsi.commons.CommonsException;
+
 public interface UserManager {
-    void checkAll();
+    void checkAll() throws CommonsException;
 }

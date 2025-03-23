@@ -39,3 +39,4 @@ error-screenshots/
 *.db
 application.yaml
 script/pocket4.sql
+gitignore_*

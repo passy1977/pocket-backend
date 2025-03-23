@@ -19,6 +19,7 @@
 
 package it.salsi.pocket.services;
 
+import it.salsi.commons.CommonsException;
 import it.salsi.pocket.models.User;
 import it.salsi.pocket.repositories.UserRepository;
 import it.salsi.pocket.security.EncoderHelper;
@@ -56,16 +57,19 @@ public final class UserManagerImpl implements UserManager {
 
 
     @Override
-    public void checkAll() {
+    public void checkAll() throws CommonsException {
         log.info("Start user");
         assert authUser != null;
         assert authPasswd != null;
-        assert authPasswd.length() == 32;
+        if(authPasswd.length() != 32) {
+            throw new CommonsException("Default passwd must be 32 byte");
+        }
 
         userRepository.findByEmail(authUser).ifPresentOrElse(user -> {
                     if (!user.getPasswd().equals(encoderHelper.encode(authPasswd))) {
                         userRepository.delete(user);
                         userRepository.save(new User("ADMIN", this.authUser, encoderHelper.encode(authPasswd)));
+                        log.warning("Passwd changed! Insert default one");
                     }
                 },
                 () -> userRepository.save(new User("ADMIN", authUser, encoderHelper.encode(authPasswd)))
