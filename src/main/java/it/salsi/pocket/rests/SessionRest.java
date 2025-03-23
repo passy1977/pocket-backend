@@ -22,6 +22,7 @@ package it.salsi.pocket.rests;
 import it.salsi.commons.CommonsException;
 import it.salsi.pocket.controllers.SessionController;
 import it.salsi.pocket.models.Container;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
@@ -42,27 +43,43 @@ public class SessionRest {
 
     @GetMapping("/{uuid}/{crypt}")
     public @NotNull ResponseEntity<Container> getData(@PathVariable @NotNull final String uuid,
-                                                          @PathVariable @NotNull final String crypt) throws CommonsException
+                                                          @PathVariable @NotNull final String crypt,
+                                                        @NotNull final HttpServletRequest request
+    ) throws CommonsException
     {
-        return sessionController.getData(uuid, crypt);
+        var remoteIP = request.getRemoteAddr();
+        if (request.getHeader("x-forwarded-for") != null) {
+            remoteIP = request.getHeader("x-forwarded-for");
+        }
+        return sessionController.getData(uuid, crypt, remoteIP);
     }
 
     @PostMapping("/{uuid}/{crypt}")
     public @NotNull ResponseEntity<Container> persist(@PathVariable @NotNull final String uuid,
                                                           @PathVariable @NotNull final String crypt,
-                                                          @Valid @NotNull @RequestBody final Container container
-                                                        ) throws CommonsException
+                                                          @Valid @NotNull @RequestBody final Container container,
+                                                        @NotNull final HttpServletRequest request
+    ) throws CommonsException
     {
-        return sessionController.persist(uuid, crypt, container);
+        var remoteIP = request.getRemoteAddr();
+        if (request.getHeader("x-forwarded-for") != null) {
+            remoteIP = request.getHeader("x-forwarded-for");
+        }
+        return sessionController.persist(uuid, crypt, container, remoteIP);
     }
 
     @PutMapping("/{uuid}/{crypt}/{changePasswdDataOnServer}")
     public @NotNull ResponseEntity<Boolean> changePasswd(@PathVariable @NotNull final String uuid,
                                                         @PathVariable @NotNull final String crypt,
-                                                        @PathVariable(required = false) @NotNull final Boolean changePasswdDataOnServer
+                                                        @PathVariable(required = false) @NotNull final Boolean changePasswdDataOnServer,
+                                                         @NotNull final HttpServletRequest request
     ) throws CommonsException
     {
-        return sessionController.changePasswd(uuid, crypt, changePasswdDataOnServer);
+        var remoteIP = request.getRemoteAddr();
+        if (request.getHeader("x-forwarded-for") != null) {
+            remoteIP = request.getHeader("x-forwarded-for");
+        }
+        return sessionController.changePasswd(uuid, crypt, changePasswdDataOnServer, remoteIP);
     }
 
 

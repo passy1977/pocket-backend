@@ -22,14 +22,12 @@ package it.salsi.pocket.controllers;
 import it.salsi.commons.CommonsException;
 import it.salsi.commons.utils.Crypto;
 import it.salsi.pocket.core.BaseController;
-import it.salsi.pocket.models.Device;
 import it.salsi.pocket.models.GroupField;
 import it.salsi.pocket.models.User;
 import it.salsi.pocket.repositories.DeviceRepository;
 import it.salsi.pocket.repositories.GroupFieldRepository;
 import it.salsi.pocket.repositories.GroupRepository;
 import it.salsi.pocket.repositories.UserRepository;
-import it.salsi.pocket.security.EncoderHelper;
 import lombok.Setter;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
@@ -114,9 +112,9 @@ public final class GroupFieldController extends BaseController<GroupField, Group
     }
 
     @Override
-    public void changePasswd(@NotNull final User user, @NotNull final Crypto aes) throws CommonsException {
+    public void changePasswd(@NotNull final User user, @NotNull final Crypto aesOld, @NotNull final Crypto aesNew) throws CommonsException {
         for(var it : repository.findByUser(user)) {
-            it.setTitle(aes.encryptToString(it.getTitle()));
+            it.setTitle(aesNew.encryptToString(aesOld.decryptToString(it.getTitle())));
         }
     }
 }

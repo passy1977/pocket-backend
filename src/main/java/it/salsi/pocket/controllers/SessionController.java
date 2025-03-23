@@ -110,7 +110,9 @@ public class SessionController {
     }
 
     public @NotNull ResponseEntity<Container> getData(@NotNull final String uuid,
-                                                      @NotNull final String crypt) throws CommonsException {
+                                                      @NotNull final String crypt,
+                                                      @NotNull final String remoteIP
+    ) throws CommonsException {
 
 
         final var now = Instant.now(Clock.systemUTC()).getEpochSecond();
@@ -162,6 +164,7 @@ public class SessionController {
             return ResponseEntity.status(USER_NOT_FOUND.code).build();
         }
 
+        device.setAddress(remoteIP);
         device.setTimestampLastLogin(now);
         device = deviceRepository.save(device);
 
@@ -187,7 +190,8 @@ public class SessionController {
 
     public @NotNull ResponseEntity<Container> persist(@NotNull final String uuid,
                                                       @NotNull final String crypt,
-                                                      @NotNull final Container container
+                                                      @NotNull final Container container,
+                                                      @NotNull final String remoteIP
     ) throws CommonsException  {
         final var now = Instant.now(Clock.systemUTC()).getEpochSecond();
 
@@ -264,6 +268,7 @@ public class SessionController {
                 || StreamSupport.stream(fieldsDeleted.spliterator(), false).findFirst().isPresent()
         )
         {
+            device.setAddress(remoteIP);
             device.setTimestampLastUpdate(now);
             deviceRepository.save(device);
         }
@@ -282,13 +287,15 @@ public class SessionController {
     @PostMapping("/{uuid}/{crypt}")
     public @NotNull ResponseEntity<Boolean> changePasswd(@NotNull final String uuid,
                                                         @NotNull final String crypt,
-                                                         @NotNull final Boolean changePasswdDataOnServer
+                                                         @NotNull final Boolean changePasswdDataOnServer,
+                                                         @NotNull final String remoteIP
     ) throws CommonsException  {
         final var now = Instant.now(Clock.systemUTC()).getEpochSecond();
 
         long timestampLastUpdate = 0;
         Optional<User> optUser = Optional.empty();
         Device device = null;
+        String oldPasswd = null;
         String newPasswd = null;
         RSAHelper rsaHelper = null;
         if(cacheManager.has(uuid)) {
@@ -326,7 +333,9 @@ public class SessionController {
                     }
                 }
 
-                optUser =  userRepository.findByEmailAndPasswd(decryptSplit[3], encoderHelper.encode(decryptSplit[4]));
+                oldPasswd = decryptSplit[4];
+
+                optUser =  userRepository.findByEmailAndPasswd(decryptSplit[3], encoderHelper.encode(oldPasswd));
                 if(optUser.isEmpty()) {
                     return ResponseEntity.status(USER_NOT_FOUND.code).build();
                 }
@@ -350,13 +359,15 @@ public class SessionController {
         final var user= optUser.get();
 
         if(changePasswdDataOnServer) {
-            final var aes = encoderHelper.getCrypto(newPasswd);
-            groupController.changePasswd(user, aes);
-            groupFieldController.changePasswd(user, aes);
-            fieldController.changePasswd(user, aes);
+            final var aesOld = encoderHelper.getCrypto(oldPasswd);
+            final var aesNew = encoderHelper.getCrypto(newPasswd);
+            groupController.changePasswd(user, aesOld, aesNew);
+            groupFieldController.changePasswd(user, aesOld, aesNew);
+            fieldController.changePasswd(user, aesOld, aesNew);
             device.setTimestampLastUpdate(now);
         }
 
+        device.setAddress(remoteIP);
         device.setTimestampLastLogin(now);
         deviceRepository.save(device);
 

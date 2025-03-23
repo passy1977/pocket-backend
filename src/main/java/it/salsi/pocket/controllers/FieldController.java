@@ -24,11 +24,9 @@ package it.salsi.pocket.controllers;
 import it.salsi.commons.CommonsException;
 import it.salsi.commons.utils.Crypto;
 import it.salsi.pocket.core.BaseController;
-import it.salsi.pocket.models.Device;
 import it.salsi.pocket.models.Field;
 import it.salsi.pocket.models.User;
 import it.salsi.pocket.repositories.*;
-import it.salsi.pocket.security.EncoderHelper;
 import lombok.Setter;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
@@ -102,10 +100,10 @@ public final class FieldController extends BaseController<Field, FieldRepository
     }
 
     @Override
-    public void changePasswd(@NotNull final User user, @NotNull final Crypto aes) throws CommonsException {
+    public void changePasswd(@NotNull final User user, @NotNull final Crypto aesOld, @NotNull final Crypto aesNew) throws CommonsException {
         for(var it : repository.findByUser(user)) {
-            it.setTitle(aes.encryptToString(it.getTitle()));
-            it.setValue(aes.encryptToString(it.getValue()));
+            it.setTitle(aesNew.encryptToString(aesOld.decryptToString(it.getTitle())));
+            it.setValue(aesNew.encryptToString(aesOld.decryptToString(it.getValue())));
         }
     }
 }

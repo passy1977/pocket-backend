@@ -31,7 +31,9 @@ ALTER TABLE `groups`
 UPDATE groups SET timestamp_creation = UNIX_TIMESTAMP(date_time_last_update), timestamp_last_update = UNIX_TIMESTAMP(date_time_last_update);
 ALTER TABLE groups DROP COLUMN  date_time_last_update;
 
-ALTER TABLE users ADD COLUMN timestamp_creation bigint(20) DEFAULT 0;
+ALTER TABLE users
+    ADD COLUMN timestamp_creation bigint(20) DEFAULT 0
+    DROP COLUMN date_time_last_update;
 
 DROP TABLE users_roles;
 DROP TABLE roles;
