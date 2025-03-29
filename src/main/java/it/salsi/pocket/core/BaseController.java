@@ -194,6 +194,6 @@ public abstract class BaseController <T extends BaseModel, Y extends BaseReposit
         return List.of();
     }
 
-    public abstract void changePasswd(@NotNull final User user, @NotNull final Crypto aesOld, @NotNull final Crypto aesNew) throws CommonsException;
+    public abstract void changePasswd(@NotNull final User user, @NotNull final Crypto aesOld, @NotNull final Crypto aesNew, long now) throws CommonsException;
 
 }

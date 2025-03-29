@@ -361,9 +361,9 @@ public class SessionController {
         if(changePasswdDataOnServer) {
             final var aesOld = encoderHelper.getCrypto(oldPasswd);
             final var aesNew = encoderHelper.getCrypto(newPasswd);
-            groupController.changePasswd(user, aesOld, aesNew);
-            groupFieldController.changePasswd(user, aesOld, aesNew);
-            fieldController.changePasswd(user, aesOld, aesNew);
+            groupController.changePasswd(user, aesOld, aesNew, now);
+            groupFieldController.changePasswd(user, aesOld, aesNew, now);
+            fieldController.changePasswd(user, aesOld, aesNew, now);
             device.setTimestampLastUpdate(now);
         }
 

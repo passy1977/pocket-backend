@@ -89,8 +89,10 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
         @JsonProperty("hostPublicKey")
         private @NotNull String _publicKey;
 
+        @JsonProperty("aesCbcIv")
+        private @NotNull String aesCbcIv;
 
-        public DeviceExtended(@NotNull final Device device, @Nullable final String host) {
+        public DeviceExtended(@NotNull final Device device, @Nullable final String host, @NotNull final String aesCbcIv) {
             setId(device.getId());
             setUuid(device.getUuid());
             setStatus(device.getStatus());
@@ -108,11 +110,12 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
                 log.severe(e.getMessage());
                 _publicKey = "";
             }
+            this.aesCbcIv = aesCbcIv;
         }
 
 
     }
-    static public final int SOCKET_PORT = 333;
+    static public final int SOCKET_PORT = 8333;
 
     private boolean loop = true;
 
@@ -133,6 +136,10 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
     @Value("${server.socket-port}")
     @Nullable
     private Integer socketPort;
+
+    @Value("${server.aes.cbc.iv}")
+    @Nullable
+    private String aesCrbIv;
 
     private @Nullable String passwd;
 
@@ -297,7 +304,8 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
         if(ret == null) {
             return Optional.empty();
         }
-        return Optional.of(new DeviceExtended(ret, serverUrl));
+        assert aesCrbIv != null;
+        return Optional.of(new DeviceExtended(ret, serverUrl, aesCrbIv));
     }
 
     /**
