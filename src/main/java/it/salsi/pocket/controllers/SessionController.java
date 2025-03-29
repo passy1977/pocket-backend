@@ -179,7 +179,7 @@ public class SessionController {
 
         return ResponseEntity.ok(
                 new Container(
-                        now,
+                        device.getTimestampLastUpdate(),
                         optUser.get(),
                         device,
                         groupController.getAll(uuid, timestampLastUpdate),
@@ -275,7 +275,7 @@ public class SessionController {
 
         return ResponseEntity.ok(
                 new Container(
-                        now,
+                        device.getTimestampLastUpdate(),
                         optUser.get(),
                         device,
                         concat(groups, groupsDeleted),
