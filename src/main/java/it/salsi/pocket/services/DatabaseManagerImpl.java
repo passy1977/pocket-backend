@@ -68,16 +68,12 @@ public final class DatabaseManagerImpl implements DatabaseManager {
     @NotNull
     private final FieldRepository fieldRepository;
 
-    @NotNull
-    private final EncoderHelper encoderHelper;
-
     public DatabaseManagerImpl(@Autowired @NotNull final UserRepository userRepository,
                                @Autowired @NotNull final DeviceRepository deviceRepository,
                                @Autowired @NotNull final PropertyRepository propertyRepository,
                                @Autowired @NotNull final GroupRepository groupRepository,
                                @Autowired @NotNull final GroupFieldRepository groupFieldRepository,
-                               @Autowired @NotNull final FieldRepository fieldRepository,
-                               @Autowired @NotNull final EncoderHelper encoderHelper
+                               @Autowired @NotNull final FieldRepository fieldRepository
     ) {
         this.userRepository = userRepository;
         this.deviceRepository = deviceRepository;
@@ -85,7 +81,6 @@ public final class DatabaseManagerImpl implements DatabaseManager {
         this.groupRepository = groupRepository;
         this.groupFieldRepository = groupFieldRepository;
         this.fieldRepository = fieldRepository;
-        this.encoderHelper = encoderHelper;
     }
 
 
