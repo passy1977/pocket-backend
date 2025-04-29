@@ -233,15 +233,14 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
         }
         String cmd = split[0];
         String email = split[1];
-        String passwd = split[2];
-        String uuid = split.length >= 4 ? split[3] : "";
+        String uuid = split.length >= 3 ? split[2] : "";
 
 
 
         final var atmDevice = new AtomicReference<Optional<Device>>(Optional.empty());
         final var user = new AtomicReference<User>(null);
 
-        userRepository.findByEmailAndPasswd(email, encoderHelper.encode(passwd)).ifPresent( u-> {
+        userRepository.findByEmail(email).ifPresent( u-> {
             user.set(u);
             atmDevice.set(deviceRepository.findByUserAndUuid(u, uuid));
         });
@@ -314,9 +313,9 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
      * RM_USER|test@test.com
      * GET_USER|test@test.com
      *
-     * ADD_DEVICE|test@test.com|12345678123456781234567812345678
-     * RM_DEVICE|test@test.com|pwd|47a48e92-c521-4f07-a4b3-757c889a0816
-     * GET_DEVICE|test@test.com|pwd|47a48e92-c521-4f07-a4b3-757c889a0816
+     * ADD_DEVICE|test@test.com
+     * RM_DEVICE|test@test.com|47a48e92-c521-4f07-a4b3-757c889a0816
+     * GET_DEVICE|test@test.com|47a48e92-c521-4f07-a4b3-757c889a0816
      */
     @Async
     @Override
