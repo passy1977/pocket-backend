@@ -271,7 +271,7 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
 
                 } catch (CommonsException e) {
                     out.println(e.getMessage());
-                    out.println(0);
+                    out.println(OK.value);
                     return Optional.empty();
                 }
 
@@ -354,7 +354,7 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
                                 if(passwd == null) {
                                     if(line.equals(authPasswd)) {
                                         passwd = line;
-                                        out.println(0);
+                                        out.println(OK.value);
                                     } else {
                                         out.println(WRONG_PASSWD.value);
                                     }
@@ -372,7 +372,7 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
                                         try {
 
                                             out.println(mapper.writeValueAsString(u));
-                                            out.println(0);
+                                            out.println(OK.value);
                                         } catch (JsonProcessingException e) {
                                             out.println(e.getMessage());
                                             out.println(ERROR.value);
@@ -383,7 +383,7 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
                                         final var mapper = new ObjectMapper();
                                         try {
                                             out.println(mapper.writeValueAsString(d));
-                                            out.println(0);
+                                            out.println(OK.value);
                                         } catch (JsonProcessingException e) {
                                             out.println(e.getMessage());
                                             out.println(ERROR.value);
