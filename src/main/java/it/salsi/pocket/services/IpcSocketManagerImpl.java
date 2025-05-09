@@ -38,15 +38,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static it.salsi.pocket.Constant.DIVISOR;
@@ -124,6 +123,8 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
     private @NotNull final UserRepository userRepository;
 
     private @NotNull final EncoderHelper encoderHelper;
+
+    private @Nullable PrintWriter out = null;
 
     @Value("${server.url}")
     @Nullable
@@ -333,10 +334,9 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
 
                 final var client = serverSocket.accept();
 
+                out = new PrintWriter(client.getOutputStream(), true);
+
                 try(final var in = new BufferedReader(new InputStreamReader(client.getInputStream()))) {
-
-                    try(final var out = new PrintWriter(client.getOutputStream(), true)) {
-
                         while(loop && !client.isClosed()) {
 
                             // Check for client disconnection
@@ -350,7 +350,6 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
 
                             String line;
                             while (loop && (line = in.readLine()) != null) {
-
                                 if(passwd == null) {
                                     if(line.equals(authPasswd)) {
                                         passwd = line;
@@ -394,8 +393,14 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
 
                             }
                         }
-                    }
+//                    }
                 }
+
+                if (out != null) {
+                    out.close();
+                }
+
+                System.out.println("client disconnected. Socket closing...");
             }
 
 
