@@ -44,8 +44,6 @@ import java.net.ServerSocket;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static it.salsi.pocket.Constant.DIVISOR;
@@ -235,6 +233,7 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
         String cmd = split[0];
         String email = split[1];
         String uuid = split.length >= 3 ? split[2] : "";
+        String note = split.length >= 4 ? split[3] : "";
 
 
 
@@ -253,8 +252,6 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
 
         Device ret = null;
 
-        String privateKey = "";
-
         switch (cmd) {
             case "ADD_DEVICE":
                 if(atmDevice.get().isPresent()) {
@@ -262,6 +259,7 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
                     return Optional.empty();
                 }
                 ret = new Device(user.get());
+                ret.setNote(note);
 
                 try {
                     var rsaHelper = new RSAHelper(ALGORITHM, RSAHelper.KEY_SIZE);
@@ -277,6 +275,14 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
                 }
 
                 ret = deviceRepository.save(ret);
+                break;
+            case "MOD_DEVICE":
+                if(atmDevice.get().isEmpty()) {
+                    out.println(DEVICE_NOT_EXIST.value);
+                    return Optional.empty();
+                }
+                ret = atmDevice.get().get();
+                ret.setNote(note);
                 break;
             case "RM_DEVICE":
                 if(atmDevice.get().isEmpty()) {
@@ -350,6 +356,7 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
 
                             String line;
                             while (loop && (line = in.readLine()) != null) {
+                                line = line.trim();
                                 if(passwd == null) {
                                     if(line.equals(authPasswd)) {
                                         passwd = line;
