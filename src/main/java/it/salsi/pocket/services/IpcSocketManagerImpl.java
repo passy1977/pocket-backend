@@ -226,7 +226,7 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
 
     //cmd|email|uuid
     private @NotNull Optional<DeviceExtended>  handleDevice(@NotNull final PrintWriter out, final String @NotNull [] split) {
-        if(split.length < 3) {
+        if(split.length < 1) {
             out.println(WRONG_PARAMS.value);
             return Optional.empty();
         }
