@@ -21,7 +21,6 @@
 package it.salsi.pocket.configs;
 
 
-import it.salsi.commons.CommonsException;
 import it.salsi.pocket.services.CacheManager;
 import it.salsi.pocket.services.DatabaseManager;
 import lombok.extern.java.Log;

@@ -19,7 +19,6 @@
 
 package it.salsi.pocket.services;
 
-import it.salsi.commons.CommonsException;
 import it.salsi.pocket.models.User;
 import it.salsi.pocket.repositories.PropertyRepository;
 import it.salsi.pocket.repositories.UserRepository;
@@ -52,9 +51,6 @@ public final class CacheManagerImpl implements CacheManager {
     @NotNull
     private final UserRepository userRepository;
 
-    @NotNull
-    private final EncoderHelper encoderHelper;
-
     @Value("${server.auth.user}")
     @Nullable
     private String authUser;
@@ -67,11 +63,9 @@ public final class CacheManagerImpl implements CacheManager {
     private final Map<String, CacheRecord> map = new HashMap<>();
 
     public CacheManagerImpl(@Autowired @NotNull final PropertyRepository propertyRepository
-            , @Autowired @NotNull final UserRepository userRepository
-            , @Autowired @NotNull final EncoderHelper encoderHelper) {
+            , @Autowired @NotNull final UserRepository userRepository) {
         this.propertyRepository = propertyRepository;
         this.userRepository = userRepository;
-        this.encoderHelper = encoderHelper;
     }
 
     @Override
@@ -125,7 +119,7 @@ public final class CacheManagerImpl implements CacheManager {
 
         assert authUser != null;
         assert authPasswd != null;
-        assert authPasswd.length() == 32;
+        assert authPasswd.length() == EncoderHelper.KEY_SIZE;
         AtomicReference<User> adminUser = new AtomicReference<>(new User());
         userRepository.findByEmail(authUser).ifPresent(adminUser::set);
 

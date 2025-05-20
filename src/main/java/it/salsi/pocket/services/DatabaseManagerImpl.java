@@ -26,7 +26,6 @@ import it.salsi.pocket.models.Device;
 import it.salsi.pocket.models.Property;
 import it.salsi.pocket.models.User;
 import it.salsi.pocket.repositories.*;
-import it.salsi.pocket.security.EncoderHelper;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

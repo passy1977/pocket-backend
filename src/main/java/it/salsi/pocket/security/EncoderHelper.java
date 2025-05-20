@@ -23,7 +23,7 @@ public class EncoderHelper {
     @Nullable
     private String aesCrbIv;
 
-    private static final int KEY_SIZE = 32;
+    public static final int KEY_SIZE = 32;
     private static final char PADDING = '$';
 
     @NotNull

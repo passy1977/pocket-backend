@@ -81,7 +81,7 @@ public enum Constant {
         return switch (this) {
             case PROPERTY_DB_VERSION -> new MetaProperty(this, INTEGER, "", DATABASE_VERSION, true, true, true);
             case PROPERTY_CLEAN_DATA_ENABLE -> new MetaProperty(this, BOOLEAN, "Enable old data deleting", false, true, true, false);
-            case PROPERTY_INVALIDATOR_ENABLE -> new MetaProperty(this, BOOLEAN, "Enable invalidate unused account", false, true, true, false);
+            case PROPERTY_INVALIDATOR_ENABLE -> new MetaProperty(this, BOOLEAN, "Enable invalidate unused account", true, true, true, false);
             case PROPERTY_INVALIDATOR_MAX_LOGIN_DAYS -> new MetaProperty(this, INTEGER, "Day after that a client will be disable", 30, true, true, false);
             case PROPERTY_INVALIDATOR_CACHE_MAX_MINUTES -> new MetaProperty(this, INTEGER, "Amount of minutes after that a login cache will be delete", 10, true, true, false);
             default -> new MetaProperty(FOO, STRING, "", "", false, true, false);
