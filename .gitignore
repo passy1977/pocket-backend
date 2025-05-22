@@ -41,3 +41,4 @@ application.yaml
 script/pocket4.sql
 gitignore_*
 .env
+docker_data/

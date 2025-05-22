@@ -6,29 +6,31 @@ services:
     image: mariadb:latest
     container_name: db
     networks:
-      - web_services_network
+      - pocket5_network
     ports:
       - "3306:3306"
     volumes:
-      - ./data_db:/var/lib/mysql
+      - ./docker_data/mariadb:/var/lib/mysql
       - ./mysql/scripts:/docker-entrypoint-initdb.d
     environment:
       - MYSQL_ROOT_PASSWORD=${MARIADB_ROOT_PWD}
     restart: always
 
   pocket-api:
-    image: pocket-api
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: pocket-api
     networks:
-      - web_services_network
+      - pocket5_network
     ports:
       - "8081:8081"  
     volumes:
-      - ./config_pocket_api:/var/www/scripts:ro
+      - ./docker_data/pocket5:/var/www/scripts:ro
     restart: always  
     depends_on:
       - db
 
 networks:
-  web_services_network:
+  pocket5_network:
     external: true

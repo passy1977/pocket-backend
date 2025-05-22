@@ -41,7 +41,7 @@ server:
   socket-port: 8300
   check-timestamp-last-update: false
   services-cron: 1 * * * * ?
-  aes.cbc.iv: 1234567812345678
+  aes.cbc.iv: AES_CBC_IV
   auth:
-    user: test@test.com
-    passwd: 12345678123456781234567812345678
+    user: AUTH_USER
+    passwd: AUTH_PASSWD
