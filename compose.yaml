@@ -1,0 +1,34 @@
+
+#https://linuxiac.com/how-to-install-nextcloud-with-docker-compose/
+
+services:
+  db:
+    image: mariadb:latest
+    container_name: db
+    networks:
+      - web_services_network
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./data_db:/var/lib/mysql
+      - ./mysql/scripts:/docker-entrypoint-initdb.d
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MARIADB_ROOT_PWD}
+    restart: always
+
+  pocket-api:
+    image: pocket-api
+    container_name: pocket-api
+    networks:
+      - web_services_network
+    ports:
+      - "8081:8081"  
+    volumes:
+      - ./config_pocket_api:/var/www/scripts:ro
+    restart: always  
+    depends_on:
+      - db
+
+networks:
+  web_services_network:
+    external: true

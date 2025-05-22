@@ -40,3 +40,4 @@ error-screenshots/
 application.yaml
 script/pocket4.sql
 gitignore_*
+.env

@@ -20,7 +20,7 @@ spring:
     driverClassName: org.mariadb.jdbc.Driver
     url: jdbc:mariadb://localhost:3306/pocket4?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&autoReconnect=true
     username: root
-    password: 12345678
+    password: MARIADB_ROOT_PWD
 
 logging:
  level:
