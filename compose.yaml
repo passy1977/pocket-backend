@@ -16,11 +16,11 @@ services:
       - MYSQL_ROOT_PASSWORD=${MARIADB_ROOT_PWD}
     restart: always
 
-  pocket-api:
+  pocket-backend:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: pocket-api
+    container_name: pocket-backend
     networks:
       - pocket5_network
     ports:
