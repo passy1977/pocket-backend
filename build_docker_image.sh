@@ -61,7 +61,7 @@ sed -e "s/MARIADB_ROOT_PWD/$MARIADB_ROOT_PWD/g" \
     -e "s/AES_CBC_IV/$AES_CBC_IV/g" \
     -e "s/AUTH_USER/$AUTH_USER/g" \
     -e "s/AUTH_PASSWD/$AUTH_PASSWD/g" scripts/pocket5-config.yaml > docker_data/pocket5/pocket5-config.yaml
-
+    cp docker_data/pocket5/pocket5-config.yaml src/main/resources/application.yaml
 fi
 
 
@@ -69,14 +69,14 @@ sudo docker compose up -d
 
 if [ -n "$MARIADB_ROOT_PWD" ]; then
 
-  until sudo docker exec -it db mysqladmin -u root -p$MARIADB_ROOT_PWD ping > /dev/null 2>&1; do
-    echo "Waiting for MySQL to start..."
-    sleep 5
-  done
+  # until sudo docker exec -it db mariadb-admin -u root -p$MARIADB_ROOT_PWD > /dev/null 2>&1; do
+  echo "Waiting for MySQL to start..."
+  sleep 10
+  # done
 
-  sudo docker exec -i db mysql -u root -p$MARIADB_ROOT_PWD < docker_data/mariadb/create_root_user.sql
+  sudo docker exec -i db mariadb -u root -p$MARIADB_ROOT_PWD < docker_data/mariadb/create_root_user.sql
 
-  rm docker_data/mariadb/create_root_user.sql
+  sudo rm -f docker_data/mariadb/create_root_user.sql
 else
   echo "ERROR: $MARIADB_ROOT_PWD is not set. Please provide the password" 1>&2
 fi
