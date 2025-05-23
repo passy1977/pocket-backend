@@ -55,14 +55,13 @@ RUN rm -fr /home/pocket/pocket-cli
 #CMD ["tail", "-f", "/dev/null"]
 
 FROM maven:3-amazoncorretto-21-debian-bookworm
+RUN useradd -m pocket
 COPY --from=build --chown=pocket /var/www/target/pocket-*.jar /var/www/pocket.jar
 COPY --from=build --chown=pocket /var/www/scripts /var/www/scripts
-RUN useradd -m pocket
-RUN chown -R pocket:pocket /var/www/pocket.jar
-RUN chown -R pocket:pocket /var/www/scripts
 USER pocket
 EXPOSE 8081
 CMD /usr/bin/java -Dspring.config.location=/var/www/scripts/pocket5-config.yaml -jar /var/www/pocket.jar
+#CMD ["tail", "-f", "/dev/null"]
 
 
 
