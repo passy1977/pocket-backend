@@ -37,18 +37,14 @@ if [ ! -d docker_data/pocket5 ]; then
       echo "MARIADB_ROOT_PWD empty"
       exit 1
   fi
-
-  mkdir -p docker_data/pocket5
-
-  read -s -p "AES CBC IV (16 char are mandatory): " AES_CBC_IV
-  echo
+  read -p "Set URL for remote sonnection (es http://xxxxx:8081): " URL
+  read -p "AES CBC IV (16 char are mandatory): " AES_CBC_IV
   if [[ ${#AES_CBC_IV} -ne 16 ]]; then
       echo "AES CBC IV don't contain a string of 16 chars" 1>&2
       exit 1
   fi
 
-  read -s -p "Auth email: " AUTH_USER  
-  echo
+  read -p "Auth email: " AUTH_USER
   read -s -p "Auth passwd (32 char are mandatory): " AUTH_PASSWD
   echo
 
@@ -57,11 +53,15 @@ if [ ! -d docker_data/pocket5 ]; then
       exit 1
   fi
 
-sed -e "s/MARIADB_ROOT_PWD/$MARIADB_ROOT_PWD/g" \
-    -e "s/AES_CBC_IV/$AES_CBC_IV/g" \
-    -e "s/AUTH_USER/$AUTH_USER/g" \
-    -e "s/AUTH_PASSWD/$AUTH_PASSWD/g" scripts/pocket5-config.yaml > docker_data/pocket5/pocket5-config.yaml
-    cp docker_data/pocket5/pocket5-config.yaml src/main/resources/application.yaml
+  mkdir -p docker_data/pocket5
+
+  sed -e "s/MARIADB_ROOT_PWD/$MARIADB_ROOT_PWD/g" \
+      -e "s#URL#$URL#g" \
+      -e "s/AES_CBC_IV/$AES_CBC_IV/g" \
+      -e "s/AUTH_USER/$AUTH_USER/g" \
+      -e "s/AUTH_PASSWD/$AUTH_PASSWD/g" scripts/pocket5-config.yaml > docker_data/pocket5/pocket5-config.yaml
+  
+  cp docker_data/pocket5/pocket5-config.yaml src/main/resources/application.yaml
 fi
 
 
@@ -69,12 +69,12 @@ sudo docker compose up -d
 
 if [ -n "$MARIADB_ROOT_PWD" ]; then
 
-  # until sudo docker exec -it db mariadb-admin -u root -p$MARIADB_ROOT_PWD > /dev/null 2>&1; do
-  echo "Waiting for MySQL to start..."
+  echo "Waiting for MariaDB to start..."
   sleep 10
-  # done
 
   sudo docker exec -i db mariadb -u root -p$MARIADB_ROOT_PWD < docker_data/mariadb/create_root_user.sql
+  sleep 1
+  sudo docker exec -i db mariadb -u root -p$MARIADB_ROOT_PWD < scripts/pocket5.sql
 
   sudo rm -f docker_data/mariadb/create_root_user.sql
 else

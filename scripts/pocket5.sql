@@ -1,3 +1,7 @@
+
+CREATE SCHEMA IF NOT EXISTS pocket5;
+USE pocket5;
+
 SET foreign_key_checks = 0;
 
 -- pocket5.devices definition

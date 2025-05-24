@@ -37,7 +37,7 @@ logging:
 server:
   port: 8081
   api-version: /api/v5
-  url: http://127.0.0.1:8081
+  url: URL
   socket-port: 8300
   check-timestamp-last-update: false
   services-cron: 1 * * * * ?
