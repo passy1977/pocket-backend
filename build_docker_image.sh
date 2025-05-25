@@ -71,6 +71,14 @@ if [ -n "$MARIADB_ROOT_PWD" ]; then
   echo Import db
   sudo docker exec -i db mariadb -u root -p$MARIADB_ROOT_PWD < scripts/pocket5.sql
 
+  echo create command /usr/local/bin/pocket-user
+  sudo echo "#!/bin/bash\n\nsudo docker run -it pocket-backend /var/www/pocket-user" > /usr/local/bin/pocket-user
+  sudo chmod +x /usr/local/bin/pocket-user
+
+  echo create command /usr/local/bin/pocket-device
+  sudo echo "#!/bin/bash\n\nsudo docker run -it pocket-backend /var/www/pocket-device" > /usr/local/bin/pocket-device
+  sudo chmod +x /usr/local/bin/pocket-device
+
 else
   echo "ERROR: $MARIADB_ROOT_PWD is not set. Please provide the password" 1>&2
 fi

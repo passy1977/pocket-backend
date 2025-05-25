@@ -58,6 +58,8 @@ FROM maven:3-amazoncorretto-21-debian-bookworm
 RUN useradd -m pocket
 COPY --from=build --chown=pocket /var/www/target/pocket-*.jar /var/www/pocket.jar
 COPY --from=build --chown=pocket /var/www/scripts /var/www/scripts
+COPY --from=build --chown=pocket /var/www/pocket-device /var/www/pocket-device
+COPY --from=build --chown=pocket /var/www/pocket-user /var/www/pocket-user
 USER pocket
 EXPOSE 8081
 CMD /usr/bin/java -Dspring.config.location=/var/www/scripts/pocket5-config.yaml -jar /var/www/pocket.jar
