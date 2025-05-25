@@ -25,9 +25,6 @@ if [ ! -d docker_data/mariadb ]; then
 
   read -s -p "Insert passwd for MariaDB root user: " MARIADB_ROOT_PWD
   echo
-  echo "CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED BY '$MARIADB_ROOT_PWD';" > docker_data/mariadb/create_root_user.sql
-  echo "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;" >> docker_data/mariadb/create_root_user.sql
-  echo "FLUSH PRIVILEGES;" >> docker_data/mariadb/create_root_user.sql
 
   echo "MARIADB_ROOT_PWD=$MARIADB_ROOT_PWD" > .env
 fi
@@ -61,7 +58,6 @@ if [ ! -d docker_data/pocket5 ]; then
       -e "s/AUTH_USER/$AUTH_USER/g" \
       -e "s/AUTH_PASSWD/$AUTH_PASSWD/g" scripts/pocket5-config.yaml > docker_data/pocket5/pocket5-config.yaml
   
-  cp docker_data/pocket5/pocket5-config.yaml src/main/resources/application.yaml
 fi
 
 
@@ -72,11 +68,9 @@ if [ -n "$MARIADB_ROOT_PWD" ]; then
   echo "Waiting for MariaDB to start..."
   sleep 15
 
-#  sudo docker exec -i db mariadb -u root -p$MARIADB_ROOT_PWD < docker_data/mariadb/create_root_user.sql
-  sleep 1
+  echo Import db
   sudo docker exec -i db mariadb -u root -p$MARIADB_ROOT_PWD < scripts/pocket5.sql
 
-  sudo rm -f docker_data/mariadb/create_root_user.sql
 else
   echo "ERROR: $MARIADB_ROOT_PWD is not set. Please provide the password" 1>&2
 fi

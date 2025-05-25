@@ -20,7 +20,7 @@ spring:
     driverClassName: org.mariadb.jdbc.Driver
     url: jdbc:mariadb://db:3306/pocket5?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&autoReconnect=true
     username: root
-    password: asdgasdfgdfg
+    password: passwd_to_change
 
 logging:
  level:
@@ -37,11 +37,12 @@ logging:
 server:
   port: 8081
   api-version: /api/v5
-  url: http://server-home:8081
+  url: http://your_host_or_ip:8081
   socket-port: 8300
   check-timestamp-last-update: false
   services-cron: 1 * * * * ?
-  aes.cbc.iv: 1234567890123456
+  aes.cbc.iv: __iv_to_change__
   auth:
-    user: passy@zresa.it
-    passwd: 12345678901234567890123456789012
+    user: test@test.com
+    passwd: ______user_passwd_to_change_____
+
