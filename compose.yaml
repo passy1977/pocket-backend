@@ -12,7 +12,7 @@ services:
     volumes:
       - ./docker_data/mariadb:/var/lib/mysql
     environment:
-      - MYSQL_ROOT_PASSWORD=${MARIADB_ROOT_PWD}
+      - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PWD}
     restart: always
 
   pocket-backend:

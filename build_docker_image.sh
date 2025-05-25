@@ -70,9 +70,9 @@ sudo docker compose up -d
 if [ -n "$MARIADB_ROOT_PWD" ]; then
 
   echo "Waiting for MariaDB to start..."
-  sleep 10
+  sleep 15
 
-  sudo docker exec -i db mariadb -u root -p$MARIADB_ROOT_PWD < docker_data/mariadb/create_root_user.sql
+#  sudo docker exec -i db mariadb -u root -p$MARIADB_ROOT_PWD < docker_data/mariadb/create_root_user.sql
   sleep 1
   sudo docker exec -i db mariadb -u root -p$MARIADB_ROOT_PWD < scripts/pocket5.sql
 
