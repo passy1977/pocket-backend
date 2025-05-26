@@ -1,6 +1,4 @@
 
-#https://linuxiac.com/how-to-install-nextcloud-with-docker-compose/
-
 services:
   db:
     image: mariadb:latest
@@ -11,8 +9,12 @@ services:
       - "3306:3306"
     volumes:
       - ./docker_data/mariadb:/var/lib/mysql
+      - ./docker_data/pocket5/pocket5.sql:/docker-entrypoint-initdb.d/init.sql:ro
     environment:
       - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PWD}
+      - MYSQL_DATABASE=pocket5
+      - MYSQL_USER=pocket5
+      - MYSQL_PASSWORD==${MARIADB_ROOT_PWD}
     restart: always
 
   pocket-backend:

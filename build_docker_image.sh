@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sudo rm -fr docker_data
+# sudo rm -fr docker_data
 
 NETWORK=pocket5_network
 
@@ -58,6 +58,8 @@ if [ ! -d docker_data/pocket5 ]; then
       -e "s/AUTH_USER/$AUTH_USER/g" \
       -e "s/AUTH_PASSWD/$AUTH_PASSWD/g" scripts/pocket5-config.yaml > docker_data/pocket5/pocket5-config.yaml
   
+  sed -e "s/MARIADB_ROOT_PWD/$MARIADB_ROOT_PWD/g" scripts/pocket5.sql > docker_data/pocket5/pocket5.sql
+
 fi
 
 
@@ -66,17 +68,20 @@ sudo docker compose up -d
 if [ -n "$MARIADB_ROOT_PWD" ]; then
 
   echo "Waiting for MariaDB to start..."
-  sleep 15
+  sleep 5
 
-  echo Import db
-  sudo docker exec -i db mariadb -u root -p$MARIADB_ROOT_PWD < scripts/pocket5.sql
+  if [ -e "scripts/pocket5.sql" ]; then
+      rm -f "scripts/pocket5.sql"
+  fi
 
-  echo create command /usr/local/bin/pocket-user
-  sudo echo "#!/bin/bash\n\nsudo docker run -it pocket-backend /var/www/pocket-user" > /usr/local/bin/pocket-user
+  echo Create command /usr/local/bin/pocket-user
+  sudo echo "#!/bin/bash" > /usr/local/bin/pocket-user
+  sudo echo "sudo docker run -it pocket-backend /var/www/pocket-user" >> /usr/local/bin/pocket-user
   sudo chmod +x /usr/local/bin/pocket-user
 
-  echo create command /usr/local/bin/pocket-device
-  sudo echo "#!/bin/bash\n\nsudo docker run -it pocket-backend /var/www/pocket-device" > /usr/local/bin/pocket-device
+  echo Create command /usr/local/bin/pocket-device
+  sudo echo "#!/bin/bash" > /usr/local/bin/pocket-device
+  sudo echo "sudo docker run -it pocket-backend /var/www/pocket-device" >> /usr/local/bin/pocket-device
   sudo chmod +x /usr/local/bin/pocket-device
 
 else
