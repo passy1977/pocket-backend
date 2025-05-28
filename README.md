@@ -12,3 +12,33 @@ The Pocket backend serves as the server-side component for client applications r
 * REST API and IPC socket interfaces
 
 For detailed information about the API interfaces, see API Reference, and for the authentication system, see Authentication and Session Management.
+
+## How build
+Make sure you have maven and a java sdk 21 installed.
+```bash
+git clone https://github.com/passy1977/pocket-backend.git
+cd pocket-backend
+```
+Make sure you have changed all the passwords in the file _src/main/resources/application.yaml_.  
+
+Create a Mariadb instance with Docker 
+```bash
+docker run --detach --name db -p 3306:3306  --env MARIADB_ROOT_PASSWORD=passwd_to_change mariadb:latest
+```
+Create new schema on Mariadb
+```bash
+docker exec -it db /usr/bin/mariadb -u root -ppasswd_to_change < scripts/pocket5.sql
+```
+Build 
+```bash
+mvn clean install
+```
+Execute
+```bash
+mvn  exec:java -Dexec.mainClass="it.salsi.pocket.Application"
+```
+## Docker
+If you want a containerized solution you can use the following script and follow the installation instruction
+```bash
+./build_docker_image.sh
+```
