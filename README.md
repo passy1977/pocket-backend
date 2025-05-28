@@ -42,3 +42,43 @@ If you want a containerized solution you can use the following script and follow
 ```bash
 ./build_docker_image.sh
 ```
+# Handle user and device
+In order to access the server, you need to register a user with _pocket-user_ and every device linked to the user created with _pocket-user_.
+
+You will need to use the generated code generate from _pocket-user_ to activate a client like [pocket-ios](https://github.com/passy1977/pocket-ios).  
+
+_pocket-user_ and _pocket-user_ you can obtain from [pocket-cli](https://github.com/passy1977/pocket-cli) repo
+
+```bash
+usage: pocket-user command [options]
+
+commands:
+    add                             add new user options mandatory: email, passwd, name  
+    mod                             modify user options mandatory: email, passwd, name
+    rm                              remove user options mandatory: email
+    get                             get user information options mandatory: email
+
+options:
+    -P, --server-passwd <passwd>    set pocket server password, once the password is provided the system will remember it
+    -e, --email <email>             set user email
+    -p, --passwd <passwd>           set user passwd
+    -n, --name <name>               set user name
+    -h, --help <command>            show help
+```
+
+```bash
+usage: pocket-user command [options]
+
+commands:
+    add                             add new user options mandatory: email, passwd, name  
+    mod                             modify user options mandatory: email, passwd, name
+    rm                              remove user options mandatory: email
+    get                             get user information options mandatory: email
+
+options:
+    -P, --server-passwd <passwd>    set pocket server password, once the password is provided the system will remember it
+    -e, --email <email>             set user email
+    -p, --passwd <passwd>           set user passwd
+    -n, --name <name>               set user name
+    -h, --help <command>            show help
+```
