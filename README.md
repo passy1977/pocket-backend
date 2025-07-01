@@ -1,5 +1,5 @@
 # pocket-web-backend
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)]([https://deepwiki.com/passy1977/pocket-backend](https://deepwiki.com/passy1977/pocket-lib))
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/passy1977/pocket-lib)
 ## Purpose and Scope
 This document provides a technical introduction to the Pocket backend system, a secure data management and synchronization platform. The Pocket backend enables clients to store, retrieve, and synchronize structured data through encrypted communication channels. This overview explains the system's architecture, key components, and functionality.
 Purpose and Scope
