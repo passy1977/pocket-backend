@@ -22,7 +22,7 @@ package it.salsi.pocket.configs;
 
 
 import it.salsi.pocket.services.CacheManager;
-import it.salsi.pocket.services.DatabaseManager;
+//import it.salsi.pocket.services.DatabaseManager;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,17 +38,17 @@ import org.springframework.scheduling.annotation.Scheduled;
 @EnableScheduling
 public class CronConfig {
 
-    @NotNull
-    private final DatabaseManager databaseManager;
+    //@NotNull
+    //private final DatabaseManager databaseManager;
 
     @NotNull
     private final CacheManager cacheManager;
 
     public CronConfig(
-            @Autowired @NotNull final DatabaseManager databaseManager,
+            //@Autowired @NotNull final DatabaseManager databaseManager,
             @Autowired @NotNull final CacheManager cacheManager
     ) {
-        this.databaseManager = databaseManager;
+        //this.databaseManager = databaseManager;
         this.cacheManager = cacheManager;
     }
 
