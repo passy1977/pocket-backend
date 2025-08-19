@@ -29,7 +29,6 @@ public record Container(
         @Nullable Device device,
         @NotNull Iterable<Group> groups,
 
-        @JsonProperty("groupsFields")
         @NotNull Iterable<GroupField> groupFields,
         @NotNull Iterable<Field> fields
 ) {}
