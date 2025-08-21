@@ -140,19 +140,18 @@ public final class CacheManagerImpl implements CacheManager {
                             }
                         }
 
-
-                    }, () -> log.severe("cron invalidator not stared: invalid conversion date"));
+                    }, () -> log.severe("Cron invalidator not stared: invalid conversion date"));
 
 
                 } catch (NumberFormatException e) {
-                    log.severe("cron invalidator not stared: invalid date");
+                    log.severe("Cron invalidator not stared: invalid date");
                 }
 
             } else {
-                log.warning("cron invalidator disabled");
+                log.warning("Cron invalidator disabled");
             }
 
-        }, () -> log.warning("property not found"));
+        }, () -> log.warning("Property not found"));
 
 
     }

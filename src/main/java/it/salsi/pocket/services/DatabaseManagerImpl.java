@@ -162,13 +162,13 @@ public final class DatabaseManagerImpl implements DatabaseManager {
                         });
 
 
-                    }, () -> log.severe("cron delete data not stared: invalid conversion date"));
+                    }, () -> log.severe("Cron delete data not stared: invalid conversion date"));
 
                 } catch (NumberFormatException e) {
-                    log.severe("cron delete data not stared: invalid conversion date");
+                    log.severe("Cron delete data not stared: invalid conversion date");
                 }
             }
-        }, () -> log.warning("cron delete data disabled"));
+        }, () -> log.warning("Cron delete data disabled"));
 
 
         log.info("End delete data");
