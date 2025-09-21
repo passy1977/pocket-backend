@@ -1,18 +1,70 @@
-# Apache HTTP Server Configuration for Pocket Backend
+# 🌐 Apache HTTP Server Configuration for Pocket Backend
 
-This document provides detailed instructions for setting up Apache HTTP Server as a reverse proxy for the Pocket Backend application.
+[![Apache](https://img.shields.io/badge/Apache-2.4+-orange.svg)](https://httpd.apache.org/)
+[![SSL](https://img.shields.io/badge/SSL-TLS%201.2%2B-green.svg)](#ssl-configuration)
+[![Security](https://img.shields.io/badge/Security-mod__security-red.svg)](#security-configuration)
+[![Load Balancing](https://img.shields.io/badge/Load%20Balancing-Configured-blue.svg)](#load-balancing)
+
+Production-ready Apache HTTP Server configuration for **Pocket Backend** with **Spring Boot 3.5.6**. This setup provides SSL termination, load balancing, security hardening, and performance optimization for enterprise deployment.
+
+## 🎯 Features Overview
+
+### 🔒 Security Features
+- **SSL/TLS Termination** with modern cipher suites (TLS 1.2+)
+- **mod_security** Web Application Firewall with OWASP rules
+- **Security Headers** (HSTS, CSP, X-Frame-Options, etc.)
+- **Rate Limiting** and DDoS protection
+- **IP-based access control** for admin endpoints
+
+### ⚡ Performance Features
+- **Load Balancing** with health checks and failover
+- **Compression** (gzip/deflate) for responses
+- **Caching** headers for static content
+- **Keep-alive** connections and connection pooling
+- **Request optimization** and resource management
+
+### 🔧 Operational Features
+- **Health Monitoring** with automatic backend detection
+- **Graceful Failover** for high availability
+- **Session Affinity** for stateful applications
+- **Detailed Logging** for monitoring and troubleshooting
+- **Management Interface** for load balancer status
 
 ## 📋 Prerequisites
 
-- Apache HTTP Server 2.4+
-- SSL certificates (Let's Encrypt or commercial)
-- Running Pocket Backend instance(s)
-- Basic knowledge of Apache configuration
+### System Requirements
+- **Apache HTTP Server**: 2.4.10+ (2.4.50+ recommended)
+- **Operating System**: Ubuntu 20.04+, CentOS 8+, or RHEL 8+
+- **Memory**: Minimum 1GB RAM for Apache (2GB+ recommended)
+- **CPU**: 2+ cores recommended for production
 
-## 🔧 Required Apache Modules
+### SSL Requirements
+- **SSL Certificates**: Let's Encrypt (recommended) or commercial certificates
+- **TLS Support**: TLS 1.2+ (TLS 1.3 recommended)
+- **Certificate Management**: Automated renewal with certbot
 
-### Ubuntu/Debian
+### Backend Requirements
+- **Pocket Backend**: Running instance(s) with Spring Boot 3.5.6
+- **Health Endpoint**: `/actuator/health` accessible from Apache server
+- **Network**: Apache server can reach backend on configured ports
+
+### Skills & Knowledge
+- Basic Apache configuration and virtual hosts
+- SSL certificate installation and management
+- Network configuration and firewall rules
+- Log analysis and troubleshooting
+
+## 🔧 Apache Modules Installation
+
+### Ubuntu/Debian (Recommended)
 ```bash
+# Update package list
+sudo apt update
+
+# Install Apache if not already installed
+sudo apt install apache2
+
+# Enable required modules
 sudo a2enmod ssl
 sudo a2enmod rewrite
 sudo a2enmod proxy
@@ -20,25 +72,39 @@ sudo a2enmod proxy_http
 sudo a2enmod proxy_balancer
 sudo a2enmod lbmethod_byrequests
 sudo a2enmod headers
-sudo a2enmod security2
-sudo a2enmod deflate
-sudo a2enmod expires
-sudo a2enmod status
+sudo a2enmod security2        # Optional: Web Application Firewall
+sudo a2enmod deflate         # Compression
+sudo a2enmod expires         # Cache control
+sudo a2enmod status          # Server status
+sudo a2enmod info            # Server info
+
+# Restart Apache to load modules
+sudo systemctl restart apache2
 ```
 
 ### CentOS/RHEL
 ```bash
-# Modules are typically compiled in, but verify:
+# Install Apache
+sudo yum install httpd mod_ssl
+
+# Most modules are compiled in, verify:
 httpd -M | grep -E "(ssl|rewrite|proxy|headers|deflate)"
+
+# Enable and start Apache
+sudo systemctl enable httpd
+sudo systemctl start httpd
 ```
 
-### Configuration Test
+### Module Verification
 ```bash
 # Test Apache configuration
 sudo apache2ctl configtest
 
 # Check loaded modules
-apache2ctl -M | grep -E "(ssl|proxy|headers)"
+apache2ctl -M | grep -E "(ssl|proxy|headers|deflate|security2)"
+
+# Verify specific modules for Pocket Backend
+apache2ctl -M | grep -E "(proxy_http|proxy_balancer|lbmethod_byrequests)"
 ```
 
 ## 📁 Configuration Files

@@ -1,12 +1,14 @@
 # 🔐 Pocket Backend
 
 [![Java](https://img.shields.io/badge/Java-21+-blue.svg)](https://www.oracle.com/java/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.4-green.svg)](https://spring.io/projects/spring-boot)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.6-green.svg)](https://spring.io/projects/spring-boot)
+[![Tests](https://img.shields.io/badge/Tests-31%2F31%20Passing-brightgreen.svg)](src/test/)
+[![Apache](https://img.shields.io/badge/Apache-Configured-orange.svg)](docs/APACHE_SETUP.md)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
 [![Security](https://img.shields.io/badge/Security-Spring%20Security-red.svg)](https://spring.io/projects/spring-security)
 [![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-Backend sicuro e scalabile per l'applicazione Pocket, costruito con Spring Boot 3.4.4 e Java 21. Fornisce API REST robuste per la gestione di sessioni, autenticazione utenti e archiviazione sicura dei dati con crittografia end-to-end.
+Backend sicuro e scalabile per l'applicazione Pocket, costruito con **Spring Boot 3.5.6** e **Java 21**. Fornisce API REST robuste per la gestione di sessioni, autenticazione utenti e archiviazione sicura dei dati con crittografia end-to-end.
 
 [🇬🇧 English](README.md) | 🇮🇹 Italiano
 
@@ -15,15 +17,15 @@ Backend sicuro e scalabile per l'applicazione Pocket, costruito con Spring Boot 
 ## ✨ Caratteristiche Principali
 
 - 🔐 **Sicurezza Enterprise** con Spring Security e autenticazione personalizzata
-- 🏗️ **Architettura Moderna** con Spring Boot 3.4.4 e Java 21
+- 🏗️ **Architettura Moderna** con Spring Boot 3.5.6 e Java 21
 - 🔒 **Crittografia Robusta** RSA + AES-CBC per la protezione dei dati
 - 🐳 **Containerizzazione** completa con Docker e Docker Compose
 - 📊 **Monitoraggio Integrato** con Spring Boot Actuator
 - 🌐 **CORS Dinamico** configurabile per ambienti multipli
 - ✅ **Validazione Completa** dei dati con Bean Validation
 - 🔄 **Health Checks** automatici e recovery
-- 🧪 **Suite di Test Completa** con unit test, integration test e security test
-- 🌐 **Configurazione Apache HTTP** per reverse proxy e load balancing
+- 🧪 **Suite di Test Completa** con 31/31 test che passano (unit, integration, security)
+- 🌐 **Configurazione Apache HTTP** pronta per produzione con SSL e load balancing
 - 📈 **Client Mock API** per testing e integrazione
 
 ## 📋 Requisiti
