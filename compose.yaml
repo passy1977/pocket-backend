@@ -87,7 +87,7 @@ services:
         -Djava.security.egd=file:/dev/./urandom
       
       # Database connection URL (constructed automatically)
-      SPRING_DATASOURCE_URL: jdbc:mariadb://pocket-db:3306/pocket5?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&autoReconnect=true&useSSL=false
+      SPRING_DATASOURCE_URL: jdbc:mariadb://pocket-db:3306/pocket5?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&autoReconnect=true&sslMode=DISABLED
       
     restart: unless-stopped
     depends_on:
