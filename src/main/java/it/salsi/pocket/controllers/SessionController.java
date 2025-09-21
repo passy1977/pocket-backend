@@ -427,7 +427,7 @@ public class SessionController {
 
             }
         } else {
-            return new ResponseEntity< Success<?> >(HttpStatus.OK);
+            return ResponseEntity.status(CACHE_NOT_FOND.code).build();
         }
 
 
@@ -443,7 +443,84 @@ public class SessionController {
 
     }
 
-    public static <T> @NotNull List<T> concat(@NotNull Iterable<? extends T> a, Iterable<? extends T> b) {
+    public @NotNull ResponseEntity<?> checkCacheRecord(@NotNull final String uuid,
+                                                       @NotNull final String crypt,
+                                                       @NotNull final String remoteIP
+    ) throws CommonsException {
+
+        Optional<CacheRecord> cacheRecord;
+        long timestampLastUpdate;
+        Optional<User> optUser = Optional.empty();
+        Device device = null;
+        if(cacheManager.has(uuid)) {
+            cacheRecord = cacheManager.get(uuid);
+            if(cacheRecord.isPresent()) {
+                var record = cacheRecord.get();
+                device = record.getDevice();
+                final var rsaHelper = record.getRsaHelper();
+
+                final var decryptSplit = rsaHelper.decryptFromURLBase64(crypt).split("["+DIVISOR.value+"]");
+                if(decryptSplit.length != 5)
+                {
+                    cacheManager.rm(record);
+                    return ResponseEntity.status(WRONG_SIZE_TOKEN.code).build();
+                }
+
+                if(Long.parseLong(decryptSplit[0]) != device.getId())
+                {
+                    cacheManager.rm(record);
+                    return ResponseEntity.status(DEVICE_ID_NOT_MATCH.code).build();
+                }
+
+                if(!decryptSplit[1].equals(record.getSecret()))
+                {
+                    cacheManager.rm(record);
+                    return ResponseEntity.status(SECRET_NOT_MATCH.code).build();
+                }
+
+                if(checkTimestampLastUpdate != null && checkTimestampLastUpdate) {
+                    timestampLastUpdate = Long.parseLong(decryptSplit[2]);
+                    if(timestampLastUpdate != record.getTimestampLastUpdate())
+                    {
+                        cacheManager.rm(record);
+                        return ResponseEntity.status(TIMESTAMP_LAST_UPDATE_NOT_MATCH.code).build();
+                    }
+                }
+
+                optUser =  userRepository.findByEmailAndPasswd(decryptSplit[3], encoderHelper.encode(decryptSplit[4]));
+                if(optUser.isEmpty()) {
+                    return ResponseEntity.status(USER_NOT_FOUND.code).build();
+                }
+
+            }
+        } else {
+            //return new ResponseEntity.badRequest(new CheckSession(false, 0));
+        }
+
+        if(optUser.isEmpty()) {
+            return ResponseEntity.status(USER_NOT_FOUND.code).build();
+        }
+
+        if(device == null) {
+            return ResponseEntity.status(DEVICE_NOT_FOUND.code).build();
+        }
+
+        device.setAddress(remoteIP);
+        device.setTimestampLastLogin(Instant.now(Clock.systemUTC()).getEpochSecond());
+        deviceRepository.save(device);
+
+        return ResponseEntity.ok(
+                new Container(
+                        device.getTimestampLastUpdate(),
+                        optUser.get(),
+                        device,
+                        List.of(),
+                        List.of(),
+                        List.of()
+                ));
+    }
+
+    private static <T> @NotNull List<T> concat(@NotNull Iterable<? extends T> a, Iterable<? extends T> b) {
         var merged = new LinkedList<T>();
 
         for (T item : a) {

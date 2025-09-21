@@ -92,4 +92,16 @@ public class SessionRest {
     }
 
 
+    @GetMapping("/{uuid}/{crypt}/check")
+    public @NotNull ResponseEntity<?> checkCacheRecord(@PathVariable @NotNull final String uuid,
+                                                        @PathVariable @NotNull final String crypt,
+                                                       @NotNull final HttpServletRequest request
+    ) throws CommonsException
+    {
+        var remoteIP = request.getRemoteAddr();
+        if (request.getHeader("x-forwarded-for") != null) {
+            remoteIP = request.getHeader("x-forwarded-for");
+        }
+        return sessionController.checkCacheRecord(uuid, crypt, remoteIP);
+    }
 }
