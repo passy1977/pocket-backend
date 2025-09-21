@@ -30,6 +30,7 @@ import it.salsi.pocket.security.EncoderHelper;
 import it.salsi.pocket.security.RSAHelper;
 import it.salsi.pocket.services.CacheManager;
 import it.salsi.pocket.services.CacheManager.CacheRecord;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -166,6 +167,7 @@ public class SessionController {
 
         device.setAddress(remoteIP);
         device.setTimestampLastLogin(now);
+        device.setTimestampLastUpdate(now);
         device = deviceRepository.save(device);
 
         cacheManager.add(new CacheRecord(
@@ -179,7 +181,7 @@ public class SessionController {
 
         return ResponseEntity.ok(
                 new Container(
-                        device.getTimestampLastUpdate(),
+                        now,
                         optUser.get(),
                         device,
                         groupController.getAll(uuid, timestampLastUpdate),
@@ -275,7 +277,7 @@ public class SessionController {
 
         return ResponseEntity.ok(
                 new Container(
-                        device.getTimestampLastUpdate(),
+                        now,
                         optUser.get(),
                         device,
                         concat(groups, groupsDeleted),
@@ -341,8 +343,6 @@ public class SessionController {
                 }
 
                 newPasswd = decryptSplit[5];
-
-                record.setTimestampLastUpdate(now);
             }
         } else {
             return ResponseEntity.status(CACHE_NOT_FOND.code).build();
@@ -364,11 +364,9 @@ public class SessionController {
             groupController.changePasswd(user, aesOld, aesNew, now);
             groupFieldController.changePasswd(user, aesOld, aesNew, now);
             fieldController.changePasswd(user, aesOld, aesNew, now);
-            device.setTimestampLastUpdate(now);
         }
 
         device.setAddress(remoteIP);
-        device.setTimestampLastLogin(now);
         deviceRepository.save(device);
 
         user.setPasswd(encoderHelper.encode(newPasswd));
@@ -447,7 +445,9 @@ public class SessionController {
                                                        @NotNull final String crypt,
                                                        @NotNull final String remoteIP
     ) throws CommonsException {
-
+    
+        final var now = Instant.now(Clock.systemUTC()).getEpochSecond();
+        
         Optional<CacheRecord> cacheRecord;
         long timestampLastUpdate;
         Optional<User> optUser = Optional.empty();
@@ -492,6 +492,7 @@ public class SessionController {
                     return ResponseEntity.status(USER_NOT_FOUND.code).build();
                 }
 
+                record.setTimestampLastUpdate(now);
             }
         } else {
             //return new ResponseEntity.badRequest(new CheckSession(false, 0));
@@ -506,12 +507,12 @@ public class SessionController {
         }
 
         device.setAddress(remoteIP);
-        device.setTimestampLastLogin(Instant.now(Clock.systemUTC()).getEpochSecond());
+        device.setTimestampLastUpdate(now);
         deviceRepository.save(device);
 
         return ResponseEntity.ok(
                 new Container(
-                        device.getTimestampLastUpdate(),
+                        now,
                         optUser.get(),
                         device,
                         List.of(),
@@ -534,4 +535,17 @@ public class SessionController {
         return merged;
     }
 
+    static public @NotNull String getClientIP(@NotNull final HttpServletRequest request) {
+        var remoteIP = request.getRemoteAddr();
+        final var forwardedFor = request.getHeader("x-forwarded-for");
+        if (forwardedFor != null && !forwardedFor.trim().isEmpty()) {
+            // Take the first IP in case of multiple proxies
+            remoteIP = forwardedFor.split(",")[0].trim();
+        }
+        return remoteIP;
+    }
+
+
 }
+
+
