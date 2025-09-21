@@ -130,7 +130,7 @@ Update `src/main/resources/application.yaml` for your environment:
 ```yaml
 spring:
   datasource:
-    url: jdbc:mariadb://localhost:3306/pocket5?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&autoReconnect=true&useSSL=false
+    url: jdbc:mariadb://localhost:3306/pocket5?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&autoReconnect=true&sslMode=DISABLED
     username: ${DB_USERNAME:pocket_user}
     password: ${DB_PASSWORD}
 
@@ -156,7 +156,7 @@ security:
 ```yaml
 spring:
   datasource:
-    url: jdbc:mariadb://your-db-host:3306/pocket5?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&autoReconnect=true&useSSL=true&requireSSL=true
+    url: jdbc:mariadb://your-db-host:3306/pocket5?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&autoReconnect=true&sslMode=REQUIRED
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 
@@ -660,9 +660,135 @@ When using the Nginx reverse proxy:
 
 ## 👥 User and Device Management
 
-To access the server, you need to register users and devices using the CLI tools from [pocket-cli](https://github.com/passy1977/pocket-cli).
+Pocket Backend provides multiple ways to manage users and devices: CLI tools, Socket API, and direct database access.
 
-### User Management
+### 🔌 Socket Management Service
+
+The backend includes a built-in socket service for real-time user and device management. This service runs on port **8300** (configurable) and provides administrative commands for system configuration.
+
+#### Socket Connection
+```bash
+# Connect to management socket
+telnet localhost 8300
+
+# Or using netcat
+nc localhost 8300
+```
+
+#### Authentication (REQUIRED)
+**⚠️ CRITICAL**: Before executing ANY command, authentication is mandatory using `server.auth.passwd` value:
+
+```bash
+# 1. Connect to socket
+nc localhost 8300
+
+# 2. FIRST: Send authentication password (must be exactly 32 characters)
+your_32_character_admin_password
+# Response: 0 (OK) or 7 (WRONG_PASSWD)
+
+# 3. ONLY AFTER successful authentication, you can execute commands
+```
+
+**Configuration Reference**:
+```yaml
+server:
+  auth:
+    passwd: ${ADMIN_PASSWD:____admin_password_change_me____}  # MUST be 32 characters
+```
+
+#### Socket Commands
+
+**⚠️ All commands require prior authentication with `server.auth.passwd`**
+
+**User Management Commands:**
+```bash
+# Add new user (AFTER authentication)
+ADD_USER|user@example.com|password|User Name
+
+# Modify existing user (AFTER authentication)
+MOD_USER|user@example.com|new_password|New User Name
+
+# Remove user (AFTER authentication)
+RM_USER|user@example.com
+
+# Get user information (AFTER authentication)
+GET_USER|user@example.com
+```
+
+**Device Management Commands:**
+```bash
+# Add new device for user (AFTER authentication)
+ADD_DEVICE|user@example.com|device_note
+
+# Modify device note (AFTER authentication)
+MOD_DEVICE|user@example.com|device_uuid|new_note
+
+# Remove device (AFTER authentication)
+RM_DEVICE|user@example.com|device_uuid
+
+# Get device information and keys (AFTER authentication)
+GET_DEVICE|user@example.com|device_uuid
+
+# Remove device
+RM_DEVICE|user@example.com|device_uuid
+
+# Get device information and keys
+GET_DEVICE|user@example.com|device_uuid
+```
+
+#### Response Codes
+| Code | Status | Description |
+|------|--------|-------------|
+| `0` | OK | Command executed successfully |
+| `1` | ERROR | Generic error occurred |
+| `2` | WRONG_PARAMS | Invalid parameters provided |
+| `3` | USER_ALREADY_EXIST | User already exists |
+| `4` | DEVICE_ALREADY_EXIST | Device already exists |
+| `5` | USER_NOT_EXIST | User not found |
+| `6` | DEVICE_NOT_EXIST | Device not found |
+| `7` | WRONG_PASSWD | Authentication failed |
+
+#### Socket Configuration
+```yaml
+server:
+  socket-port: 8300                    # Socket service port
+  auth:
+    passwd: ${ADMIN_PASSWD:your_32_char_password}  # Authentication password (EXACTLY 32 chars)
+```
+
+**⚠️ Security Requirements**:
+- Password MUST be exactly 32 characters long
+- Authentication is required for EVERY socket connection
+- Failed authentication results in connection termination
+- No commands are executed without valid authentication
+
+#### Example Socket Session
+```bash
+$ nc localhost 8300
+# STEP 1: Authenticate first (password must be 32 characters)
+your_32_character_admin_password_here
+0                                      # Success response
+
+# STEP 2: Now you can execute commands
+ADD_USER|john@example.com|securepass123|John Doe
+{"id":1,"name":"John Doe","email":"john@example.com","passwd":"$2a$10$..."}
+0
+
+# STEP 3: Add device for the user
+ADD_DEVICE|john@example.com|iPhone 15
+{"id":"a1b2c3d4-e5f6-7890-abcd-ef1234567890",...,"hostPublicKey":"-----BEGIN PUBLIC KEY-----\n..."}
+0
+
+# Authentication failure example:
+wrong_password
+7                                      # WRONG_PASSWD response - connection may be terminated
+```
+
+### 🛠️ CLI Tools Management
+
+For easier management, use the CLI tools from [pocket-cli](https://github.com/passy1977/pocket-cli):
+
+#### User Management
 ```bash
 # Add new user
 pocket-user add -e user@example.com -p user_password -n "User Name"
@@ -677,7 +803,7 @@ pocket-user rm -e user@example.com
 pocket-user get -e user@example.com
 ```
 
-### Device Management
+#### Device Management
 ```bash
 # Add new device
 pocket-device add -e user@example.com -d "Device Name"

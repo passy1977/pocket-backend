@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `PocketApiClient.java` - Async/sync API client with CompletableFuture support
   - Health check requests with connection failure handling
   - JSON serialization and deserialization for API communication
+- **Socket Management Service**: Built-in TCP socket for user/device administration
+  - `IpcSocketManagerImpl.java` - Real-time user and device management
+  - TCP socket on port 8300 with password authentication
+  - Commands: ADD_USER, MOD_USER, RM_USER, GET_USER, ADD_DEVICE, RM_DEVICE, GET_DEVICE
+  - JSON responses with structured error codes and RSA key generation
 - **Apache HTTP Server Configuration**: Production-ready reverse proxy setup
   - Complete SSL/TLS configuration with Let's Encrypt support
   - Load balancing with health checks and failover
@@ -24,9 +29,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Rate limiting and DDoS protection
 - **Enhanced Documentation**:
   - `docs/APACHE_SETUP.md` - Comprehensive Apache setup guide
-  - Updated README.md with Spring Boot 3.5.6 and Apache configuration
+  - Updated README.md with Spring Boot 3.5.6, Socket Service, and Apache configuration
   - Complete troubleshooting and monitoring guides
   - Testing documentation with coverage reports
+  - Socket management documentation in English and Italian
 
 ### Fixed
 - **Spring Boot Compatibility**: Fixed spring-boot-admin version to 3.5.0 for Spring Boot 3.5.6

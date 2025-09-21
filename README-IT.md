@@ -863,9 +863,133 @@ docker compose exec pocket-db mysql -u root -p -e "SHOW GLOBAL STATUS LIKE 'Slow
 
 ## 👥 Gestione Utenti e Dispositivi
 
-Per accedere al server, è necessario registrare utenti e dispositivi utilizzando gli strumenti CLI da [pocket-cli](https://github.com/passy1977/pocket-cli).
+Pocket Backend fornisce diversi modi per gestire utenti e dispositivi: strumenti CLI, API Socket e accesso diretto al database.
 
-### Gestione Utenti
+### 🔌 Servizio di Gestione Socket
+
+Il backend include un servizio socket integrato per la gestione in tempo reale di utenti e dispositivi. Questo servizio funziona sulla porta **8300** (configurabile) e fornisce comandi amministrativi per la configurazione del sistema.
+
+#### Connessione Socket
+```bash
+# Connetti al socket di gestione
+telnet localhost 8300
+
+# O usando netcat
+nc localhost 8300
+```
+
+#### Autenticazione (OBBLIGATORIA)
+**⚠️ CRITICO**: Prima di eseguire QUALSIASI comando, l'autenticazione è obbligatoria usando il valore `server.auth.passwd`:
+
+```bash
+# 1. Connettiti al socket
+nc localhost 8300
+
+# 2. PRIMA: Invia password di autenticazione (deve essere esattamente 32 caratteri)
+tua_password_admin_32_caratteri_qui
+# Risposta: 0 (OK) o 7 (WRONG_PASSWD)
+
+# 3. SOLO DOPO autenticazione riuscita, puoi eseguire comandi
+```
+
+**Riferimento Configurazione**:
+```yaml
+server:
+  auth:
+    passwd: ${ADMIN_PASSWD:____admin_password_change_me____}  # DEVE essere 32 caratteri
+```
+
+#### Comandi Socket
+
+**⚠️ Tutti i comandi richiedono autenticazione preventiva con `server.auth.passwd`**
+
+**Comandi Gestione Utenti:**
+```bash
+# Aggiungi nuovo utente (DOPO autenticazione)
+ADD_USER|utente@esempio.com|password|Nome Utente
+
+# Modifica utente esistente (DOPO autenticazione)
+MOD_USER|utente@esempio.com|nuova_password|Nuovo Nome Utente
+
+# Rimuovi utente (DOPO autenticazione)
+RM_USER|utente@esempio.com
+
+# Ottieni informazioni utente (DOPO autenticazione)
+GET_USER|utente@esempio.com
+
+# Ottieni informazioni utente
+GET_USER|utente@esempio.com
+```
+
+**Comandi Gestione Dispositivi:**
+```bash
+# Aggiungi nuovo dispositivo per utente (DOPO autenticazione)
+ADD_DEVICE|utente@esempio.com|nota_dispositivo
+
+# Modifica nota dispositivo (DOPO autenticazione)
+MOD_DEVICE|utente@esempio.com|uuid_dispositivo|nuova_nota
+
+# Rimuovi dispositivo (DOPO autenticazione)
+RM_DEVICE|utente@esempio.com|uuid_dispositivo
+
+# Ottieni informazioni dispositivo e chiavi (DOPO autenticazione)
+GET_DEVICE|utente@esempio.com|uuid_dispositivo
+GET_DEVICE|utente@esempio.com|uuid_dispositivo
+```
+
+#### Codici di Risposta
+| Codice | Stato | Descrizione |
+|--------|-------|-------------|
+| `0` | OK | Comando eseguito con successo |
+| `1` | ERROR | Errore generico verificato |
+| `2` | WRONG_PARAMS | Parametri non validi forniti |
+| `3` | USER_ALREADY_EXIST | Utente già esistente |
+| `4` | DEVICE_ALREADY_EXIST | Dispositivo già esistente |
+| `5` | USER_NOT_EXIST | Utente non trovato |
+| `6` | DEVICE_NOT_EXIST | Dispositivo non trovato |
+| `7` | WRONG_PASSWD | Autenticazione fallita |
+
+#### Configurazione Socket
+```yaml
+server:
+  socket-port: 8300                        # Porta servizio socket
+  auth:
+    passwd: ${ADMIN_PASSWD:tua_password_32_char}  # Password autenticazione (ESATTAMENTE 32 char)
+```
+
+**⚠️ Requisiti di Sicurezza**:
+- La password DEVE essere esattamente di 32 caratteri
+- L'autenticazione è richiesta per OGNI connessione socket
+- Autenticazione fallita risulta nella terminazione della connessione
+- Nessun comando viene eseguito senza autenticazione valida
+
+#### Esempio Sessione Socket
+```bash
+$ nc localhost 8300
+# PASSO 1: Autenticati prima (password deve essere 32 caratteri)
+tua_password_admin_32_caratteri_qui
+0                                          # Risposta di successo
+
+# PASSO 2: Ora puoi eseguire comandi
+ADD_USER|giovanni@esempio.com|passwordsicura123|Giovanni Rossi
+{"id":1,"name":"Giovanni Rossi","email":"giovanni@esempio.com","passwd":"$2a$10$..."}
+0
+
+# PASSO 3: Aggiungi dispositivo per l'utente
+ADD_DEVICE|giovanni@esempio.com|iPhone 15
+{"id":"a1b2c3d4-e5f6-7890-abcd-ef1234567890",...,"hostPublicKey":"-----BEGIN PUBLIC KEY-----\n..."}
+0
+
+# Esempio di autenticazione fallita:
+password_sbagliata
+7                                          # Risposta WRONG_PASSWD - connessione può essere terminata
+```
+
+### 🛠️ Gestione Strumenti CLI
+
+Per una gestione più semplice, utilizzare gli strumenti CLI da [pocket-cli](https://github.com/passy1977/pocket-cli):
+
+#### Gestione Utenti
 ```bash
 # Aggiungi nuovo utente
 pocket-user add -e utente@esempio.com -p password_utente -n "Nome Utente"
@@ -880,7 +1004,7 @@ pocket-user rm -e utente@esempio.com
 pocket-user get -e utente@esempio.com
 ```
 
-### Gestione Dispositivi
+#### Gestione Dispositivi
 ```bash
 # Aggiungi nuovo dispositivo
 pocket-device add -e utente@esempio.com -d "Nome Dispositivo"

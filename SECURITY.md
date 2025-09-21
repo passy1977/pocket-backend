@@ -186,6 +186,60 @@ testAuthenticationFilterChain()       ✅ Spring Security integration
 | `/api/v5/{uuid}/{crypt}` | POST | RSA Token | Update session |
 | `/api/v5/{uuid}/{crypt}/check` | GET | RSA Token | Health + Auth |
 
+### Socket Management Service
+| Service | Port | Protocol | Authentication | Purpose |
+|---------|------|----------|----------------|---------|
+| **IPC Socket** | 8300 | TCP Socket | **32-char password REQUIRED** | User/device admin |
+
+#### Socket Security Features ✅
+- **🔐 Mandatory Authentication**: 32-character admin password required for EVERY connection
+- **🔒 Pre-command Authentication**: NO commands executed without valid authentication first
+- **⚡ Session-based Access**: Authentication state maintained per socket connection
+- **✅ Command Validation**: Input validation for all commands after authentication
+- **📋 JSON Response**: Structured responses with error codes
+- **🌐 Network Isolation**: Configurable bind address (localhost by default)
+- **🚨 Failed Authentication Handling**: Connection termination on invalid password
+
+#### Socket Authentication Flow ✅
+```
+1. Client connects to socket (port 8300)
+2. Server waits for authentication password
+3. Client sends 32-character password
+4. Server validates against server.auth.passwd
+5. Response: 0 (OK) or 7 (WRONG_PASSWD)
+6. IF authenticated: commands accepted
+7. IF NOT authenticated: connection may be terminated
+```
+
+#### Socket Commands Security
+| Command Type | Commands | **Authentication Required** | Validation | Response |
+|--------------|----------|------------------------------|------------|----------|
+| **User Management** | `ADD_USER`, `MOD_USER`, `RM_USER`, `GET_USER` | ✅ **MANDATORY** | Email format, password policy | JSON + status code |
+| **Device Management** | `ADD_DEVICE`, `MOD_DEVICE`, `RM_DEVICE`, `GET_DEVICE` | ✅ **MANDATORY** | UUID format, user existence | JSON + RSA keys |
+
+**⚠️ CRITICAL**: ALL commands require successful authentication with `server.auth.passwd` before execution.
+
+#### Socket Security Configuration
+```yaml
+server:
+  socket-port: 8300                        # Management socket port  
+  auth:
+    passwd: ${ADMIN_PASSWD:____admin_password_change_me____}  # EXACTLY 32 characters
+```
+
+**⚠️ Production Security Requirements**:
+- Password MUST be exactly 32 characters
+- Change default password before deployment
+- Use strong, unique password for production
+- Monitor authentication failures
+
+**Security Best Practices**:
+- ✅ Bind to localhost only in production
+- ✅ Use firewall to restrict socket access
+- ✅ Monitor socket connections and failed authentications
+- ✅ Use unique 32-character password (never default)
+- ✅ Implement connection rate limiting
+
 ## ⚠️ Pre-Production Security Checklist
 
 ### 1. **Environment Variables** ✅
@@ -222,7 +276,7 @@ server:
 ```yaml
 spring:
   datasource:
-    url: jdbc:mariadb://db-host:3306/pocket5?useSSL=true&requireSSL=true
+    url: jdbc:mariadb://db-host:3306/pocket5?sslMode=REQUIRED
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     hikari:

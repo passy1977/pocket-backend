@@ -64,6 +64,24 @@ Welcome to the comprehensive Pocket Backend documentation! This secure and scala
 | `/actuator/health` | GET | None | Application health |
 | `/actuator/**` | * | HTTP Basic | Admin endpoints |
 
+#### Socket Management Service
+| Service | Port | Protocol | Authentication | Description |
+|---------|------|----------|----------------|-------------|
+| **Socket Manager** | 8300 | TCP Socket | **32-char password REQUIRED** | User/device management |
+
+**⚠️ Authentication Required**: ALL commands require prior authentication with `server.auth.passwd`
+
+**Socket Commands** (AFTER authentication):
+- `ADD_USER\|email\|password\|name` - Create new user
+- `MOD_USER\|email\|password\|name` - Modify existing user  
+- `RM_USER\|email` - Remove user
+- `GET_USER\|email` - Get user information
+- `ADD_DEVICE\|email\|note` - Add device for user
+- `RM_DEVICE\|email\|uuid` - Remove device
+- `GET_DEVICE\|email\|uuid` - Get device with RSA keys
+
+**Authentication Flow**: Connect → Send 32-char password → Receive confirmation → Execute commands
+
 #### Security Features
 - **🔐 RSA + AES Encryption**: Hybrid encryption for maximum security
 - **🛡️ Custom Authentication Filter**: Path-based RSA token validation
