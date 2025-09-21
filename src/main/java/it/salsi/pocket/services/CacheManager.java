@@ -24,6 +24,7 @@ import it.salsi.pocket.security.RSAHelper;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -54,7 +55,6 @@ public interface CacheManager {
             this.rsaHelper = rsaHelper;
             this.timestampLastUpdate = timestampLastUpdate;
         }
-
     }
 
     boolean add(@NotNull final CacheRecord record);

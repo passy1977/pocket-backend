@@ -345,15 +345,6 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
                 try(final var in = new BufferedReader(new InputStreamReader(client.getInputStream()))) {
                         while(loop && !client.isClosed()) {
 
-                            // Check for client disconnection
-                            if(in.read() == -1) {
-                                passwd = null;
-
-                                System.out.println("client disconnected. Socket closing...");
-                                in.close();
-                            }
-
-
                             String line;
                             while (loop && (line = in.readLine()) != null) {
                                 line = line.trim();
@@ -400,7 +391,10 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
 
                             }
                         }
-//                    }
+                    
+                    // Reset password when client disconnects
+                    passwd = null;
+                    System.out.println("Client disconnected. Resetting authentication state.");
                 }
 
                 if (out != null) {
