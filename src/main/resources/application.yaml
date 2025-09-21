@@ -5,7 +5,7 @@ spring:
   application.name: Pocket
   jpa:
     show-sql: true
-    database-platform: org.hibernate.dialect.MariaDBDialect
+#    database-platform: org.hibernate.dialect.MariaDBDialect
     properties:
       hibernate:
         globally_quoted_identifiers: true
@@ -18,7 +18,7 @@ spring:
 
   datasource:
     driverClassName: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://localhost:3306/pocket5?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&autoReconnect=true&useSSL=true&requireSSL=false
+    url: jdbc:mariadb://localhost:3306/pocket5?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&autoReconnect=true&sslMode=DISABLED
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:passwd_to_change}
 
@@ -37,7 +37,7 @@ logging:
 server:
   port: 8081
   api-version: /api/v5
-  url: http://your_host_or_ip:8081
+  url: ${SERVER_URL:http://localhost:8081}
   socket-port: 8300
   check-timestamp-last-update: true
   services-cron: 1 * * * * ?
@@ -52,8 +52,8 @@ server:
   # AES configuration - MUST BE CHANGED IN PRODUCTION
   aes.cbc.iv: ${AES_CBC_IV:__iv_to_change__}
   auth:
-    user: ${ADMIN_USER:admin}
-    passwd: ${ADMIN_PASSWD:admin_password_change_me}
+    user: ${ADMIN_USER:test@test.com}
+    passwd: ${ADMIN_PASSWD:____admin_password_change_me____} # MUST BE CHANGED IN PRODUCTION WITH A 32 BYTESTRONG PASSWORD
 
 # Security headers and configurations
 security:
