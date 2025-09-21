@@ -54,17 +54,13 @@ public class SessionRest {
             @NotNull final String uuid,
             @PathVariable 
             @NotBlank(message = "Crypt parameter cannot be blank")
-            @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}$", 
+            @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}(=*)$", 
                     message = "Crypt parameter contains invalid characters or length")
             @NotNull final String crypt,
             @NotNull final HttpServletRequest request
     ) throws CommonsException
     {
-        var remoteIP = request.getRemoteAddr();
-        if (request.getHeader("x-forwarded-for") != null) {
-            remoteIP = request.getHeader("x-forwarded-for");
-        }
-        return sessionController.getData(uuid, crypt, remoteIP);
+        return sessionController.getData(uuid, crypt, SessionController.getClientIP(request));
     }
 
     @PostMapping("/{uuid}/{crypt}")
@@ -76,18 +72,14 @@ public class SessionRest {
             @NotNull final String uuid,
             @PathVariable 
             @NotBlank(message = "Crypt parameter cannot be blank")
-            @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}$", 
+            @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}(=*)$", 
                     message = "Crypt parameter contains invalid characters or length")
             @NotNull final String crypt,
             @Valid @NotNull @RequestBody final Container container,
             @NotNull final HttpServletRequest request
     ) throws CommonsException
     {
-        var remoteIP = request.getRemoteAddr();
-        if (request.getHeader("x-forwarded-for") != null) {
-            remoteIP = request.getHeader("x-forwarded-for");
-        }
-        return sessionController.persist(uuid, crypt, container, remoteIP);
+        return sessionController.persist(uuid, crypt, container, SessionController.getClientIP(request));
     }
 
     @PutMapping("/{uuid}/{crypt}/{changePasswdDataOnServer}")
@@ -99,18 +91,14 @@ public class SessionRest {
             @NotNull final String uuid,
             @PathVariable 
             @NotBlank(message = "Crypt parameter cannot be blank")
-            @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}$", 
+            @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}(=*)$", 
                     message = "Crypt parameter contains invalid characters or length")
             @NotNull final String crypt,
             @PathVariable(required = false) @NotNull final Boolean changePasswdDataOnServer,
             @NotNull final HttpServletRequest request
     ) throws CommonsException
     {
-        var remoteIP = request.getRemoteAddr();
-        if (request.getHeader("x-forwarded-for") != null) {
-            remoteIP = request.getHeader("x-forwarded-for");
-        }
-        return sessionController.changePasswd(uuid, crypt, changePasswdDataOnServer, remoteIP);
+        return sessionController.changePasswd(uuid, crypt, changePasswdDataOnServer, SessionController.getClientIP(request));
     }
 
 
@@ -123,7 +111,7 @@ public class SessionRest {
             @NotNull final String uuid,
             @PathVariable 
             @NotBlank(message = "Crypt parameter cannot be blank")
-            @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}$", 
+            @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}(=*)$", 
                     message = "Crypt parameter contains invalid characters or length")
             @NotNull final String crypt
     ) throws CommonsException
@@ -141,16 +129,12 @@ public class SessionRest {
             @NotNull final String uuid,
             @PathVariable 
             @NotBlank(message = "Crypt parameter cannot be blank")
-            @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}$", 
+            @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}(=*)$", 
                     message = "Crypt parameter contains invalid characters or length")
             @NotNull final String crypt,
             @NotNull final HttpServletRequest request
     ) throws CommonsException
     {
-        var remoteIP = request.getRemoteAddr();
-        if (request.getHeader("x-forwarded-for") != null) {
-            remoteIP = request.getHeader("x-forwarded-for");
-        }
-        return sessionController.checkCacheRecord(uuid, crypt, remoteIP);
+        return sessionController.checkCacheRecord(uuid, crypt, SessionController.getClientIP(request));
     }
 }

@@ -62,7 +62,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
     // Pattern per validare crypt (Base64 URL safe)
     private static final Pattern CRYPT_PATTERN = Pattern.compile(
-            "^[A-Za-z0-9_-]+$"
+            "^[A-Za-z0-9_-]+(=*)$"
     );
 
     public AuthenticationFilter(

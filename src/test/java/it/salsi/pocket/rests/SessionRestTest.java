@@ -196,8 +196,8 @@ class SessionRestTest {
         // This test verifies that validation annotations work
         // In a real Spring context, invalid crypt parameters would be rejected by @Pattern validation
         
-        assertTrue(VALID_CRYPT.matches("^[A-Za-z0-9_-]{10,2048}$"));
-        assertFalse(INVALID_CRYPT.matches("^[A-Za-z0-9_-]{10,2048}$"));
+        assertTrue(VALID_CRYPT.matches("^[A-Za-z0-9_-]{10,2048}(=*)$"));
+        assertFalse(INVALID_CRYPT.matches("^[A-Za-z0-9_-]{10,2048}(=*)$"));
     }
 
     // Helper method to create test data
