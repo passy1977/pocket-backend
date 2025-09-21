@@ -4,6 +4,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.0] - 2024/12/xx
+### Added
+- **Complete Test Suite**: Unit tests, integration tests, and security tests
+  - `SessionRestTest.java` - Unit tests for REST controller with Mockito
+  - `SessionRestIntegrationTest.java` - Full Spring context integration tests
+  - `AuthenticationFilterTest.java` - Security filter testing
+  - Test configuration with H2 in-memory database
+- **Mock API Client**: Full-featured HTTP client for testing and integration
+  - `PocketApiClient.java` - Async/sync API client with load testing support
+  - `PocketApiClientTest.java` - Comprehensive client tests
+  - `PocketApiClientExample.java` - Usage examples and documentation
+- **Apache HTTP Server Configuration**: Production-ready reverse proxy setup
+  - `apache/httpd.conf` - Main Apache configuration with SSL and load balancing
+  - `apache/vhosts.conf` - Virtual host configurations for dev/prod environments
+  - SSL termination, security headers, mod_security rules
+  - Health checks, failover, and session affinity
+- **Enhanced Documentation**:
+  - `docs/APACHE_SETUP.md` - Comprehensive Apache setup guide
+  - Updated README.md with Apache configuration instructions
+  - Testing documentation and troubleshooting guides
+
+### Fixed
+- Fixed Maven dependency issue with spring-boot-admin version
+- Corrected test dependencies and configuration
+- Fixed Bean Validation test method signatures
+
+### Changed
+- Updated Spring Boot Admin to version 3.4.2 (compatible with Spring Boot 3.4.4)
+- Enhanced security configuration documentation
+- Improved Docker deployment instructions
+- Added comprehensive monitoring and health check procedures
+
+### Security
+- Added comprehensive security testing framework
+- Enhanced authentication filter validation
+- Implemented production-ready Apache security configuration
+- Added rate limiting and DDoS protection guidelines
+
 ## [4.1.0] - 2023/xx/xx
 ### Fixed
 - Fix many CVE
