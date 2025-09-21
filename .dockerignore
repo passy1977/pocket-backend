@@ -1,0 +1,110 @@
+# Docker ignore file for Pocket Backend
+# Excludes unnecessary files from Docker build context
+
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# Environment and configuration files
+.env
+.env.*
+!.env.example
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+target/
+*.jar
+*.war
+*.ear
+*.class
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+
+# Docker related
+docker_data/
+*.log
+Dockerfile*
+docker-compose*.yml
+compose.yaml
+
+# Documentation
+README.md
+SECURITY.md
+CHANGELOG.md
+LICENSE
+*.md
+
+# Nginx configuration (not needed in app container)
+nginx/
+
+# Backup and temporary files
+*.bak
+*.tmp
+*.backup
+.cache/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Log files
+logs/
+*.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# Dependency directories
+node_modules/
+
+# Optional npm cache directory
+.npm
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# Test files and test data
+test/
+tests/
+__tests__/
+*.test.*
+*.spec.*
+
+# Scripts that shouldn't be in container
+build_docker_image.sh
+run.sh
+
+# Local development files
+docker-compose.override.yml
+.env.local
+.env.development
+.env.production
