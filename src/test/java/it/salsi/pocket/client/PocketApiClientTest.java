@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class PocketApiClientTest {
 
     private PocketApiClient client;
-    private static final String TEST_BASE_URL = "http://localhost:8081";
+    private static final String TEST_BASE_URL = "http://localhost:9999";
     private static final String VALID_UUID = "12345678-1234-1234-1234-123456789012";
     private static final String VALID_CRYPT = "validCryptData123";
 
