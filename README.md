@@ -24,8 +24,6 @@ Secure and scalable backend for the Pocket application, built with Spring Boot 3
 - ✅ **Complete Validation** with Bean Validation
 - � **Automatic Health Checks** and recovery
 
-## 🔧 Requirements
-
 ## 📋 Requirements
 
 ### Development Environment
@@ -647,7 +645,7 @@ security:
 - Ensures proper UUID v4 format
 
 **Crypt Parameter Validation**:
-- Pattern: `^[A-Za-z0-9_-]{10,2048}$`
+- Pattern: `^[A-Za-z0-9_-]{10,2048}(=*)$`
 - Length: 10-2048 characters
 - Characters: Base64 URL-safe only
 
