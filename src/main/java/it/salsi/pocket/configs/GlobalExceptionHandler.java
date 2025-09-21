@@ -43,13 +43,13 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public @NotNull ResponseEntity<Map<String, Object>> handleConstraintViolationException(
-            @NotNull ConstraintViolationException ex,
-            @NotNull WebRequest request
+    public @NotNull final ResponseEntity<Map<String, Object>> handleConstraintViolationException(
+            @NotNull final ConstraintViolationException ex,
+            @NotNull final WebRequest request
     ) {
         log.warning("Validation error: " + ex.getMessage());
         
-        Map<String, Object> errorResponse = new HashMap<>();
+        final var errorResponse = new HashMap<String, Object>();
         errorResponse.put("timestamp", Instant.now().toString());
         errorResponse.put("status", HttpStatus.BAD_REQUEST.value());
         errorResponse.put("error", "Validation Failed");
@@ -57,7 +57,7 @@ public class GlobalExceptionHandler {
         errorResponse.put("path", request.getDescription(false).replace("uri=", ""));
         
         // Collect all validation errors
-        String validationErrors = ex.getConstraintViolations()
+        final var validationErrors = ex.getConstraintViolations()
                 .stream()
                 .map(ConstraintViolation::getMessage)
                 .collect(Collectors.joining(", "));
@@ -68,13 +68,13 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public @NotNull ResponseEntity<Map<String, Object>> handleMethodArgumentNotValidException(
-            @NotNull MethodArgumentNotValidException ex,
-            @NotNull WebRequest request
+    public @NotNull final ResponseEntity<Map<String, Object>> handleMethodArgumentNotValidException(
+            @NotNull final MethodArgumentNotValidException ex,
+            @NotNull final WebRequest request
     ) {
         log.warning("Method argument validation error: " + ex.getMessage());
-        
-        Map<String, Object> errorResponse = new HashMap<>();
+
+        final var errorResponse = new HashMap<String, Object>();
         errorResponse.put("timestamp", Instant.now().toString());
         errorResponse.put("status", HttpStatus.BAD_REQUEST.value());
         errorResponse.put("error", "Validation Failed");
@@ -82,7 +82,7 @@ public class GlobalExceptionHandler {
         errorResponse.put("path", request.getDescription(false).replace("uri=", ""));
         
         // Collect field errors
-        Map<String, String> fieldErrors = new HashMap<>();
+        final var fieldErrors = new HashMap<String, String>();
         ex.getBindingResult().getFieldErrors().forEach(error -> 
             fieldErrors.put(error.getField(), error.getDefaultMessage())
         );
@@ -93,13 +93,13 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(AuthenticationException.class)
-    public @NotNull ResponseEntity<Map<String, Object>> handleAuthenticationException(
-            @NotNull AuthenticationException ex,
-            @NotNull WebRequest request
+    public @NotNull final ResponseEntity<Map<String, Object>> handleAuthenticationException(
+            @NotNull final AuthenticationException ex,
+            @NotNull final WebRequest request
     ) {
         log.warning("Authentication error: " + ex.getMessage());
-        
-        Map<String, Object> errorResponse = new HashMap<>();
+
+        final var errorResponse = new HashMap<String, Object>();
         errorResponse.put("timestamp", Instant.now().toString());
         errorResponse.put("status", HttpStatus.UNAUTHORIZED.value());
         errorResponse.put("error", "Authentication Failed");
@@ -111,12 +111,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BadCredentialsException.class)
     public @NotNull ResponseEntity<Map<String, Object>> handleBadCredentialsException(
-            @NotNull BadCredentialsException ex,
-            @NotNull WebRequest request
+            @NotNull final BadCredentialsException ex,
+            @NotNull final WebRequest request
     ) {
         log.warning("Bad credentials: " + ex.getMessage());
-        
-        Map<String, Object> errorResponse = new HashMap<>();
+
+        final var errorResponse = new HashMap<String, Object>();
         errorResponse.put("timestamp", Instant.now().toString());
         errorResponse.put("status", HttpStatus.UNAUTHORIZED.value());
         errorResponse.put("error", "Bad Credentials");
@@ -128,12 +128,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AccessDeniedException.class)
     public @NotNull ResponseEntity<Map<String, Object>> handleAccessDeniedException(
-            @NotNull AccessDeniedException ex,
-            @NotNull WebRequest request
+            @NotNull final AccessDeniedException ex,
+            @NotNull final WebRequest request
     ) {
         log.warning("Access denied: " + ex.getMessage());
-        
-        Map<String, Object> errorResponse = new HashMap<>();
+
+        final var errorResponse = new HashMap<String, Object>();
         errorResponse.put("timestamp", Instant.now().toString());
         errorResponse.put("status", HttpStatus.FORBIDDEN.value());
         errorResponse.put("error", "Access Denied");
@@ -145,12 +145,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public @NotNull ResponseEntity<Map<String, Object>> handleIllegalArgumentException(
-            @NotNull IllegalArgumentException ex,
-            @NotNull WebRequest request
+            @NotNull final IllegalArgumentException ex,
+            @NotNull final WebRequest request
     ) {
         log.warning("Illegal argument: " + ex.getMessage());
-        
-        Map<String, Object> errorResponse = new HashMap<>();
+
+        final var errorResponse = new HashMap<String, Object>();
         errorResponse.put("timestamp", Instant.now().toString());
         errorResponse.put("status", HttpStatus.BAD_REQUEST.value());
         errorResponse.put("error", "Invalid Argument");
@@ -162,12 +162,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public @NotNull ResponseEntity<Map<String, Object>> handleGenericException(
-            @NotNull Exception ex,
-            @NotNull WebRequest request
+            @NotNull final Exception ex,
+            @NotNull final WebRequest request
     ) {
         log.severe("Unexpected error: " + ex.getMessage());
-        
-        Map<String, Object> errorResponse = new HashMap<>();
+
+        final var errorResponse = new HashMap<String, Object>();
         errorResponse.put("timestamp", Instant.now().toString());
         errorResponse.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
         errorResponse.put("error", "Internal Server Error");

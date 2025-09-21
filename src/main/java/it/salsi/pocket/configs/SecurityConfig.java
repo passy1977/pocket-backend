@@ -80,7 +80,7 @@ public class SecurityConfig {
 
     @Bean
     public @NotNull UserDetailsService userDetailsService() {
-        UserDetails admin = User.builder()
+        final var admin = User.builder()
                 .username(adminUser)
                 .password(passwordEncoder().encode(adminPassword))
                 .authorities("ADMIN")
@@ -90,7 +90,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public @NotNull SecurityFilterChain filterChain(@NotNull HttpSecurity http) throws Exception {
+    public @NotNull SecurityFilterChain filterChain(@NotNull final HttpSecurity http) throws Exception {
         return http
                 // Disabilita CSRF per API REST
                 .csrf(AbstractHttpConfigurer::disable)
@@ -146,10 +146,10 @@ public class SecurityConfig {
 
     @Bean
     public @NotNull CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
+        final var configuration = new CorsConfiguration();
         
         // Lista delle origini permesse
-        List<String> allowedOrigins = new ArrayList<>();
+        final var allowedOrigins = new ArrayList<String>();
         
         // Aggiungi URL del server configurato
         allowedOrigins.add(serverUrl);
@@ -161,9 +161,9 @@ public class SecurityConfig {
         
         // Aggiungi origini aggiuntive dalla configurazione
         if (additionalCorsOrigins != null && !additionalCorsOrigins.trim().isEmpty()) {
-            String[] additionalOrigins = additionalCorsOrigins.split(",");
-            for (String origin : additionalOrigins) {
-                String trimmedOrigin = origin.trim();
+            final var additionalOrigins = additionalCorsOrigins.split(",");
+            for (final var origin : additionalOrigins) {
+                final var trimmedOrigin = origin.trim();
                 if (!trimmedOrigin.isEmpty()) {
                     allowedOrigins.add(trimmedOrigin);
                 }
@@ -196,7 +196,7 @@ public class SecurityConfig {
         // Max age per preflight requests (1 ora)
         configuration.setMaxAge(3600L);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        final var source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         
         return source;

@@ -72,7 +72,5 @@ public record ApplicationStartup(@NotNull DatabaseManager databaseManager,
         final var map = requestMappingHandlerMapping
                 .getHandlerMethods();
         map.forEach((key, value) -> log.info(key + " "+ value));
-
-        System.out.println("super pippo");
     }
 }

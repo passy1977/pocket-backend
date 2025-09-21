@@ -66,10 +66,10 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     );
 
     public AuthenticationFilter(
-            @Autowired @NotNull DeviceRepository deviceRepository,
-            @Autowired @NotNull UserRepository userRepository,
-            @Autowired @NotNull EncoderHelper encoderHelper,
-            @Autowired @NotNull CacheManager cacheManager
+            @Autowired @NotNull final DeviceRepository deviceRepository,
+            @Autowired @NotNull final UserRepository userRepository,
+            @Autowired @NotNull final EncoderHelper encoderHelper,
+            @Autowired @NotNull final CacheManager cacheManager
     ) {
         this.deviceRepository = deviceRepository;
         this.userRepository = userRepository;
@@ -138,14 +138,14 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private boolean isValidUUID(@NotNull String uuid) {
+    private boolean isValidUUID(@NotNull final String uuid) {
         if (uuid == null || uuid.trim().isEmpty()) {
             return false;
         }
         return UUID_PATTERN.matcher(uuid).matches();
     }
 
-    private boolean isValidCrypt(@NotNull String crypt) {
+    private boolean isValidCrypt(@NotNull final String crypt) {
         if (crypt == null || crypt.trim().isEmpty()) {
             return false;
         }
@@ -156,7 +156,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         return CRYPT_PATTERN.matcher(crypt).matches();
     }
 
-    private boolean authenticateUser(@NotNull String uuid, @NotNull String crypt, @NotNull HttpServletRequest request) {
+    private boolean authenticateUser(@NotNull final String uuid, @NotNull final String crypt, @NotNull final HttpServletRequest request) {
         try {
             // Find device by UUID
             final var optDevice = deviceRepository.findByUuid(uuid);
@@ -213,7 +213,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         }
     }
 
-    private @NotNull String getClientIP(@NotNull HttpServletRequest request) {
+    private @NotNull String getClientIP(@NotNull final HttpServletRequest request) {
         var remoteIP = request.getRemoteAddr();
         final var forwardedFor = request.getHeader("x-forwarded-for");
         if (forwardedFor != null && !forwardedFor.trim().isEmpty()) {
@@ -223,7 +223,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         return remoteIP;
     }
 
-    private void sendUnauthorized(@NotNull HttpServletResponse response, @NotNull String message) throws IOException {
+    private void sendUnauthorized(@NotNull final HttpServletResponse response, @NotNull final String message) throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json");
         response.getWriter().write("{\"error\":\"" + message + "\"}");
