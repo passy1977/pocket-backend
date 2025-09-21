@@ -19,7 +19,6 @@
 
 package it.salsi.pocket.models;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

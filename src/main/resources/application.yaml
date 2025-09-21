@@ -18,31 +18,49 @@ spring:
 
   datasource:
     driverClassName: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://localhost:3306/pocket5?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&autoReconnect=true
-    username: root
-    password: passwd_to_change
+    url: jdbc:mariadb://localhost:3306/pocket5?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&autoReconnect=true&useSSL=true&requireSSL=false
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:passwd_to_change}
 
 logging:
  level:
-   it.salsi.pocket: DEBUG
+   it.salsi.pocket: INFO
    hibernate:
-     SQL: TRACE
-     type: TRACE
+     SQL: WARN
+     type: WARN
    org:
-     atmosphere: TRACE
+     atmosphere: WARN
      springframework:
-       security: TRACE
-       web: DEBUG
+       security: WARN
+       web: WARN
 
 server:
   port: 8081
   api-version: /api/v5
   url: http://your_host_or_ip:8081
   socket-port: 8300
-  check-timestamp-last-update: false
+  check-timestamp-last-update: true
   services-cron: 1 * * * * ?
-  aes.cbc.iv: __iv_to_change__
+  # Security configurations
+  servlet:
+    session:
+      cookie:
+        secure: true
+        http-only: true
+        same-site: strict
+        max-age: 3600
+  # AES configuration - MUST BE CHANGED IN PRODUCTION
+  aes.cbc.iv: ${AES_CBC_IV:__iv_to_change__}
   auth:
-    user: test@test.com
-    passwd: ______user_passwd_to_change_____
+    user: ${ADMIN_USER:admin}
+    passwd: ${ADMIN_PASSWD:admin_password_change_me}
+
+# Security headers and configurations
+security:
+  headers:
+    content-security-policy: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none';"
+  cors:
+    # Additional allowed origins (comma separated)
+    # Example: https://yourdomain.com,https://anotherdomain.com
+    additional-origins: ${CORS_ADDITIONAL_ORIGINS:}
 

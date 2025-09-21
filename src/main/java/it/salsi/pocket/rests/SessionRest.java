@@ -24,15 +24,19 @@ import it.salsi.pocket.controllers.SessionController;
 import it.salsi.pocket.models.Container;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @Log
 @RestController
 @RequestMapping("${server.api-version}/")
+@Validated
 public class SessionRest {
 
     private @NotNull final SessionController sessionController;
@@ -42,9 +46,18 @@ public class SessionRest {
     }
 
     @GetMapping("/{uuid}/{crypt}")
-    public @NotNull ResponseEntity<Container> getData(@PathVariable @NotNull final String uuid,
-                                                          @PathVariable @NotNull final String crypt,
-                                                        @NotNull final HttpServletRequest request
+    public @NotNull ResponseEntity<Container> getData(
+            @PathVariable 
+            @NotBlank(message = "UUID cannot be blank")
+            @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", 
+                    message = "UUID must be in valid format")
+            @NotNull final String uuid,
+            @PathVariable 
+            @NotBlank(message = "Crypt parameter cannot be blank")
+            @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}$", 
+                    message = "Crypt parameter contains invalid characters or length")
+            @NotNull final String crypt,
+            @NotNull final HttpServletRequest request
     ) throws CommonsException
     {
         var remoteIP = request.getRemoteAddr();
@@ -55,10 +68,19 @@ public class SessionRest {
     }
 
     @PostMapping("/{uuid}/{crypt}")
-    public @NotNull ResponseEntity<Container> persist(@PathVariable @NotNull final String uuid,
-                                                          @PathVariable @NotNull final String crypt,
-                                                          @Valid @NotNull @RequestBody final Container container,
-                                                        @NotNull final HttpServletRequest request
+    public @NotNull ResponseEntity<Container> persist(
+            @PathVariable 
+            @NotBlank(message = "UUID cannot be blank")
+            @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", 
+                    message = "UUID must be in valid format")
+            @NotNull final String uuid,
+            @PathVariable 
+            @NotBlank(message = "Crypt parameter cannot be blank")
+            @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}$", 
+                    message = "Crypt parameter contains invalid characters or length")
+            @NotNull final String crypt,
+            @Valid @NotNull @RequestBody final Container container,
+            @NotNull final HttpServletRequest request
     ) throws CommonsException
     {
         var remoteIP = request.getRemoteAddr();
@@ -69,10 +91,19 @@ public class SessionRest {
     }
 
     @PutMapping("/{uuid}/{crypt}/{changePasswdDataOnServer}")
-    public @NotNull ResponseEntity<Boolean> changePasswd(@PathVariable @NotNull final String uuid,
-                                                        @PathVariable @NotNull final String crypt,
-                                                        @PathVariable(required = false) @NotNull final Boolean changePasswdDataOnServer,
-                                                         @NotNull final HttpServletRequest request
+    public @NotNull ResponseEntity<Boolean> changePasswd(
+            @PathVariable 
+            @NotBlank(message = "UUID cannot be blank")
+            @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", 
+                    message = "UUID must be in valid format")
+            @NotNull final String uuid,
+            @PathVariable 
+            @NotBlank(message = "Crypt parameter cannot be blank")
+            @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}$", 
+                    message = "Crypt parameter contains invalid characters or length")
+            @NotNull final String crypt,
+            @PathVariable(required = false) @NotNull final Boolean changePasswdDataOnServer,
+            @NotNull final HttpServletRequest request
     ) throws CommonsException
     {
         var remoteIP = request.getRemoteAddr();
@@ -84,8 +115,17 @@ public class SessionRest {
 
 
     @DeleteMapping("/{uuid}/{crypt}")
-    public @NotNull ResponseEntity<?> deleteCacheRecord(@PathVariable @NotNull final String uuid,
-                                                      @PathVariable @NotNull final String crypt
+    public @NotNull ResponseEntity<?> deleteCacheRecord(
+            @PathVariable 
+            @NotBlank(message = "UUID cannot be blank")
+            @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", 
+                    message = "UUID must be in valid format")
+            @NotNull final String uuid,
+            @PathVariable 
+            @NotBlank(message = "Crypt parameter cannot be blank")
+            @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}$", 
+                    message = "Crypt parameter contains invalid characters or length")
+            @NotNull final String crypt
     ) throws CommonsException
     {
         return sessionController.deleteCacheRecord(uuid, crypt);
@@ -93,9 +133,18 @@ public class SessionRest {
 
 
     @GetMapping("/{uuid}/{crypt}/check")
-    public @NotNull ResponseEntity<?> checkCacheRecord(@PathVariable @NotNull final String uuid,
-                                                        @PathVariable @NotNull final String crypt,
-                                                       @NotNull final HttpServletRequest request
+    public @NotNull ResponseEntity<?> checkCacheRecord(
+            @PathVariable 
+            @NotBlank(message = "UUID cannot be blank")
+            @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", 
+                    message = "UUID must be in valid format")
+            @NotNull final String uuid,
+            @PathVariable 
+            @NotBlank(message = "Crypt parameter cannot be blank")
+            @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}$", 
+                    message = "Crypt parameter contains invalid characters or length")
+            @NotNull final String crypt,
+            @NotNull final HttpServletRequest request
     ) throws CommonsException
     {
         var remoteIP = request.getRemoteAddr();

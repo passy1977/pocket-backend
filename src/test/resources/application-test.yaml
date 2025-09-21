@@ -1,0 +1,36 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  h2:
+    console:
+      enabled: true
+
+server:
+  port: 0  # Random port for tests
+  api-version: /api/v5
+  url: http://localhost:8081
+
+# Test configuration
+test:
+  aes-cbc-iv: test_iv_16_chars!
+  admin-user: test_admin
+  admin-passwd: test_password
+  valid-uuid: 12345678-1234-1234-1234-123456789012
+  valid-crypt: validCryptData123
+
+logging:
+  level:
+    it.salsi.pocket: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
