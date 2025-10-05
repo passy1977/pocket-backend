@@ -645,7 +645,7 @@ security:
 - Ensures proper UUID v4 format
 
 **Crypt Parameter Validation**:
-- Pattern: `^[A-Za-z0-9_-]{10,2048}(=*)$`
+- Pattern: `^[A-Za-z0-9_-]{10,2048}={0,2}$`
 - Length: 10-2048 characters
 - Characters: Base64 URL-safe only
 

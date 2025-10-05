@@ -65,7 +65,7 @@ Comprehensive security implementation for Pocket Backend with **Spring Boot 3.5.
 
 #### Bean Validation ✅
 - **UUID Validation**: `^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`
-- **Crypt Parameter**: `^[A-Za-z0-9_-]{10,2048}(=*)$` (Base64 URL-safe with optional padding)
+- **Crypt Parameter**: `^[A-Za-z0-9_-]{10,2048}={0,2}$` (Base64 URL-safe with optional padding)
 - **Length Limits**: 10-2048 characters for encrypted tokens
 - **Character Restrictions**: Alphanumeric, underscore, hyphen, and optional padding only
 
