@@ -121,7 +121,7 @@ public class SessionRest {
 
 
     @GetMapping("/{uuid}/{crypt}/check")
-    public @NotNull ResponseEntity<?> checkCacheRecord(
+    public @NotNull ResponseEntity<?> validateSession(
             @PathVariable 
             @NotBlank(message = "UUID cannot be blank")
             @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", 
@@ -135,6 +135,6 @@ public class SessionRest {
             @NotNull final HttpServletRequest request
     ) throws CommonsException
     {
-        return sessionController.checkCacheRecord(uuid, crypt, SessionController.getClientIP(request));
+        return sessionController.validateSession(uuid, crypt, SessionController.getClientIP(request));
     }
 }

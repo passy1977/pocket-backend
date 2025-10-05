@@ -166,17 +166,17 @@ class SessionRestTest {
     @DisplayName("Should check cache record successfully")
     void shouldCheckCacheRecordSuccessfully() throws Exception {
         // Given - mock the controller to return any ResponseEntity
-        when(sessionController.checkCacheRecord(anyString(), anyString(), anyString()))
+        when(sessionController.validateSession(anyString(), anyString(), anyString()))
                 .thenReturn(ResponseEntity.ok().build());
 
         // When
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setRemoteAddr("127.0.0.1");
-        ResponseEntity<?> response = sessionRest.checkCacheRecord(VALID_UUID, VALID_CRYPT, request);
+        ResponseEntity<?> response = sessionRest.validateSession(VALID_UUID, VALID_CRYPT, request);
 
         // Then
         assertNotNull(response);
-        verify(sessionController).checkCacheRecord(VALID_UUID, VALID_CRYPT, "127.0.0.1");
+        verify(sessionController).validateSession(VALID_UUID, VALID_CRYPT, "127.0.0.1");
     }
 
     @Test
