@@ -62,7 +62,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
     // Pattern per validare crypt (Base64 URL safe)
     private static final Pattern CRYPT_PATTERN = Pattern.compile(
-            "^[A-Za-z0-9_-]+(=*)$"
+        "^[A-Za-z0-9_-]+={0,2}$"
     );
 
     public AuthenticationFilter(
@@ -145,15 +145,19 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         return UUID_PATTERN.matcher(uuid).matches();
     }
 
-    private boolean isValidCrypt(@NotNull final String crypt) {
-        if (crypt == null || crypt.trim().isEmpty()) {
+    private boolean isValidCrypt(String crypt) {
+        if (crypt == null || crypt.length() > 2048) {
+            System.out.println("DEBUG: Crypt validation failed - null or too long: " + (crypt != null ? crypt.length() : "null"));
             return false;
         }
-        // Check length (reasonable bounds for encrypted data)
-        if (crypt.length() < 10 || crypt.length() > 2048) {
-            return false;
+        boolean matches = CRYPT_PATTERN.matcher(crypt).matches();
+        System.out.println("DEBUG: Crypt pattern match result: " + matches + " for string of length: " + crypt.length());
+        if (!matches) {
+            System.out.println("DEBUG: Pattern: " + CRYPT_PATTERN.pattern());
+            System.out.println("DEBUG: First 50 chars: " + crypt.substring(0, Math.min(50, crypt.length())));
+            System.out.println("DEBUG: Last 10 chars: " + crypt.substring(Math.max(0, crypt.length()-10)));
         }
-        return CRYPT_PATTERN.matcher(crypt).matches();
+        return matches;
     }
 
     private boolean authenticateUser(@NotNull final String uuid, @NotNull final String crypt, @NotNull final HttpServletRequest request) {

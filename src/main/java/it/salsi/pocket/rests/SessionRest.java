@@ -54,7 +54,7 @@ public class SessionRest {
             @NotNull final String uuid,
             @PathVariable 
             @NotBlank(message = "Crypt parameter cannot be blank")
-            @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}(=*)$", 
+            @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}={0,2}$", 
                     message = "Crypt parameter contains invalid characters or length")
             @NotNull final String crypt,
             @NotNull final HttpServletRequest request
@@ -72,7 +72,7 @@ public class SessionRest {
             @NotNull final String uuid,
             @PathVariable 
             @NotBlank(message = "Crypt parameter cannot be blank")
-            @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}(=*)$", 
+            @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}={0,2}$", 
                     message = "Crypt parameter contains invalid characters or length")
             @NotNull final String crypt,
             @Valid @NotNull @RequestBody final Container container,
@@ -91,7 +91,7 @@ public class SessionRest {
             @NotNull final String uuid,
             @PathVariable 
             @NotBlank(message = "Crypt parameter cannot be blank")
-            @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}(=*)$", 
+            @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}={0,2}$", 
                     message = "Crypt parameter contains invalid characters or length")
             @NotNull final String crypt,
             @PathVariable(required = false) @NotNull final Boolean changePasswdDataOnServer,
@@ -111,7 +111,7 @@ public class SessionRest {
             @NotNull final String uuid,
             @PathVariable 
             @NotBlank(message = "Crypt parameter cannot be blank")
-            @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}(=*)$", 
+            @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}={0,2}$", 
                     message = "Crypt parameter contains invalid characters or length")
             @NotNull final String crypt
     ) throws CommonsException
@@ -129,7 +129,7 @@ public class SessionRest {
             @NotNull final String uuid,
             @PathVariable 
             @NotBlank(message = "Crypt parameter cannot be blank")
-            @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}(=*)$", 
+            @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}={0,2}$", 
                     message = "Crypt parameter contains invalid characters or length")
             @NotNull final String crypt,
             @NotNull final HttpServletRequest request
