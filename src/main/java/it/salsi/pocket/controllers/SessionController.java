@@ -441,7 +441,7 @@ public class SessionController {
 
     }
 
-    public @NotNull ResponseEntity<?> validateSession(@NotNull final String uuid,
+    public @NotNull ResponseEntity<?> heartbeat(@NotNull final String uuid,
                                                        @NotNull final String crypt,
                                                        @NotNull final String remoteIP
     ) throws CommonsException {

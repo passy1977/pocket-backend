@@ -95,13 +95,28 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         try {
             // Extract UUID and crypt from path
             final var pathParts = requestURI.split("/");
-            if (pathParts.length < 5) {
-                sendUnauthorized(response, "Invalid API path format");
-                return;
+            
+            String uuid;
+            String crypt;
+            
+            // Handle different endpoint patterns
+            if (requestURI.startsWith("/api/v5/heartbeat/")) {
+                // Pattern: /api/v5/heartbeat/{uuid}/{crypt}
+                if (pathParts.length < 6) {
+                    sendUnauthorized(response, "Invalid API path format");
+                    return;
+                }
+                uuid = pathParts[4];
+                crypt = pathParts[5];
+            } else {
+                // Pattern: /api/v5/{uuid}/{crypt}
+                if (pathParts.length < 5) {
+                    sendUnauthorized(response, "Invalid API path format");
+                    return;
+                }
+                uuid = pathParts[3];
+                crypt = pathParts[4];
             }
-
-            final var uuid = pathParts[3];
-            final var crypt = pathParts[4];
 
             // Validate input format
             if (!isValidUUID(uuid)) {
@@ -115,20 +130,21 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             }
 
             // Authenticate user
-            if (authenticateUser(uuid, crypt, request)) {
-                // Set authentication in security context
-                var authentication = new UsernamePasswordAuthenticationToken(
-                        uuid, 
-                        null, 
-                        Collections.singletonList(new SimpleGrantedAuthority("USER"))
-                );
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            } else {
-                sendUnauthorized(response, "Authentication failed");
-                return;
+            if(pathParts.length == 5) {
+                if (authenticateUser(uuid, crypt, request)) {
+                    // Set authentication in security context
+                    var authentication = new UsernamePasswordAuthenticationToken(
+                            uuid, 
+                            null, 
+                            Collections.singletonList(new SimpleGrantedAuthority("USER"))
+                    );
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                } else {
+                    sendUnauthorized(response, "Authentication failed");
+                    return;
+                }
             }
-
         } catch (Exception e) {
             log.severe("Authentication error: " + e.getMessage());
             sendUnauthorized(response, "Internal authentication error");
@@ -163,12 +179,15 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     private boolean authenticateUser(@NotNull final String uuid, @NotNull final String crypt, @NotNull final HttpServletRequest request) {
         try {
             // Find device by UUID
+            System.out.println("DEBUG: Looking for device with UUID: " + uuid);
             final var optDevice = deviceRepository.findByUuid(uuid);
             if (optDevice.isEmpty()) {
+                System.out.println("DEBUG: Device not found for UUID: " + uuid);
                 return false;
             }
 
             final var device = optDevice.get();
+            System.out.println("DEBUG: Found device ID: " + device.getId() + " for UUID: " + uuid);
             
             // Create RSA helper with device keys
             final var rsaHelper = new RSAHelper(ALGORITHM, KEY_SIZE);
@@ -176,10 +195,14 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             rsaHelper.loadPrivateKey(Base64.getDecoder().decode(device.getPrivateKey()));
 
             // Decrypt and validate token
+            System.out.println("DEBUG: Attempting to decrypt crypt: " + crypt);
             final var decrypted = rsaHelper.decryptFromURLBase64(crypt);
+            System.out.println("DEBUG: Decrypted token: " + decrypted);
             final var decryptSplit = decrypted.split("[" + DIVISOR.value + "]");
+            System.out.println("DEBUG: Token parts count: " + decryptSplit.length);
             
             if (decryptSplit.length != 5) {
+                System.out.println("DEBUG: Invalid token parts count. Expected 5, got: " + decryptSplit.length);
                 return false;
             }
 

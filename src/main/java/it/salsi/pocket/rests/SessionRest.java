@@ -120,8 +120,8 @@ public class SessionRest {
     }
 
 
-    @GetMapping("/{uuid}/{crypt}/check")
-    public @NotNull ResponseEntity<?> validateSession(
+    @GetMapping("/heartbeat/{uuid}/{crypt}")
+    public @NotNull ResponseEntity<?> heartbeat(
             @PathVariable 
             @NotBlank(message = "UUID cannot be blank")
             @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", 
@@ -135,6 +135,6 @@ public class SessionRest {
             @NotNull final HttpServletRequest request
     ) throws CommonsException
     {
-        return sessionController.validateSession(uuid, crypt, SessionController.getClientIP(request));
+        return sessionController.heartbeat(uuid, crypt, SessionController.getClientIP(request));
     }
 }
