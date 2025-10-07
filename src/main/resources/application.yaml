@@ -41,6 +41,10 @@ server:
   socket-port: 8300
   check-timestamp-last-update: true
   services-cron: 1 * * * * ?
+  # Increase URL limits for long crypt parameters
+  tomcat:
+    max-http-form-post-size: 10MB
+    max-parameter-count: 10000
   # Security configurations
   servlet:
     session:

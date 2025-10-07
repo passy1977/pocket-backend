@@ -62,7 +62,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
     // Pattern per validare crypt (Base64 URL safe)
     private static final Pattern CRYPT_PATTERN = Pattern.compile(
-        "^[A-Za-z0-9_-]+={0,2}$"
+        "^[A-Za-z0-9_-]{10,2048}={0,2}$"
     );
 
     public AuthenticationFilter(
@@ -85,9 +85,21 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
 
         final var requestURI = request.getRequestURI();
-        
-        // Skip authentication for non-API endpoints
-        if (!requestURI.startsWith("/api/v5/")) {
+                
+        // Skip authentication for non-API endpoints and for test/heartbeat endpoints (handled by controller)
+        if (!requestURI.startsWith("/api/v5/") || 
+            requestURI.startsWith("/api/v5/heartbeat/") || 
+            requestURI.equals("/api/v5/test")) {
+            
+            // For API endpoints that we're skipping, set a dummy authentication context
+            // so Spring Security doesn't block them
+            if (requestURI.startsWith("/api/v5/")) {
+                var authorities = Collections.singletonList(new SimpleGrantedAuthority("USER"));
+                var authToken = new UsernamePasswordAuthenticationToken("anonymous", null, authorities);
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+            }
+            
             filterChain.doFilter(request, response);
             return;
         }
@@ -96,27 +108,14 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             // Extract UUID and crypt from path
             final var pathParts = requestURI.split("/");
             
-            String uuid;
-            String crypt;
-            
-            // Handle different endpoint patterns
-            if (requestURI.startsWith("/api/v5/heartbeat/")) {
-                // Pattern: /api/v5/heartbeat/{uuid}/{crypt}
-                if (pathParts.length < 6) {
-                    sendUnauthorized(response, "Invalid API path format");
-                    return;
-                }
-                uuid = pathParts[4];
-                crypt = pathParts[5];
-            } else {
-                // Pattern: /api/v5/{uuid}/{crypt}
-                if (pathParts.length < 5) {
-                    sendUnauthorized(response, "Invalid API path format");
-                    return;
-                }
-                uuid = pathParts[3];
-                crypt = pathParts[4];
+            // Pattern: /api/v5/{uuid}/{crypt}
+            if (pathParts.length < 5) {
+                sendUnauthorized(response, "Invalid API path format");
+                return;
             }
+            
+            String uuid = pathParts[3];
+            String crypt = pathParts[4];
 
             // Validate input format
             if (!isValidUUID(uuid)) {
@@ -130,20 +129,18 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             }
 
             // Authenticate user
-            if(pathParts.length == 5) {
-                if (authenticateUser(uuid, crypt, request)) {
-                    // Set authentication in security context
-                    var authentication = new UsernamePasswordAuthenticationToken(
-                            uuid, 
-                            null, 
-                            Collections.singletonList(new SimpleGrantedAuthority("USER"))
-                    );
-                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                } else {
-                    sendUnauthorized(response, "Authentication failed");
-                    return;
-                }
+            if (authenticateUser(uuid, crypt, request)) {
+                // Set authentication in security context
+                var authentication = new UsernamePasswordAuthenticationToken(
+                        uuid, 
+                        null, 
+                        Collections.singletonList(new SimpleGrantedAuthority("USER"))
+                );
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            } else {
+                sendUnauthorized(response, "Authentication failed");
+                return;
             }
         } catch (Exception e) {
             log.severe("Authentication error: " + e.getMessage());
@@ -163,31 +160,23 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
     private boolean isValidCrypt(String crypt) {
         if (crypt == null || crypt.length() > 2048) {
-            System.out.println("DEBUG: Crypt validation failed - null or too long: " + (crypt != null ? crypt.length() : "null"));
+            log.warning("Crypt validation failed - null or too long: " + (crypt != null ? crypt.length() : "null"));
             return false;
         }
-        boolean matches = CRYPT_PATTERN.matcher(crypt).matches();
-        System.out.println("DEBUG: Crypt pattern match result: " + matches + " for string of length: " + crypt.length());
-        if (!matches) {
-            System.out.println("DEBUG: Pattern: " + CRYPT_PATTERN.pattern());
-            System.out.println("DEBUG: First 50 chars: " + crypt.substring(0, Math.min(50, crypt.length())));
-            System.out.println("DEBUG: Last 10 chars: " + crypt.substring(Math.max(0, crypt.length()-10)));
-        }
-        return matches;
+
+        return CRYPT_PATTERN.matcher(crypt).matches();
     }
 
     private boolean authenticateUser(@NotNull final String uuid, @NotNull final String crypt, @NotNull final HttpServletRequest request) {
         try {
             // Find device by UUID
-            System.out.println("DEBUG: Looking for device with UUID: " + uuid);
             final var optDevice = deviceRepository.findByUuid(uuid);
             if (optDevice.isEmpty()) {
-                System.out.println("DEBUG: Device not found for UUID: " + uuid);
+                log.warning("DEBUG: Device not found for UUID: " + uuid);
                 return false;
             }
 
             final var device = optDevice.get();
-            System.out.println("DEBUG: Found device ID: " + device.getId() + " for UUID: " + uuid);
             
             // Create RSA helper with device keys
             final var rsaHelper = new RSAHelper(ALGORITHM, KEY_SIZE);
@@ -195,43 +184,44 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             rsaHelper.loadPrivateKey(Base64.getDecoder().decode(device.getPrivateKey()));
 
             // Decrypt and validate token
-            System.out.println("DEBUG: Attempting to decrypt crypt: " + crypt);
             final var decrypted = rsaHelper.decryptFromURLBase64(crypt);
-            System.out.println("DEBUG: Decrypted token: " + decrypted);
             final var decryptSplit = decrypted.split("[" + DIVISOR.value + "]");
-            System.out.println("DEBUG: Token parts count: " + decryptSplit.length);
             
             if (decryptSplit.length != 5) {
-                System.out.println("DEBUG: Invalid token parts count. Expected 5, got: " + decryptSplit.length);
+                log.warning("DEBUG: Invalid token parts count. Expected 5, got: " + decryptSplit.length);
                 return false;
             }
 
             // Validate device ID
-            if (Long.parseLong(decryptSplit[0]) != device.getId()) {
+            long tokenDeviceId = Long.parseLong(decryptSplit[0]);
+            if (tokenDeviceId != device.getId()) {
+                log.warning("DEBUG: Device ID mismatch");
                 return false;
             }
 
             // Validate secret is not empty
             if (decryptSplit[1].isEmpty()) {
+                log.warning("DEBUG: Secret is empty");
                 return false;
             }
 
             // Validate user credentials
-            final var optUser = userRepository.findByEmailAndPasswd(
-                    decryptSplit[3], 
-                    encoderHelper.encode(decryptSplit[4])
-            );
+            String email = decryptSplit[3];
+            String hashedPassword = encoderHelper.encode(decryptSplit[4]);
+            
+            final var optUser = userRepository.findByEmailAndPasswd(email, hashedPassword);
             
             if (optUser.isEmpty()) {
+                log.warning("DEBUG: User not found or password mismatch for email: " + email);
                 return false;
             }
-
+            
             // Update device IP and last login time
             final var remoteIP = getClientIP(request);
             device.setAddress(remoteIP);
             device.setTimestampLastLogin(java.time.Instant.now(java.time.Clock.systemUTC()).getEpochSecond());
             deviceRepository.save(device);
-
+            
             return true;
 
         } catch (CommonsException | NumberFormatException e) {

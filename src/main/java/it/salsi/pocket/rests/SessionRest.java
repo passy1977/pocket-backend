@@ -129,7 +129,7 @@ public class SessionRest {
             @NotNull final String uuid,
             @PathVariable 
             @NotBlank(message = "Crypt parameter cannot be blank")
-            @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}={0,2}$", 
+            @Pattern(regexp = "^[A-Za-z0-9_-]+={0,2}$", 
                     message = "Crypt parameter contains invalid characters or length")
             @NotNull final String crypt,
             @NotNull final HttpServletRequest request

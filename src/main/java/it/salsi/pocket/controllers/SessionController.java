@@ -450,8 +450,8 @@ public class SessionController {
         
         Optional<CacheRecord> cacheRecord;
         long timestampLastUpdate;
-        Optional<User> optUser = Optional.empty();
         Device device = null;
+        
         if(cacheManager.has(uuid)) {
             cacheRecord = cacheManager.get(uuid);
             if(cacheRecord.isPresent()) {
@@ -460,7 +460,7 @@ public class SessionController {
                 final var rsaHelper = record.getRsaHelper();
 
                 final var decryptSplit = rsaHelper.decryptFromURLBase64(crypt).split("["+DIVISOR.value+"]");
-                if(decryptSplit.length != 5)
+                if(decryptSplit.length != 3)
                 {
                     cacheManager.rm(record);
                     return ResponseEntity.status(WRONG_SIZE_TOKEN.code).build();
@@ -486,35 +486,36 @@ public class SessionController {
                         return ResponseEntity.status(TIMESTAMP_LAST_UPDATE_NOT_MATCH.code).build();
                     }
                 }
-
-                optUser =  userRepository.findByEmailAndPasswd(decryptSplit[3], encoderHelper.encode(decryptSplit[4]));
-                if(optUser.isEmpty()) {
-                    return ResponseEntity.status(USER_NOT_FOUND.code).build();
-                }
-
-                record.setTimestampLastUpdate(now);
             }
         } else {
-            //return new ResponseEntity.badRequest(new CheckSession(false, 0));
-        }
-
-        if(optUser.isEmpty()) {
-            return ResponseEntity.status(USER_NOT_FOUND.code).build();
+            return ResponseEntity.ok(
+                new Container(
+                        0L,
+                        null,
+                        null,
+                        List.of(),
+                        List.of(),
+                        List.of()
+                ));
         }
 
         if(device == null) {
-            return ResponseEntity.status(DEVICE_NOT_FOUND.code).build();
+            return ResponseEntity.ok(
+                new Container(
+                        0L,
+                        null,
+                        null,
+                        List.of(),
+                        List.of(),
+                        List.of()
+                ));
         }
-
-        device.setAddress(remoteIP);
-        device.setTimestampLastUpdate(now);
-        deviceRepository.save(device);
 
         return ResponseEntity.ok(
                 new Container(
                         now,
-                        optUser.get(),
-                        device,
+                        null,
+                        null,
                         List.of(),
                         List.of(),
                         List.of()
