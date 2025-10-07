@@ -855,6 +855,35 @@ docker compose exec pocket-db mysql -u root -p -e "SHOW GLOBAL STATUS LIKE 'Slow
 - `POST /api/v5/session` - Crea nuova sessione
 - `PUT /api/v5/session/{uuid}` - Aggiorna sessione
 - `DELETE /api/v5/session/{uuid}` - Elimina sessione
+- `GET /api/v5/heartbeat/{uuid}/{crypt}` - Verifica connettività sessione
+
+**Endpoint Heartbeat**
+```
+GET /api/v5/heartbeat/{uuid}/{crypt}
+```
+
+Questo endpoint verifica la connettività della sessione e restituisce informazioni di base senza richiedere autenticazione completa.
+
+**Parametri:**
+- `uuid`: UUID della sessione (formato: 8-4-4-4-12 caratteri esadecimali)
+- `crypt`: Stringa di crittografia per la validazione (formato: 32 caratteri alfanumerici)
+
+**Esempio di richiesta:**
+```
+GET /api/v5/heartbeat/550e8400-e29b-41d4-a716-446655440000/a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6
+```
+
+**Risposta di successo (200):**
+```json
+{
+  "timestampLastUpdate": 0,
+  "user": null,
+  "device": null,
+  "groups": [],
+  "groupFields": [],
+  "fields": []
+}
+```
 
 ### Monitoraggio Health
 - `GET /actuator/health` - Status health applicazione

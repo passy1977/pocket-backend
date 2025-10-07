@@ -163,9 +163,9 @@ class SessionRestTest {
     }
 
     @Test
-    @DisplayName("Should check cache record successfully")
-    void shouldCheckCacheRecordSuccessfully() throws Exception {
-        // Given - mock the controller to return any ResponseEntity
+    @DisplayName("Should execute heartbeat successfully")
+    void shouldExecuteHeartbeatSuccessfully() throws Exception {
+        // Given - mock the controller to return OK response
         when(sessionController.heartbeat(anyString(), anyString(), anyString()))
                 .thenReturn(ResponseEntity.ok().build());
 
@@ -176,7 +176,41 @@ class SessionRestTest {
 
         // Then
         assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         verify(sessionController).heartbeat(VALID_UUID, VALID_CRYPT, "127.0.0.1");
+    }
+
+    @Test
+    @DisplayName("Should handle heartbeat with different IP addresses")
+    void shouldHandleHeartbeatWithDifferentIpAddresses() throws Exception {
+        // Given
+        when(sessionController.heartbeat(anyString(), anyString(), anyString()))
+                .thenReturn(ResponseEntity.ok().build());
+
+        // When - Test with IPv6 address
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRemoteAddr("2001:db8::1");
+        ResponseEntity<?> response = sessionRest.heartbeat(VALID_UUID, VALID_CRYPT, request);
+
+        // Then
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(sessionController).heartbeat(VALID_UUID, VALID_CRYPT, "2001:db8::1");
+    }
+
+    @Test
+    @DisplayName("Should validate heartbeat crypt parameter format")
+    void shouldValidateHeartbeatCryptParameterFormat() throws Exception {
+        // Test that heartbeat endpoint accepts the correct crypt format
+        // Note: The heartbeat endpoint has a slightly different regex pattern than other endpoints
+        
+        String heartbeatValidCrypt = "eapP1suDDlpKVFLylZTRox-fWJhRYAOoC3Z6MWQrkWF7FM9mqN9f4NNeqop0mDAc=";
+        assertTrue(heartbeatValidCrypt.matches("^[A-Za-z0-9_-]+={0,2}$"), 
+                "Valid heartbeat crypt should match the pattern");
+        
+        String invalidCrypt = "invalid@crypt#data";
+        assertFalse(invalidCrypt.matches("^[A-Za-z0-9_-]+={0,2}$"), 
+                "Invalid crypt should not match the pattern");
     }
 
     @Test

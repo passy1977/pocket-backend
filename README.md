@@ -839,8 +839,43 @@ curl -X POST "https://api.yourdomain.com:8081/api/v5/12345678-1234-1234-1234-123
   -H "Content-Type: application/json" \
   -d '{"groups":[],"groupFields":[],"fields":[]}'
 
-# Check session
-curl -X GET "https://api.yourdomain.com:8081/api/v5/12345678-1234-1234-1234-123456789abc/encrypted_auth_token/check"
+# Update password
+curl -X PUT "https://api.yourdomain.com:8081/api/v5/12345678-1234-1234-1234-123456789abc/encrypted_auth_token/true"
+
+# Delete cache record
+curl -X DELETE "https://api.yourdomain.com:8081/api/v5/12345678-1234-1234-1234-123456789abc/encrypted_auth_token"
+
+# Heartbeat check - verify session and sync data
+curl -X GET "https://api.yourdomain.com:8081/api/v5/heartbeat/12345678-1234-1234-1234-123456789abc/encrypted_auth_token"
+```
+
+#### Heartbeat Endpoint Details
+
+The heartbeat endpoint (`/api/v5/heartbeat/{uuid}/{crypt}`) provides:
+- **Session validation**: Checks if the session is still valid
+- **Data synchronization**: Returns updated user data if available
+- **Connection monitoring**: Updates last seen timestamp and IP address
+- **Device tracking**: Validates device UUID and updates device information
+
+**Response format:**
+```json
+{
+  "timestampLastUpdate": 1696693200000,
+  "user": {
+    "id": 1,
+    "email": "user@example.com",
+    "name": "User Name",
+    "status": "ACTIVE"
+  },
+  "device": {
+    "id": 1,
+    "uuid": "12345678-1234-1234-1234-123456789abc",
+    "status": "ACTIVE"
+  },
+  "groups": [...],
+  "groupFields": [...],
+  "fields": [...]
+}
 ```
 
 ## 🔍 Monitoring and Health Checks
@@ -1188,10 +1223,11 @@ docker compose exec pocket-db mysql -u root -p -e "SHOW GLOBAL STATUS LIKE 'Slow
 - `POST /api/v5/logout` - User logout
 
 ### Session Management
-- `GET /api/v5/session/{uuid}/{crypt}` - Get session data
-- `POST /api/v5/session` - Create new session
-- `PUT /api/v5/session/{uuid}` - Update session
-- `DELETE /api/v5/session/{uuid}` - Delete session
+- `GET /api/v5/{uuid}/{crypt}` - Get session data
+- `POST /api/v5/{uuid}/{crypt}` - Create/update session data
+- `PUT /api/v5/{uuid}/{crypt}/{changePasswdDataOnServer}` - Update session with password change
+- `DELETE /api/v5/{uuid}/{crypt}` - Delete session cache record
+- `GET /api/v5/heartbeat/{uuid}/{crypt}` - Session heartbeat check and data sync
 
 ### Health Monitoring
 - `GET /actuator/health` - Application health status
