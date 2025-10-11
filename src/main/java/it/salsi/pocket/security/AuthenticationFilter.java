@@ -85,11 +85,22 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
 
         final var requestURI = request.getRequestURI();
+        
+        log.info("AuthenticationFilter - URI: " + requestURI);
                 
-        // Skip authentication for non-API endpoints and for test/heartbeat endpoints (handled by controller)
-        if (!requestURI.startsWith("/api/v5/") || 
-            requestURI.startsWith("/api/v5/heartbeat/") || 
-            requestURI.equals("/api/v5/test")) {
+        // Skip authentication for heartbeat endpoint (handled by controller with 3-part token)
+        if (requestURI.startsWith("/api/v5/heartbeat/")) {
+            log.info("Skipping authentication for heartbeat endpoint");
+            var authorities = Collections.singletonList(new SimpleGrantedAuthority("USER"));
+            var authToken = new UsernamePasswordAuthenticationToken("anonymous", null, authorities);
+            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authToken);
+            filterChain.doFilter(request, response);
+            return;
+        }
+        
+        // Skip authentication for non-API endpoints and test endpoint
+        if (!requestURI.startsWith("/api/v5/")) {
             
             // For API endpoints that we're skipping, set a dummy authentication context
             // so Spring Security doesn't block them
