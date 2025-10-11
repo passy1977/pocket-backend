@@ -200,10 +200,11 @@ public class SessionController {
         long timestampLastUpdate = 0;
         Optional<User> optUser = Optional.empty();
         Device device = null;
+        CacheRecord record = null;
         if(cacheManager.has(uuid)) {
             final var cacheRecord = cacheManager.get(uuid);
             if(cacheRecord.isPresent()) {
-                var record = cacheRecord.get();
+                record = cacheRecord.get();
                 device = record.getDevice();
                 final var rsaHelper = record.getRsaHelper();
 
@@ -240,7 +241,6 @@ public class SessionController {
                     return ResponseEntity.status(USER_NOT_FOUND.code).build();
                 }
 
-                record.setTimestampLastUpdate(now);
             }
         } else {
             return ResponseEntity.status(CACHE_NOT_FOND.code).build();
@@ -275,6 +275,7 @@ public class SessionController {
             deviceRepository.save(device);
         }
 
+        record.setTimestampLastUpdate(now);
         return ResponseEntity.ok(
                 new Container(
                         now,
@@ -371,7 +372,8 @@ public class SessionController {
 
         user.setPasswd(encoderHelper.encode(newPasswd));
         userRepository.save(user);
-
+        
+        cacheManager.rm(uuid);
         return ResponseEntity.ok(true);
     }
 
@@ -445,7 +447,7 @@ public class SessionController {
                                                        @NotNull final String crypt,
                                                        @NotNull final String remoteIP
     ) throws CommonsException {
-    
+        
         final var now = Instant.now(Clock.systemUTC()).getEpochSecond();
         
         Optional<CacheRecord> cacheRecord;
@@ -486,6 +488,8 @@ public class SessionController {
                         return ResponseEntity.status(TIMESTAMP_LAST_UPDATE_NOT_MATCH.code).build();
                     }
                 }
+                
+                record.setTimestampLastUpdate(now);
             }
         } else {
             return ResponseEntity.ok(
