@@ -229,7 +229,7 @@ public class SessionController {
 
                 if(checkTimestampLastUpdate != null && checkTimestampLastUpdate) {
                     timestampLastUpdate = Long.parseLong(decryptSplit[2]);
-                    if(timestampLastUpdate != record.getTimestampLastUpdate())
+                    if(timestampLastUpdate != device.getTimestampLastUpdate())
                     {
                         cacheManager.rm(record);
                         return ResponseEntity.status(TIMESTAMP_LAST_UPDATE_NOT_MATCH.code).build();
@@ -329,7 +329,7 @@ public class SessionController {
 
                 if(checkTimestampLastUpdate != null && checkTimestampLastUpdate) {
                     timestampLastUpdate = Long.parseLong(decryptSplit[2]);
-                    if(timestampLastUpdate != record.getTimestampLastUpdate())
+                    if(timestampLastUpdate != device.getTimestampLastUpdate())
                     {
                         cacheManager.rm(record);
                         return ResponseEntity.status(TIMESTAMP_LAST_UPDATE_NOT_MATCH.code).build();
@@ -413,7 +413,7 @@ public class SessionController {
 
                 if(checkTimestampLastUpdate != null && checkTimestampLastUpdate) {
                     timestampLastUpdate = Long.parseLong(decryptSplit[2]);
-                    if(timestampLastUpdate != record.getTimestampLastUpdate())
+                    if(timestampLastUpdate != device.getTimestampLastUpdate())
                     {
                         cacheManager.rm(record);
                         return ResponseEntity.status(TIMESTAMP_LAST_UPDATE_NOT_MATCH.code).build();

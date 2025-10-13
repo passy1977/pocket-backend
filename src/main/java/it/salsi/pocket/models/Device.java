@@ -74,7 +74,6 @@ public class Device {
     @Column(nullable = false)
     private Status status = ACTIVE;
 
-    @JsonIgnore
     @Temporal(TemporalType.TIMESTAMP)
     private Long timestampLastUpdate = 0L;
 
