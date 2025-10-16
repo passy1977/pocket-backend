@@ -85,12 +85,9 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
 
         final var requestURI = request.getRequestURI();
-        
-        log.info("AuthenticationFilter - URI: " + requestURI);
                 
         // Skip authentication for heartbeat endpoint (handled by controller with 3-part token)
         if (requestURI.startsWith("/api/v5/heartbeat/")) {
-            log.info("Skipping authentication for heartbeat endpoint");
             final var authorities = Collections.singletonList(new SimpleGrantedAuthority("USER"));
             final var authToken = new UsernamePasswordAuthenticationToken("anonymous", null, authorities);
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
@@ -119,28 +116,43 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             // Extract UUID and crypt from path
             final var pathParts = requestURI.split("/");
             
-            // Pattern: /api/v5/{uuid}/{crypt}
+            // Pattern: /api/v5/{uuid}/{crypt}/[optional additional params]
+            // Minimum required: /api/v5/{uuid}/{crypt} = 5 parts
             if (pathParts.length < 5) {
+                log.warning("DEBUG: Path too short, length: " + pathParts.length);
                 sendUnauthorized(response, "Invalid API path format");
                 return;
             }
             
+            // UUID is always at position 3, crypt at position 4
+            // Additional path parameters (if any) are at position 5+
             String uuid = pathParts[3];
             String crypt = pathParts[4];
+            
+            log.info("DEBUG: Extracted UUID: " + uuid);
+            log.info("DEBUG: Extracted crypt length: " + crypt.length());
 
             // Validate input format
             if (!isValidUUID(uuid)) {
+                log.warning("DEBUG: UUID validation failed: " + uuid);
                 sendUnauthorized(response, "Invalid UUID format");
                 return;
             }
+            
+            log.info("DEBUG: UUID validation passed");
 
             if (!isValidCrypt(crypt)) {
+                log.warning("DEBUG: Crypt validation failed");
                 sendUnauthorized(response, "Invalid crypt format");
                 return;
             }
+            
+            log.info("DEBUG: Crypt validation passed");
 
             // Authenticate user
+            log.info("DEBUG: Starting authentication for UUID: " + uuid);
             if (authenticateUser(uuid, crypt, request)) {
+                log.info("DEBUG: Authentication successful for UUID: " + uuid);
                 // Set authentication in security context
                 var authentication = new UsernamePasswordAuthenticationToken(
                         uuid, 
@@ -150,6 +162,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } else {
+                log.warning("DEBUG: Authentication failed for UUID: " + uuid);
                 sendUnauthorized(response, "Authentication failed");
                 return;
             }
@@ -193,13 +206,14 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             final var rsaHelper = new RSAHelper(ALGORITHM, KEY_SIZE);
             rsaHelper.loadPublicKey(Base64.getDecoder().decode(device.getPublicKey()));
             rsaHelper.loadPrivateKey(Base64.getDecoder().decode(device.getPrivateKey()));
-
+            
             // Decrypt and validate token
             final var decrypted = rsaHelper.decryptFromURLBase64(crypt);
             final var decryptSplit = decrypted.split("[" + DIVISOR.value + "]");
             
-            if (decryptSplit.length != 5) {
-                log.warning("DEBUG: Invalid token parts count. Expected 5, got: " + decryptSplit.length);
+            
+            if (decryptSplit.length != 5 && decryptSplit.length != 6) {
+                log.warning("DEBUG: Invalid token parts count. Expected 5 or 6, got: " + decryptSplit.length);
                 return false;
             }
 
@@ -226,7 +240,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                 log.warning("DEBUG: User not found or password mismatch for email: " + email);
                 return false;
             }
-            
+
             // Update device IP and last login time
             final var remoteIP = getClientIP(request);
             device.setAddress(remoteIP);

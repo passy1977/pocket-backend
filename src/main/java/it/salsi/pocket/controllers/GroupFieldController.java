@@ -114,7 +114,9 @@ public final class GroupFieldController extends BaseController<GroupField, Group
     @Override
     public void changePasswd(@NotNull final User user, @NotNull final Crypto aesOld, @NotNull final Crypto aesNew, long now) throws CommonsException {
         for(var it : repository.findByUser(user)) {
-            it.setTitle(aesNew.encryptToString(aesOld.decryptToString(it.getTitle())));
+            if(!it.getTitle().isEmpty()) {
+                it.setTitle(aesNew.encryptToString(aesOld.decryptToString(it.getTitle())));
+            }
             it.setTimestampLastUpdate(now);
         }
     }

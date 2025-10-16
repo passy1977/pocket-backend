@@ -102,8 +102,14 @@ public final class FieldController extends BaseController<Field, FieldRepository
     @Override
     public void changePasswd(@NotNull final User user, @NotNull final Crypto aesOld, @NotNull final Crypto aesNew, long now) throws CommonsException {
         for(var it : repository.findByUser(user)) {
-            it.setTitle(aesNew.encryptToString(aesOld.decryptToString(it.getTitle())));
-            it.setValue(aesNew.encryptToString(aesOld.decryptToString(it.getValue())));
+            if(!it.getTitle().isEmpty()) {
+                it.setTitle(aesNew.encryptToString(aesOld.decryptToString(it.getTitle())));
+            }
+
+            if(!it.getValue().isEmpty()) {
+                it.setValue(aesNew.encryptToString(aesOld.decryptToString(it.getValue())));
+            }
+            
             it.setTimestampLastUpdate(now);
         }
     }
