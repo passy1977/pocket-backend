@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# Pocket Backend Docker Build and Setup Script with Spring Security
+# Pocket Backend Docker/Podman Build and Setup Script with Spring Security
 # This script builds and configures the Pocket Backend with secure defaults
+# Automatically detects and uses Podman or Docker
 
 set -e  # Exit on any error
 
@@ -22,6 +23,18 @@ log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
 log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
 log_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
+
+# Detect container runtime (Podman or Docker)
+if command -v podman &> /dev/null; then
+    CONTAINER_RUNTIME="podman"
+    log_info "Detected Podman as container runtime"
+elif command -v docker &> /dev/null; then
+    CONTAINER_RUNTIME="docker"
+    log_info "Detected Docker as container runtime"
+else
+    log_error "Neither Podman nor Docker found. Please install one of them."
+    exit 1
+fi
 
 # Function to generate random secure passwords
 generate_password() {
@@ -49,15 +62,15 @@ validate_aes_iv() {
     return 0
 }
 
-# Function to setup Docker network
+# Function to setup container network
 setup_network() {
-    log_info "Setting up Docker network '$NETWORK'..."
+    log_info "Setting up $CONTAINER_RUNTIME network '$NETWORK'..."
     
-    if docker network inspect $NETWORK &> /dev/null; then
+    if $CONTAINER_RUNTIME network inspect $NETWORK &> /dev/null; then
         log_success "Network '$NETWORK' already exists"
     else
         log_info "Creating network '$NETWORK'..."
-        docker network create $NETWORK
+        $CONTAINER_RUNTIME network create $NETWORK
         log_success "Network '$NETWORK' created"
     fi
 }
@@ -201,33 +214,45 @@ EOF
     echo
 }
 
-# Function to build Docker images
+# Function to build container images
 build_images() {
-    log_info "Building Docker images..."
+    log_info "Building container images with $CONTAINER_RUNTIME..."
     
     # Load environment variables
     source "$ENV_FILE"
     
     # Build the main application
     log_info "Building Pocket Backend application..."
-    docker build -t pocket-backend:5.0.0 .
+    $CONTAINER_RUNTIME build -t pocket-backend:5.0.0 .
     
-    log_success "Docker images built successfully"
+    log_success "Container images built successfully"
 }
 
 # Function to start services
 start_services() {
     log_info "Starting services..."
     
-    # Start with docker-compose
-    docker compose up -d
+    # Determine compose command
+    if [ "$CONTAINER_RUNTIME" = "podman" ]; then
+        COMPOSE_CMD="podman-compose"
+        # Check if podman-compose is installed
+        if ! command -v podman-compose &> /dev/null; then
+            log_error "podman-compose not found. Please install it: pip install podman-compose"
+            exit 1
+        fi
+    else
+        COMPOSE_CMD="docker compose"
+    fi
+    
+    # Start with compose
+    $COMPOSE_CMD up -d
     
     log_info "Waiting for services to be ready..."
     
     # Wait for database
     log_info "Waiting for database to be ready..."
     for i in {1..30}; do
-        if docker compose exec pocket-db mysqladmin ping -h localhost --silent; then
+        if $COMPOSE_CMD exec pocket-db mysqladmin ping -h localhost --silent; then
             log_success "Database is ready"
             break
         fi
@@ -257,17 +282,24 @@ start_services() {
 setup_cli_tools() {
     log_info "Setting up CLI tools..."
     
+    # Determine compose command for CLI tools
+    if [ "$CONTAINER_RUNTIME" = "podman" ]; then
+        local compose_cmd="podman-compose"
+    else
+        local compose_cmd="docker compose"
+    fi
+    
     # Create pocket-user command
-    sudo tee /usr/local/bin/pocket-user > /dev/null << 'EOF'
+    sudo tee /usr/local/bin/pocket-user > /dev/null << EOF
 #!/bin/bash
-docker compose exec pocket-backend /var/www/pocket-user "$@"
+$compose_cmd exec pocket-backend /var/www/pocket-user "\$@"
 EOF
     sudo chmod +x /usr/local/bin/pocket-user
     
     # Create pocket-device command
-    sudo tee /usr/local/bin/pocket-device > /dev/null << 'EOF'
+    sudo tee /usr/local/bin/pocket-device > /dev/null << EOF
 #!/bin/bash
-docker compose exec pocket-backend /var/www/pocket-device "$@"
+$compose_cmd exec pocket-backend /var/www/pocket-device "\$@"
 EOF
     sudo chmod +x /usr/local/bin/pocket-device
     
@@ -288,13 +320,21 @@ display_final_info() {
     echo "🔧 Admin Panel: $SERVER_URL/actuator (user: $ADMIN_USER)"
     echo "🗄️  Database: localhost:3306 (user: $DB_USERNAME)"
     echo
+    # Determine compose command for display
+    local compose_display
+    if [ "$CONTAINER_RUNTIME" = "podman" ]; then
+        compose_display="podman-compose"
+    else
+        compose_display="docker compose"
+    fi
+    
     echo "🔧 Management Commands:"
     echo "====================="
     echo "📱 User Management: pocket-user --help"
     echo "📟 Device Management: pocket-device --help"
-    echo "🐳 View Logs: docker compose logs -f"
-    echo "⏹️  Stop Services: docker compose down"
-    echo "🔄 Restart Services: docker compose restart"
+    echo "🐳 View Logs: $compose_display logs -f"
+    echo "⏹️  Stop Services: $compose_display down"
+    echo "🔄 Restart Services: $compose_display restart"
     echo
     echo "🔐 Security Information:"
     echo "====================="
@@ -307,18 +347,25 @@ display_final_info() {
 
 # Main execution
 main() {
-    log_info "🚀 Starting Pocket Backend Docker setup..."
+    log_info "🚀 Starting Pocket Backend setup with $CONTAINER_RUNTIME..."
     echo
     
-    # Check requirements
-    if ! command -v docker &> /dev/null; then
-        log_error "Docker is not installed. Please install Docker first."
-        exit 1
-    fi
-    
-    if ! command -v docker compose &> /dev/null; then
-        log_error "Docker Compose is not installed. Please install Docker Compose first."
-        exit 1
+    # Check compose requirements
+    if [ "$CONTAINER_RUNTIME" = "podman" ]; then
+        if ! command -v podman-compose &> /dev/null; then
+            log_error "podman-compose is not installed. Please install it: pip install podman-compose"
+            exit 1
+        fi
+    else
+        if ! command -v docker &> /dev/null; then
+            log_error "Docker is not installed. Please install Docker first."
+            exit 1
+        fi
+        
+        if ! docker compose version &> /dev/null; then
+            log_error "Docker Compose is not installed or not available. Please install Docker Compose first."
+            exit 1
+        fi
     fi
     
     # Execute setup steps

@@ -2,7 +2,7 @@
 
 [![Java](https://img.shields.io/badge/Java-21+-blue.svg)](https://www.oracle.com/java/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.4-green.svg)](https://spring.io/projects/spring-boot)
-[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
+[![Docker](https://img.shields.io/badge/Docker%20%7C%20Podman-Ready-blue.svg)](https://www.docker.com/)
 [![Security](https://img.shields.io/badge/Security-Spring%20Security-red.svg)](https://spring.io/projects/spring-security)
 [![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/passy1977/pocket-lib)
@@ -18,7 +18,7 @@ Secure and scalable backend for the Pocket application, built with Spring Boot 3
 - 🔐 **Enterprise Security** with Spring Security and custom authentication
 - 🏗️ **Modern Architecture** using Spring Boot 3.4.4 and Java 21
 - � **Robust Encryption** RSA + AES-CBC for data protection
-- � **Full Containerization** with Docker and Docker Compose
+- 🐳 **Full Containerization** with Docker or Podman support ([details](CONTAINER_RUNTIME.md))
 - 📊 **Integrated Monitoring** with Spring Boot Actuator
 - 🌐 **Dynamic CORS** configurable for multiple environments
 - ✅ **Complete Validation** with Bean Validation
@@ -33,7 +33,7 @@ Secure and scalable backend for the Pocket application, built with Spring Boot 3
 - **IDE**: IntelliJ IDEA, Eclipse, or VS Code with Java extensions
 
 ### Production Environment
-- **Docker**: 24.0+ with Docker Compose v2
+- **Container Runtime**: Docker 24.0+ with Docker Compose v2 **OR** Podman 4.0+ with podman-compose
 - **Memory**: Minimum 2GB RAM (4GB recommended)
 - **Storage**: 10GB+ for application and database
 - **Network**: Ports 8081 (API), 3306 (DB), 80/443 (HTTP/HTTPS)
@@ -200,11 +200,11 @@ mvn spring-boot:run
 java -jar target/pocket-backend-5.0.0.jar
 ```
 
-## 🐳 Docker Deployment
+## 🐳 Docker/Podman Deployment
 
-### Quick Docker Setup (Recommended)
+### Quick Setup (Recommended)
 
-The easiest way to deploy Pocket Backend is using the automated Docker setup script:
+The easiest way to deploy Pocket Backend is using the automated setup script that **automatically detects and uses Docker or Podman**:
 
 ```bash
 # Clone and setup
@@ -212,13 +212,19 @@ git clone https://github.com/passy1977/pocket-backend.git
 cd pocket-backend
 
 # Run automated setup (handles everything)
+# The script automatically detects Docker or Podman
 ./build_docker_image.sh
 ```
 
+**Container Runtime Support:**
+- ✅ **Docker** with Docker Compose v2
+- ✅ **Podman** with podman-compose (install: `pip install podman-compose`)
+
 The script will:
+- 🔍 Automatically detect Docker or Podman
 - ✅ Generate secure passwords automatically
 - ✅ Configure all security settings
-- ✅ Build Docker images
+- ✅ Build container images
 - ✅ Start all services
 - ✅ Install CLI management tools
 - ✅ Perform health checks
