@@ -110,8 +110,8 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
             this.aesCbcIv = aesCbcIv;
         }
 
-
     }
+
     static public final int SOCKET_PORT = 8333;
 
     private boolean loop = true;
@@ -145,18 +145,17 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
     public IpcSocketManagerImpl(
             @Autowired @NotNull final DeviceRepository deviceRepository,
             @Autowired @NotNull final UserRepository userRepository,
-            @Autowired @NotNull final EncoderHelper encoderHelper
-    ) {
+            @Autowired @NotNull final EncoderHelper encoderHelper) {
         this.deviceRepository = deviceRepository;
         this.userRepository = userRepository;
         this.encoderHelper = encoderHelper;
-        if(socketPort == null) {
+        if (socketPort == null) {
             socketPort = SOCKET_PORT;
         }
     }
 
     private @NotNull Optional<User> handleUser(@NotNull final PrintWriter out, final String @NotNull [] split) {
-        if(split.length < 2) {
+        if (split.length < 2) {
             out.println(WRONG_PARAMS.value);
             return Optional.empty();
         }
@@ -169,10 +168,10 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
 
         switch (cmd) {
             case "ADD_USER":
-                if(optUser.isPresent()) {
+                if (optUser.isPresent()) {
                     out.println(USER_ALREADY_EXIST.value);
                     return Optional.empty();
-                } else if(split.length < 4) {
+                } else if (split.length < 4) {
                     out.println(WRONG_PARAMS.value);
                     return Optional.empty();
                 }
@@ -182,10 +181,10 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
                 userRepository.save(ret);
                 break;
             case "MOD_USER":
-                if(optUser.isEmpty()) {
+                if (optUser.isEmpty()) {
                     out.println(USER_NOT_EXIST.value);
                     return Optional.empty();
-                } else if(split.length < 4) {
+                } else if (split.length < 4) {
                     out.println(WRONG_PARAMS.value);
                     return Optional.empty();
                 }
@@ -199,7 +198,7 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
 
                 break;
             case "RM_USER":
-                if(optUser.isEmpty()) {
+                if (optUser.isEmpty()) {
                     out.println(USER_NOT_EXIST.value);
                     return Optional.empty();
                 }
@@ -209,7 +208,7 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
 
                 break;
             case "GET_USER":
-                if(optUser.isEmpty()) {
+                if (optUser.isEmpty()) {
                     out.println(USER_NOT_EXIST.value);
                     return Optional.empty();
                 }
@@ -220,13 +219,13 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
                 out.println(ERROR.value);
         }
 
-
         return Optional.ofNullable(ret);
     }
 
-    //cmd|email|uuid
-    private @NotNull Optional<DeviceExtended>  handleDevice(@NotNull final PrintWriter out, final String @NotNull [] split) {
-        if(split.length < 1) {
+    // cmd|email|uuid
+    private @NotNull Optional<DeviceExtended> handleDevice(@NotNull final PrintWriter out,
+            final String @NotNull [] split) {
+        if (split.length < 1) {
             out.println(WRONG_PARAMS.value);
             return Optional.empty();
         }
@@ -235,17 +234,15 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
         String uuid = split.length >= 3 ? split[2] : "";
         String note = split.length >= 4 ? split[3] : "";
 
-
-
         final var atmDevice = new AtomicReference<Optional<Device>>(Optional.empty());
         final var user = new AtomicReference<User>(null);
 
-        userRepository.findByEmail(email).ifPresent( u-> {
+        userRepository.findByEmail(email).ifPresent(u -> {
             user.set(u);
             atmDevice.set(deviceRepository.findByUserAndUuid(u, uuid));
         });
 
-        if(user.get() == null) {
+        if (user.get() == null) {
             out.println(USER_NOT_EXIST.value);
             return Optional.empty();
         }
@@ -254,7 +251,7 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
 
         switch (cmd) {
             case "ADD_DEVICE":
-                if(atmDevice.get().isPresent()) {
+                if (atmDevice.get().isPresent()) {
                     out.println(DEVICE_ALREADY_EXIST.value);
                     return Optional.empty();
                 }
@@ -277,7 +274,7 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
                 ret = deviceRepository.save(ret);
                 break;
             case "MOD_DEVICE":
-                if(atmDevice.get().isEmpty()) {
+                if (atmDevice.get().isEmpty()) {
                     out.println(DEVICE_NOT_EXIST.value);
                     return Optional.empty();
                 }
@@ -285,7 +282,7 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
                 ret.setNote(note);
                 break;
             case "RM_DEVICE":
-                if(atmDevice.get().isEmpty()) {
+                if (atmDevice.get().isEmpty()) {
                     out.println(DEVICE_NOT_EXIST.value);
                     return Optional.empty();
                 }
@@ -295,7 +292,7 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
 
                 break;
             case "GET_DEVICE":
-                if(atmDevice.get().isEmpty()) {
+                if (atmDevice.get().isEmpty()) {
                     out.println(DEVICE_NOT_EXIST.value);
                     return Optional.empty();
                 }
@@ -306,8 +303,7 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
                 out.println(ERROR.value);
         }
 
-
-        if(ret == null) {
+        if (ret == null) {
             return Optional.empty();
         }
         assert aesCrbIv != null;
@@ -339,81 +335,94 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
             while (loop && !serverSocket.isClosed()) {
 
                 final var client = serverSocket.accept();
+                log.info("Client connected from: " + client.getInetAddress().getHostAddress());
 
-                out = new PrintWriter(client.getOutputStream(), true);
+                // Set socket timeout to detect disconnection (30 seconds)
+                client.setSoTimeout(30_000);
 
-                try(final var in = new BufferedReader(new InputStreamReader(client.getInputStream()))) {
-                        while(loop && !client.isClosed()) {
+                try (client;
+                        final var in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+                        final var clientOut = new PrintWriter(client.getOutputStream(), true)) {
 
-                            String line;
-                            while (loop && (line = in.readLine()) != null) {
-                                line = line.trim();
-                                if(passwd == null) {
-                                    if(line.equals(authPasswd)) {
-                                        passwd = line;
-                                        out.println(OK.value);
-                                    } else {
-                                        out.println(WRONG_PASSWD.value);
-                                    }
-                                    continue;
-                                }
+                    out = clientOut;
 
-                                final var split = Arrays
-                                        .stream(line.split("["+DIVISOR.value+"]"))
-                                        .map(String::trim)
-                                        .toArray(String[]::new);
+                    String line;
+                    while (loop && !client.isClosed() && (line = in.readLine()) != null) {
+                        line = line.trim();
 
-                                if(split[0].contains("_USER")) {
-                                    handleUser(out, split).ifPresent( u -> {
-                                        final var mapper = new ObjectMapper();
-                                        try {
-
-                                            out.println(mapper.writeValueAsString(u));
-                                            out.println(OK.value);
-                                        } catch (JsonProcessingException e) {
-                                            out.println(e.getMessage());
-                                            out.println(ERROR.value);
-                                        }
-                                    });
-                                } else if(split[0].contains("_DEVICE")) {
-                                    handleDevice(out, split).ifPresent( d -> {
-                                        final var mapper = new ObjectMapper();
-                                        try {
-                                            out.println(mapper.writeValueAsString(d));
-                                            out.println(OK.value);
-                                        } catch (JsonProcessingException e) {
-                                            out.println(e.getMessage());
-                                            out.println(ERROR.value);
-                                        }
-                                    });
-                                }
-
-
-                            }
+                        // Check if client is still connected
+                        if (line.isEmpty()) {
+                            continue;
                         }
-                    
+
+                        if (passwd == null) {
+                            if (line.equals(authPasswd)) {
+                                passwd = line;
+                                clientOut.println(OK.value);
+                                log.info("Client authenticated successfully");
+                            } else {
+                                clientOut.println(WRONG_PASSWD.value);
+                                log.warning("Authentication failed");
+                            }
+                            continue;
+                        }
+
+                        final var split = Arrays
+                                .stream(line.split("[" + DIVISOR.value + "]"))
+                                .map(String::trim)
+                                .toArray(String[]::new);
+
+                        if (split[0].contains("_USER")) {
+                            handleUser(clientOut, split).ifPresent(u -> {
+                                final var mapper = new ObjectMapper();
+                                try {
+                                    clientOut.println(mapper.writeValueAsString(u));
+                                    clientOut.println(OK.value);
+                                } catch (JsonProcessingException e) {
+                                    clientOut.println(e.getMessage());
+                                    clientOut.println(ERROR.value);
+                                }
+                            });
+                        } else if (split[0].contains("_DEVICE")) {
+                            handleDevice(clientOut, split).ifPresent(d -> {
+                                final var mapper = new ObjectMapper();
+                                try {
+                                    clientOut.println(mapper.writeValueAsString(d));
+                                    clientOut.println(OK.value);
+                                } catch (JsonProcessingException e) {
+                                    clientOut.println(e.getMessage());
+                                    clientOut.println(ERROR.value);
+                                }
+                            });
+                        }
+                    }
+
+                } catch (java.net.SocketTimeoutException e) {
+                    log.warning("Client connection timeout: " + e.getMessage());
+                } catch (java.net.SocketException e) {
+                    log.warning("Client disconnected unexpectedly: " + e.getMessage());
+                } catch (IOException e) {
+                    log.severe("Error handling client connection: " + e.getMessage());
+                } finally {
                     // Reset password when client disconnects
                     passwd = null;
-                    System.out.println("Client disconnected. Resetting authentication state.");
+                    out = null;
+                    log.info("Client disconnected. Resetting authentication state.");
                 }
-
-                if (out != null) {
-                    out.close();
-                }
-
-                System.out.println("client disconnected. Socket closing...");
             }
 
-
         } catch (IOException e) {
-            log.severe(e.getMessage());
+            log.severe("Server socket error: " + e.getMessage());
         } finally {
             try {
                 Thread.sleep(1_000);
             } catch (InterruptedException ex) {
                 log.severe(ex.getMessage());
+                Thread.currentThread().interrupt();
             }
-            start();
+            if (loop) {
+                start();
+            }
         }
 
         log.info("End socket");
