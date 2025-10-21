@@ -6,7 +6,7 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.5.6</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath/>
 	</parent>
 	<groupId>it.salsi</groupId>
 	<artifactId>pocket-backend</artifactId>
@@ -55,7 +55,7 @@
 		<dependency>
 			<groupId>org.mariadb.jdbc</groupId>
 			<artifactId>mariadb-java-client</artifactId>
-			<version>3.5.2</version>
+			<version>3.5.6</version>
 		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
@@ -112,7 +112,7 @@
 		<dependency>
 			<groupId>org.wiremock</groupId>
 			<artifactId>wiremock-standalone</artifactId>
-			<version>3.9.1</version>
+			<version>3.13.1</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
