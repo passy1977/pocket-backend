@@ -18,7 +18,7 @@ Secure and scalable backend for the Pocket application, built with Spring Boot 3
 - 🔐 **Enterprise Security** with Spring Security and custom authentication
 - 🏗️ **Modern Architecture** using Spring Boot 3.4.4 and Java 21
 - � **Robust Encryption** RSA + AES-CBC for data protection
-- 🐳 **Full Containerization** with Docker or Podman support ([details](CONTAINER_RUNTIME.md))
+- 🐳 **Full Containerization** with Docker or Podman support
 - 📊 **Integrated Monitoring** with Spring Boot Actuator
 - 🌐 **Dynamic CORS** configurable for multiple environments
 - ✅ **Complete Validation** with Bean Validation
@@ -33,7 +33,7 @@ Secure and scalable backend for the Pocket application, built with Spring Boot 3
 - **IDE**: IntelliJ IDEA, Eclipse, or VS Code with Java extensions
 
 ### Production Environment
-- **Container Runtime**: Docker 24.0+ with Docker Compose v2 **OR** Podman 4.0+ with podman-compose
+- **Container Runtime**: Docker 24.0+ **OR** Podman 4.0+
 - **Memory**: Minimum 2GB RAM (4GB recommended)
 - **Storage**: 10GB+ for application and database
 - **Network**: Ports 8081 (API), 3306 (DB), 80/443 (HTTP/HTTPS)
@@ -217,15 +217,14 @@ cd pocket-backend
 ```
 
 **Container Runtime Support:**
-- ✅ **Docker** with Docker Compose v2
-- ✅ **Podman** with podman-compose (install: `pip install podman-compose`)
+- ✅ **Docker** 
+- ✅ **Podman**
 
 The script will:
 - 🔍 Automatically detect Docker or Podman
 - ✅ Generate secure passwords automatically
 - ✅ Configure all security settings
 - ✅ Build container images
-- ✅ Start all services
 - ✅ Install CLI management tools
 - ✅ Perform health checks
 
@@ -263,21 +262,26 @@ CORS_ADDITIONAL_ORIGINS=https://yourdomain.com
 # Build the application
 docker build -t pocket-backend:5.0.0 .
 
-# Start all services
-docker compose up -d
+# Start database
+docker run -d --name pocket-db \
+  -e MARIADB_ROOT_PASSWORD=your_root_password \
+  -e MARIADB_DATABASE=pocket5 \
+  -e MARIADB_USER=pocket_user \
+  -e MARIADB_PASSWORD=your_user_password \
+  -p 3306:3306 \
+  -v pocket_db_data:/var/lib/mysql \
+  mariadb:latest
+
+# Start application
+docker run -d --name pocket-backend \
+  --link pocket-db:db \
+  -p 8081:8081 \
+  -e SPRING_PROFILES_ACTIVE=docker \
+  pocket-backend:5.0.0
 
 # Check service health
-docker compose ps
-docker compose logs -f
-```
-
-### Production Docker Setup
-
-For production deployment with SSL and reverse proxy:
-
-```bash
-# Start with production profile (includes reverse proxy)
-docker compose --profile production up -d
+docker ps
+docker logs -f pocket-backend
 ```
 
 ## 🌐 Apache HTTP Server Configuration
@@ -514,17 +518,17 @@ top -p $(pgrep apache2 | tr '\n' ',' | sed 's/,$//')
 
 ```bash
 # Check all services
-docker compose ps
+docker ps
 
 # View logs
-docker compose logs -f pocket-backend
-docker compose logs -f pocket-db
+docker logs -f pocket-backend
+docker logs -f pocket-db
 
 # Check application health
 curl http://localhost:8081/actuator/health
 
 # Check database health
-docker compose exec pocket-db mysqladmin ping -h localhost
+docker exec pocket-db mysqladmin ping -h localhost
 ```
 
 ### 🔧 Container Management Commands
@@ -543,13 +547,32 @@ pocket-device rm -e user@example.com -u device_uuid
 pocket-device qr -e user@example.com -u device_uuid
 
 # Docker Operations
-docker compose logs -f              # View all logs
-docker compose logs -f pocket-backend # View app logs only
-docker compose restart             # Restart all services
-docker compose restart pocket-backend # Restart app only
-docker compose down                # Stop all services
-docker compose up -d               # Start all services
-docker compose ps                  # Check service status
+docker logs -f pocket-backend      # View app logs
+docker logs -f pocket-db          # View database logs
+docker restart pocket-backend     # Restart app
+docker stop pocket-backend pocket-db  # Stop all services
+docker start pocket-backend pocket-db # Start all services
+docker ps                         # Check service status
+```
+
+### 🔄 Backup and Maintenance
+
+```bash
+# Database Backup
+docker exec pocket-db mysqldump -u root -proot_password pocket5 > backup-$(date +%Y%m%d).sql
+
+# Volume Backup
+docker run --rm \
+  -v pocket_db_data:/data \
+  -v $(pwd):/backup \
+  ubuntu tar czf /backup/db_backup-$(date +%Y%m%d).tar.gz /data
+
+# Application Update
+git pull
+docker build -t pocket-backend:5.0.0 .
+docker stop pocket-backend
+docker rm pocket-backend
+docker run -d --name pocket-backend --link pocket-db:db -p 8081:8081 -e SPRING_PROFILES_ACTIVE=docker pocket-backend:5.0.0
 ```
 
 ### 🔄 Backup and Maintenance

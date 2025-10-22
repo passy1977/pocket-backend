@@ -36,8 +36,6 @@ mvnw.cmd
 docker_data/
 *.log
 Dockerfile*
-docker-compose*.yml
-compose.yaml
 
 # Documentation
 README.md
@@ -104,7 +102,6 @@ build_docker_image.sh
 run.sh
 
 # Local development files
-docker-compose.override.yml
 .env.local
 .env.development
 .env.production

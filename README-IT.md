@@ -19,7 +19,7 @@ Backend sicuro e scalabile per l'applicazione Pocket, costruito con **Spring Boo
 - 🔐 **Sicurezza Enterprise** con Spring Security e autenticazione personalizzata
 - 🏗️ **Architettura Moderna** con Spring Boot 3.5.6 e Java 21
 - 🔒 **Crittografia Robusta** RSA + AES-CBC per la protezione dei dati
-- 🐳 **Containerizzazione** completa con Docker e Docker Compose
+- 🐳 **Containerizzazione** completa con Docker
 - 📊 **Monitoraggio Integrato** con Spring Boot Actuator
 - 🌐 **CORS Dinamico** configurabile per ambienti multipli
 - ✅ **Validazione Completa** dei dati con Bean Validation
@@ -37,7 +37,7 @@ Backend sicuro e scalabile per l'applicazione Pocket, costruito con **Spring Boo
 - **IDE**: IntelliJ IDEA, Eclipse, o VS Code con estensioni Java
 
 ### Ambiente di Produzione
-- **Docker**: 24.0+ con Docker Compose v2
+- **Docker**: 24.0+
 - **Memoria**: Minimo 2GB RAM (4GB raccomandati)
 - **Storage**: 10GB+ per applicazione e database
 - **Rete**: Porte 8081 (API), 3306 (DB), 80/443 (HTTP/HTTPS)
@@ -98,7 +98,7 @@ La configurazione di test è separata in `src/test/resources/application-test.ya
 
 ### 🐳 Deployment con Docker (Raccomandato)
 
-Il modo più semplice per avviare Pocket Backend è utilizzare Docker Compose:
+Il modo più semplice per avviare Pocket Backend è utilizzare Docker:
 
 ```bash
 # 1. Clona il repository
@@ -109,10 +109,27 @@ cd pocket-backend
 cp .env.example .env
 nano .env
 
-# 3. Avvia tutto con un comando
+# 3. Costruisci l'immagine Docker
 ./build_docker_image.sh
 
-# 4. Verifica che tutto funzioni
+# 4. Avvia il database (manualmente)
+docker run -d --name pocket-db \
+  -e MARIADB_ROOT_PASSWORD=root_password \
+  -e MARIADB_DATABASE=pocket5 \
+  -e MARIADB_USER=pocket_user \
+  -e MARIADB_PASSWORD=user_password \
+  -p 3306:3306 \
+  -v pocket_db_data:/var/lib/mysql \
+  mariadb:latest
+
+# 5. Avvia l'applicazione
+docker run -d --name pocket-backend \
+  --link pocket-db:db \
+  -p 8081:8081 \
+  -e SPRING_PROFILES_ACTIVE=docker \
+  pocket-backend:5.0.0
+
+# 6. Verifica che tutto funzioni
 curl http://localhost:8081/actuator/health
 ```
 
@@ -400,11 +417,8 @@ Per istruzioni dettagliate, troubleshooting e configurazioni avanzate, consulta:
 
 ### Deployment Rapido
 ```bash
-# Tutto in un comando
+# Costruisci l'immagine Docker
 ./build_docker_image.sh
-
-# O manualmente
-docker compose up -d
 ```
 
 ### Configurazione Apache HTTP (Produzione)
@@ -464,66 +478,67 @@ JVM_MIN_MEMORY=1g
 
 #### Comandi Base
 ```bash
-# Avvia servizi
-docker compose up -d
-
-# Visualizza status
-docker compose ps
+# Visualizza container in esecuzione
+docker ps
 
 # Visualizza logs
-docker compose logs -f
+docker logs -f pocket-backend
+docker logs -f pocket-db
 
 # Riavvia servizio specifico
-docker compose restart pocket-backend
+docker restart pocket-backend
 
-# Ferma tutti i servizi
-docker compose down
+# Ferma i servizi
+docker stop pocket-backend pocket-db
 
-# Ferma e rimuovi volumi (ATTENZIONE: cancella i dati!)
-docker compose down -v
+# Rimuovi container (ATTENZIONE: mantiene i volumi)
+docker rm pocket-backend pocket-db
 ```
 
 #### Monitoraggio
 ```bash
-# Verifica health checks
-docker compose ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
+# Verifica health status
+docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
 # Utilizzo risorse
 docker stats
 
 # Logs in tempo reale
-docker compose logs -f pocket-backend
-docker compose logs -f pocket-db
+docker logs -f pocket-backend
+docker logs -f pocket-db
 ```
 
 ### Backup e Restore
 
 #### Backup Database
 ```bash
-# Backup automatico (eseguito dallo script)
-docker compose exec pocket-db mysqldump -u root -p pocket5 > backup_$(date +%Y%m%d_%H%M%S).sql
+# Backup database
+docker exec pocket-db mysqldump -u root -proot_password pocket5 > backup_$(date +%Y%m%d_%H%M%S).sql
 
 # Backup con compressione
-docker compose exec pocket-db mysqldump -u root -p pocket5 | gzip > backup_$(date +%Y%m%d_%H%M%S).sql.gz
+docker exec pocket-db mysqldump -u root -proot_password pocket5 | gzip > backup_$(date +%Y%m%d_%H%M%S).sql.gz
 
 # Backup automatizzato (crontab)
-0 2 * * * cd /path/to/pocket-backend && docker compose exec -T pocket-db mysqldump -u root -p"$DB_ROOT_PASSWORD" pocket5 | gzip > backups/backup_$(date +\%Y\%m\%d_\%H\%M\%S).sql.gz
+0 2 * * * docker exec pocket-db mysqldump -u root -p"$DB_ROOT_PASSWORD" pocket5 | gzip > /backups/backup_$(date +\%Y\%m\%d_\%H\%M\%S).sql.gz
 ```
 
 #### Restore Database
 ```bash
 # Restore da backup
-docker compose exec -i pocket-db mysql -u root -p pocket5 < backup.sql
+docker exec -i pocket-db mysql -u root -proot_password pocket5 < backup.sql
 
 # Restore da backup compresso
-zcat backup.sql.gz | docker compose exec -i pocket-db mysql -u root -p pocket5
+zcat backup.sql.gz | docker exec -i pocket-db mysql -u root -proot_password pocket5
 
 # Restore con reset completo
-docker compose down -v
-docker compose up -d pocket-db
+docker stop pocket-backend pocket-db
+docker rm pocket-db
+docker volume rm pocket_db_data
+# Riavvia il database e attendi che sia pronto
+docker run -d --name pocket-db -e MARIADB_ROOT_PASSWORD=root_password -e MARIADB_DATABASE=pocket5 -v pocket_db_data:/var/lib/mysql mariadb:latest
 sleep 30
-docker compose exec -i pocket-db mysql -u root -p pocket5 < backup.sql
-docker compose up -d
+docker exec -i pocket-db mysql -u root -proot_password pocket5 < backup.sql
+docker start pocket-backend
 ```
 
 ### SSL/HTTPS Setup
