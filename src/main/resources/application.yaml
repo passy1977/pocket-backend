@@ -35,9 +35,9 @@ logging:
        web: WARN
 
 server:
-  port: 8081
+  port: ${SERVER_PORT:8081}
   api-version: /api/v5
-  url: ${SERVER_URL:http://localhost:8081}
+  url: ${SERVER_URL:http://localhost:${server.port}}
   socket-port: 8300
   check-timestamp-last-update: true
   services-cron: 1 * * * * ?
