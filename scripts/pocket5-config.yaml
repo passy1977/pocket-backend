@@ -1,11 +1,7 @@
-#spring.jpa.properties.hibernate.globally_quoted_identifiers_skip_column_definitions: true
-#spring.jpa.properties.hibernate.globally_quoted_identifiers: true
-
 spring:
   application.name: Pocket
   jpa:
     show-sql: true
-    database-platform: org.hibernate.dialect.MariaDBDialect
     properties:
       hibernate:
         globally_quoted_identifiers: true
@@ -18,30 +14,48 @@ spring:
 
   datasource:
     driverClassName: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://db:3306/pocket5?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&autoReconnect=true
-    username: root
-    password: MARIADB_ROOT_PWD
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
 
 logging:
  level:
-   it.salsi.pocket: DEBUG
+   it.salsi.pocket: INFO
    hibernate:
-     SQL: TRACE
-     type: TRACE
+     SQL: WARN
+     type: WARN
    org:
-     atmosphere: TRACE
+     atmosphere: WARN
      springframework:
-       security: TRACE
-       web: DEBUG
+       security: WARN
+       web: WARN
 
 server:
-  port: 8081
+  port: ${SERVER_PORT}
   api-version: /api/v5
-  url: URL
+  url: ${SERVER_URL}
   socket-port: 8300
-  check-timestamp-last-update: false
+  check-timestamp-last-update: true
   services-cron: 1 * * * * ?
-  aes.cbc.iv: AES_CBC_IV
+  tomcat:
+    max-http-form-post-size: 10MB
+    max-parameter-count: 10000
+  servlet:
+    session:
+      cookie:
+        secure: true
+        http-only: true
+        same-site: strict
+        max-age: 3600
+
+  aes.cbc.iv: ${AES_CBC_IV}
   auth:
-    user: AUTH_USER
-    passwd: AUTH_PASSWD
+    user: ${ADMIN_USER}
+    passwd: ${ADMIN_PASSWD}
+
+security:
+  headers:
+    content-security-policy: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none';"
+  cors:
+    additional-origins: ${CORS_ADDITIONAL_ORIGINS}
+

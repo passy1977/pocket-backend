@@ -56,7 +56,7 @@ server:
   # AES configuration - MUST BE CHANGED IN PRODUCTION
   aes.cbc.iv: ${AES_CBC_IV:__iv_to_change__}
   auth:
-    user: ${ADMIN_USER:test@test.com}
+    user: ${ADMIN_USER:admin@pocket.local}
     passwd: ${ADMIN_PASSWD:____admin_password_change_me____} # MUST BE CHANGED IN PRODUCTION WITH A 32 BYTESTRONG PASSWORD
 
 # Security headers and configurations
