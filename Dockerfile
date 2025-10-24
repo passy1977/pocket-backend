@@ -1,6 +1,6 @@
 # Multi-stage Docker build for Pocket Backend with Spring Security
 # Stage 1: Build the application
-FROM maven:3-amazoncorretto-21-debian-bookworm as build
+FROM maven:3-amazoncorretto-21-debian-trixie AS build
 
 USER root
 
@@ -57,16 +57,18 @@ RUN cp /home/pocket/pocket-cli/target/release/pocket-user /var/www/pocket-user
 RUN rm -fr /home/pocket/pocket-cli
 
 # Stage 2: Runtime image
-FROM amazoncorretto:21-alpine
+FROM debian:trixie
 
 # Install runtime dependencies
-RUN apk add --no-cache \
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
+    apt-get install -y --no-install-recommends \
     curl \
     bash \
-    && rm -rf /var/cache/apk/*
+    default-jdk \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Create user and setup directories
-RUN adduser -D -s /bin/bash pocket
+RUN useradd -m -s /bin/bash pocket
 RUN mkdir -p /var/www/scripts /var/log/pocket
 RUN chown -R pocket:pocket /var/www /var/log/pocket
 
