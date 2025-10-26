@@ -178,7 +178,7 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
 
                 ret = new User(split[3], email, encoderHelper.encode(split[2]));
 
-                userRepository.save(ret);
+                ret = userRepository.save(ret);
                 break;
             case "MOD_USER":
                 if (optUser.isEmpty()) {
@@ -288,7 +288,7 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
                 }
 
                 ret = atmDevice.get().get();
-                deviceRepository.delete(ret);
+                deviceRepository.deleteDeviceById(ret.getId());
 
                 break;
             case "GET_DEVICE":
