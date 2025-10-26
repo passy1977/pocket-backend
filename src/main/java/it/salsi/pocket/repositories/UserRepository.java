@@ -17,7 +17,6 @@
  *
  ***************************************************************************/
 
-
 package it.salsi.pocket.repositories;
 
 import it.salsi.pocket.models.User;

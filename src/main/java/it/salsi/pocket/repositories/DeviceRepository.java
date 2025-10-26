@@ -17,23 +17,31 @@
  *
  ***************************************************************************/
 
-
 package it.salsi.pocket.repositories;
 
 import it.salsi.pocket.models.Device;
 import it.salsi.pocket.models.User;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
-
-public interface DeviceRepository extends CrudRepository<Device, Long> {
+public interface DeviceRepository extends JpaRepository<Device, Long> {
 
     Optional<Device> findByUuid(@NotNull final String uuid);
 
     Optional<Device> findByUserAndUuid(@NotNull final User user, @NotNull final String uuid);
 
-    Long countAllByUserAndTimestampLastUpdateBeforeAndStatusIsNot(@NotNull final User user, @NotNull final Long beforeDate, @NotNull final Device.Status statusNotIn);
+    Long countAllByUserAndTimestampLastUpdateBeforeAndStatusIsNot(@NotNull final User user,
+            @NotNull final Long beforeDate, @NotNull final Device.Status statusNotIn);
+
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM devices d WHERE d.id = :id")
+    void deleteDeviceById(@Param("id") Long id);
 
 }
