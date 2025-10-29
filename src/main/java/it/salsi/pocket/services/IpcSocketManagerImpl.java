@@ -65,7 +65,6 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
         DEVICE_NOT_EXIST(6),
         WRONG_PASSWD(7);
 
-
         Response(int value) {
             this.value = value;
         }
@@ -73,9 +72,7 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
         public int value = 0;
     }
 
-
     private static class DeviceExtended extends Device {
-
 
         @JsonProperty("userId")
         private final @NotNull Long _userId;
@@ -89,7 +86,12 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
         @JsonProperty("aesCbcIv")
         private @NotNull String aesCbcIv;
 
-        public DeviceExtended(@NotNull final Device device, @Nullable final String host, @NotNull final String aesCbcIv) {
+        private boolean corsEnableStrict;
+
+        private @NotNull String corsHeaderToken;
+
+        public DeviceExtended(@NotNull final Device device, @Nullable final String host,
+                @NotNull final String aesCbcIv, boolean corsEnableStrict, @NotNull final String corsHeaderToken) {
             setId(device.getId());
             setUuid(device.getUuid());
             setStatus(device.getStatus());
@@ -108,6 +110,8 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
                 _publicKey = "";
             }
             this.aesCbcIv = aesCbcIv;
+            this.corsEnableStrict = corsEnableStrict;
+            this.corsHeaderToken = corsHeaderToken;
         }
 
     }
@@ -139,6 +143,12 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
     @Value("${server.aes.cbc.iv}")
     @Nullable
     private String aesCrbIv;
+
+    @Value("${security.cors.enable-strict:false}")
+    private boolean corsEnableStrict;
+
+    @Value("${security.cors.header-token:__cors_token_change_me__}")
+    private String corsHeaderToken;
 
     private @Nullable String passwd;
 
@@ -307,7 +317,7 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
             return Optional.empty();
         }
         assert aesCrbIv != null;
-        return Optional.of(new DeviceExtended(ret, serverUrl, aesCrbIv));
+        return Optional.of(new DeviceExtended(ret, serverUrl, aesCrbIv, corsEnableStrict, corsHeaderToken));
     }
 
     /**

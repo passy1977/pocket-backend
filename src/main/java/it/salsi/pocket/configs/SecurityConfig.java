@@ -68,6 +68,12 @@ public class SecurityConfig {
     @Value("${security.cors.additional-origins:}")
     private String additionalCorsOrigins;
 
+    @Value("${security.cors.enable-strict:false}")
+    private boolean corsEnableStrict;
+
+    @Value("${security.cors.header-token:__cors_token_change_me__}")
+    private String corsHeaderToken;
+
     @Autowired
     private AuthenticationFilter authenticationFilter;
 
@@ -92,111 +98,129 @@ public class SecurityConfig {
         return http
                 // Disabilita CSRF per API REST
                 .csrf(AbstractHttpConfigurer::disable)
-                
+
                 // Configurazione CORS
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                
+
                 // Configurazione delle autorizzazioni
                 .authorizeHttpRequests(auth -> auth
                         // Endpoints pubblici per il controllo della salute
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
-                        
+
                         // Endpoints API protetti con autenticazione custom
                         .requestMatchers(apiVersion + "/**").hasAuthority("USER")
-                        
+
                         // Admin endpoints protetti con HTTP Basic
                         .requestMatchers("/actuator/**").hasAuthority("ADMIN")
-                        
+
                         // Tutto il resto richiede autenticazione
-                        .anyRequest().authenticated()
-                )
-                
+                        .anyRequest().authenticated())
+
                 // Configurazione della sessione - Stateless per API REST
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
                 // HTTP Basic per admin endpoints
                 .httpBasic(basic -> basic
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setHeader("WWW-Authenticate", "Basic realm=\"Pocket Admin\"");
                             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
-                        })
-                )
-                
+                        }))
+
                 // Aggiunge il filtro di autenticazione personalizzato
                 .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                
+
                 // Headers di sicurezza
                 .headers(headers -> headers
                         .frameOptions(frameOptions -> frameOptions.deny())
-                        .contentTypeOptions(contentTypeOptions -> {})
-                        .xssProtection(xss -> {})
-                        .referrerPolicy(referrer -> referrer.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+                        .contentTypeOptions(contentTypeOptions -> {
+                        })
+                        .xssProtection(xss -> {
+                        })
+                        .referrerPolicy(referrer -> referrer
+                                .policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
                         .httpStrictTransportSecurity(hstsConfig -> hstsConfig
                                 .maxAgeInSeconds(31536000)
-                                .includeSubDomains(true)
-                        )
-                )
-                
+                                .includeSubDomains(true)))
+
                 .build();
     }
 
     @Bean
     public @NotNull CorsConfigurationSource corsConfigurationSource() {
         final var configuration = new CorsConfiguration();
-        
-        // Lista delle origini permesse
-        final var allowedOrigins = new ArrayList<String>();
-        
-        // Aggiungi URL del server configurato
-        allowedOrigins.add(serverUrl);
-        allowedOrigins.add(serverUrl.replace("http://", "https://"));
-        
-        // Aggiungi localhost per sviluppo
-        allowedOrigins.add("http://localhost:*");
-        allowedOrigins.add("https://localhost:*");
-        
-        // Aggiungi origini aggiuntive dalla configurazione
-        if (additionalCorsOrigins != null && !additionalCorsOrigins.trim().isEmpty()) {
-            final var additionalOrigins = additionalCorsOrigins.split(",");
-            for (final var origin : additionalOrigins) {
-                final var trimmedOrigin = origin.trim();
-                if (!trimmedOrigin.isEmpty()) {
-                    allowedOrigins.add(trimmedOrigin);
+
+        if (corsEnableStrict) {
+            final var allowedOrigins = new ArrayList<String>();
+
+            allowedOrigins.add(serverUrl);
+            allowedOrigins.add(serverUrl.replace("http://", "https://"));
+
+            allowedOrigins.add("http://localhost:*");
+            allowedOrigins.add("https://localhost:*");
+
+            if (additionalCorsOrigins != null && !additionalCorsOrigins.trim().isEmpty()) {
+                final var additionalOrigins = additionalCorsOrigins.split(",");
+                for (final var origin : additionalOrigins) {
+                    final var trimmedOrigin = origin.trim();
+                    if (!trimmedOrigin.isEmpty()) {
+                        allowedOrigins.add(trimmedOrigin);
+                    }
                 }
             }
+
+            log.info("CORS allowed origins: " + allowedOrigins);
+            configuration.setAllowedOriginPatterns(allowedOrigins);
+
+            configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+
+            configuration.setAllowedHeaders(Arrays.asList(
+                    "Authorization",
+                    "Content-Type",
+                    "X-Requested-With",
+                    "Accept",
+                    "Origin",
+                    "Access-Control-Request-Method",
+                    "Access-Control-Request-Headers"));
+
+            configuration.setAllowCredentials(true);
+
+            configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Total-Count"));
+        } else {
+            configuration.addAllowedOriginPattern("*");
+            configuration.addAllowedMethod("*");
+            configuration.addAllowedHeader("*");
+            configuration.setAllowCredentials(true);
+
+            configuration.addExposedHeader("X-API-Key");
         }
-        
-        log.info("CORS allowed origins: " + allowedOrigins);
-        configuration.setAllowedOriginPatterns(allowedOrigins);
-        
-        // Metodi HTTP permessi
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        
-        // Headers permessi
-        configuration.setAllowedHeaders(Arrays.asList(
-                "Authorization", 
-                "Content-Type", 
-                "X-Requested-With", 
-                "Accept", 
-                "Origin", 
-                "Access-Control-Request-Method", 
-                "Access-Control-Request-Headers"
-        ));
-        
-        // Permetti credenziali
-        configuration.setAllowCredentials(true);
-        
-        // Headers esposti al client
-        configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Total-Count"));
-        
-        // Max age per preflight requests (1 ora)
+
         configuration.setMaxAge(3600L);
 
         final var source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
-        
+
         return source;
+    }
+}
+
+@Component
+public class ApiKeyAuthFilter extends OncePerRequestFilter {
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain)
+            throws ServletException, IOException {
+
+        String apiKey = request.getHeader("X-API-Key");
+
+        if (apiKey != null && apiKey.equals("your-secret-api-key-here")) {
+            // Autenticazione riuscita
+            filterChain.doFilter(request, response);
+        } else {
+            // Autenticazione fallita
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid API Key");
+        }
     }
 }

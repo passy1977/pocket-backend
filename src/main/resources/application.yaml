@@ -67,4 +67,6 @@ security:
     # Additional allowed origins (comma separated)
     # Example: https://yourdomain.com,https://anotherdomain.com
     additional-origins: ${CORS_ADDITIONAL_ORIGINS:}
+    enable-strict: ${CORS_ENABLE_STRICT:false}
+    header-token: ${CORS_HEADER_TOKEN:__cors_token_change_me__}
 
