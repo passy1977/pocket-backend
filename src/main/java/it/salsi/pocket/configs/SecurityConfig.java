@@ -203,24 +203,3 @@ public class SecurityConfig {
         return source;
     }
 }
-
-@Component
-public class ApiKeyAuthFilter extends OncePerRequestFilter {
-
-    @Override
-    protected void doFilterInternal(HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain)
-            throws ServletException, IOException {
-
-        String apiKey = request.getHeader("X-API-Key");
-
-        if (apiKey != null && apiKey.equals("your-secret-api-key-here")) {
-            // Autenticazione riuscita
-            filterChain.doFilter(request, response);
-        } else {
-            // Autenticazione fallita
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid API Key");
-        }
-    }
-}

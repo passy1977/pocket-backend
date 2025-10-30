@@ -86,8 +86,10 @@ public class IpcSocketManagerImpl implements IpcSocketManager {
         @JsonProperty("aesCbcIv")
         private @NotNull String aesCbcIv;
 
+        @JsonProperty("corsEnableStrict")
         private boolean corsEnableStrict;
 
+        @JsonProperty("corsHeaderToken")
         private @NotNull String corsHeaderToken;
 
         public DeviceExtended(@NotNull final Device device, @Nullable final String host,
