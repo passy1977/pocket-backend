@@ -13,7 +13,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Component
-public class ApiKeyAuthFilter extends OncePerRequestFilter {
+public class CorsAuthFilter extends OncePerRequestFilter {
 
     @Value("${security.cors.enable-strict:false}")
     private boolean corsEnableStrict;

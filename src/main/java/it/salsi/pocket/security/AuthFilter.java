@@ -48,7 +48,7 @@ import static it.salsi.pocket.security.RSAHelper.KEY_SIZE;
 
 @Log
 @Component
-public class AuthenticationFilter extends OncePerRequestFilter {
+public class AuthFilter extends OncePerRequestFilter {
 
     private final @NotNull DeviceRepository deviceRepository;
     private final @NotNull UserRepository userRepository;
@@ -57,20 +57,17 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
     // Pattern per validare UUID
     private static final Pattern UUID_PATTERN = Pattern.compile(
-            "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
-    );
+            "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
 
     // Pattern per validare crypt (Base64 URL safe)
     private static final Pattern CRYPT_PATTERN = Pattern.compile(
-        "^[A-Za-z0-9_-]{10,2048}={0,2}$"
-    );
+            "^[A-Za-z0-9_-]{10,2048}={0,2}$");
 
-    public AuthenticationFilter(
+    public AuthFilter(
             @Autowired @NotNull final DeviceRepository deviceRepository,
             @Autowired @NotNull final UserRepository userRepository,
             @Autowired @NotNull final EncoderHelper encoderHelper,
-            @Autowired @NotNull final CacheManager cacheManager
-    ) {
+            @Autowired @NotNull final CacheManager cacheManager) {
         this.deviceRepository = deviceRepository;
         this.userRepository = userRepository;
         this.encoderHelper = encoderHelper;
@@ -81,12 +78,12 @@ public class AuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(
             @NotNull HttpServletRequest request,
             @NotNull HttpServletResponse response,
-            @NotNull FilterChain filterChain
-    ) throws ServletException, IOException {
+            @NotNull FilterChain filterChain) throws ServletException, IOException {
 
         final var requestURI = request.getRequestURI();
-                
-        // Skip authentication for heartbeat endpoint (handled by controller with 3-part token)
+
+        // Skip authentication for heartbeat endpoint (handled by controller with 3-part
+        // token)
         if (requestURI.startsWith("/api/v5/heartbeat/")) {
             final var authorities = Collections.singletonList(new SimpleGrantedAuthority("USER"));
             final var authToken = new UsernamePasswordAuthenticationToken("anonymous", null, authorities);
@@ -95,10 +92,10 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-        
+
         // Skip authentication for non-API endpoints and test endpoint
         if (!requestURI.startsWith("/api/v5/")) {
-            
+
             // For API endpoints that we're skipping, set a dummy authentication context
             // so Spring Security doesn't block them
             if (requestURI.startsWith("/api/v5/")) {
@@ -107,7 +104,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
-            
+
             filterChain.doFilter(request, response);
             return;
         }
@@ -115,7 +112,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         try {
             // Extract UUID and crypt from path
             final var pathParts = requestURI.split("/");
-            
+
             // Pattern: /api/v5/{uuid}/{crypt}/[optional additional params]
             // Minimum required: /api/v5/{uuid}/{crypt} = 5 parts
             if (pathParts.length < 5) {
@@ -123,12 +120,12 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                 sendUnauthorized(response, "Invalid API path format");
                 return;
             }
-            
+
             // UUID is always at position 3, crypt at position 4
             // Additional path parameters (if any) are at position 5+
             String uuid = pathParts[3];
             String crypt = pathParts[4];
-            
+
             log.info("DEBUG: Extracted UUID: " + uuid);
             log.info("DEBUG: Extracted crypt length: " + crypt.length());
 
@@ -138,7 +135,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                 sendUnauthorized(response, "Invalid UUID format");
                 return;
             }
-            
+
             log.info("DEBUG: UUID validation passed");
 
             if (!isValidCrypt(crypt)) {
@@ -146,7 +143,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                 sendUnauthorized(response, "Invalid crypt format");
                 return;
             }
-            
+
             log.info("DEBUG: Crypt validation passed");
 
             // Authenticate user
@@ -155,10 +152,9 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                 log.info("DEBUG: Authentication successful for UUID: " + uuid);
                 // Set authentication in security context
                 var authentication = new UsernamePasswordAuthenticationToken(
-                        uuid, 
-                        null, 
-                        Collections.singletonList(new SimpleGrantedAuthority("USER"))
-                );
+                        uuid,
+                        null,
+                        Collections.singletonList(new SimpleGrantedAuthority("USER")));
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } else {
@@ -191,7 +187,8 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         return CRYPT_PATTERN.matcher(crypt).matches();
     }
 
-    private boolean authenticateUser(@NotNull final String uuid, @NotNull final String crypt, @NotNull final HttpServletRequest request) {
+    private boolean authenticateUser(@NotNull final String uuid, @NotNull final String crypt,
+            @NotNull final HttpServletRequest request) {
         try {
             // Find device by UUID
             final var optDevice = deviceRepository.findByUuid(uuid);
@@ -201,17 +198,16 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             }
 
             final var device = optDevice.get();
-            
+
             // Create RSA helper with device keys
             final var rsaHelper = new RSAHelper(ALGORITHM, KEY_SIZE);
             rsaHelper.loadPublicKey(Base64.getDecoder().decode(device.getPublicKey()));
             rsaHelper.loadPrivateKey(Base64.getDecoder().decode(device.getPrivateKey()));
-            
+
             // Decrypt and validate token
             final var decrypted = rsaHelper.decryptFromURLBase64(crypt);
             final var decryptSplit = decrypted.split("[" + DIVISOR.value + "]");
-            
-            
+
             if (decryptSplit.length != 5 && decryptSplit.length != 6) {
                 log.warning("DEBUG: Invalid token parts count. Expected 5 or 6, got: " + decryptSplit.length);
                 return false;
@@ -233,9 +229,9 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             // Validate user credentials
             String email = decryptSplit[3];
             String hashedPassword = encoderHelper.encode(decryptSplit[4]);
-            
+
             final var optUser = userRepository.findByEmailAndPasswd(email, hashedPassword);
-            
+
             if (optUser.isEmpty()) {
                 log.warning("DEBUG: User not found or password mismatch for email: " + email);
                 return false;
@@ -246,7 +242,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
             device.setAddress(remoteIP);
             device.setTimestampLastLogin(java.time.Instant.now(java.time.Clock.systemUTC()).getEpochSecond());
             deviceRepository.save(device);
-            
+
             return true;
 
         } catch (CommonsException | NumberFormatException e) {
@@ -265,7 +261,8 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         return remoteIP;
     }
 
-    private void sendUnauthorized(@NotNull final HttpServletResponse response, @NotNull final String message) throws IOException {
+    private void sendUnauthorized(@NotNull final HttpServletResponse response, @NotNull final String message)
+            throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json");
         response.getWriter().write("{\"error\":\"" + message + "\"}");

@@ -57,7 +57,7 @@ class AuthenticationFilterTest {
     @Mock
     private HttpServletRequest request;
 
-        @Mock
+    @Mock
     private HttpServletResponse response;
 
     @Mock
@@ -67,7 +67,7 @@ class AuthenticationFilterTest {
     private PrintWriter printWriter;
 
     @InjectMocks
-    private AuthenticationFilter authenticationFilter;
+    private AuthFilter authenticationFilter;
 
     private User testUser;
     private Device testDevice;
@@ -112,7 +112,7 @@ class AuthenticationFilterTest {
     void shouldBypassFilterForApiRequestsWithoutCrypt() throws Exception {
         // Given - URL with not enough path segments
         when(request.getRequestURI()).thenReturn("/api/v5/some-endpoint"); // Only 3 parts instead of 4
-        
+
         // When
         authenticationFilter.doFilterInternal(request, response, filterChain);
 
@@ -127,8 +127,9 @@ class AuthenticationFilterTest {
     void shouldProcessAuthenticationForApiRequestsWithCrypt() throws Exception {
         // Given
         when(request.getRequestURI()).thenReturn("/api/v5/12345678-1234-1234-1234-123456789012/validCryptData123");
-        
-        // Since we can't easily mock the complex authentication process, expect it to fail
+
+        // Since we can't easily mock the complex authentication process, expect it to
+        // fail
         // This test should result in unauthorized response
 
         // When
@@ -152,7 +153,7 @@ class AuthenticationFilterTest {
         verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         verify(printWriter).write("{\"error\":\"Authentication failed\"}");
         verifyNoInteractions(filterChain);
-        
+
         // Verify that SecurityContext was not set (or was cleared)
         // Note: Actual behavior depends on filter implementation
     }
@@ -200,9 +201,7 @@ class AuthenticationFilterTest {
         // Given - set up an initial authentication in the context
         SecurityContextHolder.getContext().setAuthentication(
                 new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
-                        "existing", "credentials"
-                )
-        );
+                        "existing", "credentials"));
 
         when(request.getRequestURI()).thenReturn("/api/v5/12345678-1234-1234-1234-123456789012/invalidCrypt");
 
@@ -212,7 +211,7 @@ class AuthenticationFilterTest {
         // Then
         verify(response).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         verify(printWriter).write("{\"error\":\"Authentication failed\"}");
-        
+
         // Note: The actual clearing behavior depends on the filter implementation
         // This test structure ensures the filter handles failure cases
     }

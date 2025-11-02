@@ -19,7 +19,7 @@
 
 package it.salsi.pocket.configs;
 
-import it.salsi.pocket.security.AuthenticationFilter;
+import it.salsi.pocket.security.AuthFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.java.Log;
 import org.jetbrains.annotations.NotNull;
@@ -75,7 +75,7 @@ public class SecurityConfig {
     private String corsHeaderToken;
 
     @Autowired
-    private AuthenticationFilter authenticationFilter;
+    private AuthFilter authenticationFilter;
 
     @Bean
     public @NotNull PasswordEncoder passwordEncoder() {
