@@ -47,7 +47,7 @@ import static it.salsi.pocket.security.RSAHelper.ALGORITHM;
 import static it.salsi.pocket.security.RSAHelper.KEY_SIZE;
 
 @Log
-// @Component
+@Component
 public class AuthFilter extends OncePerRequestFilter {
 
     private final @NotNull DeviceRepository deviceRepository;
