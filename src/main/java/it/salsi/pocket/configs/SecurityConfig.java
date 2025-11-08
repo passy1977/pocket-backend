@@ -107,8 +107,8 @@ public class SecurityConfig {
                         // Endpoints pubblici per il controllo della salute
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
 
-                        // Endpoints API protetti con autenticazione custom
-                        .requestMatchers(apiVersion + "/**").hasAuthority("USER")
+                        // Endpoints API - TEMPORANEAMENTE SENZA AUTENTICAZIONE
+                        .requestMatchers(apiVersion + "/**").permitAll()
 
                         // Admin endpoints protetti con HTTP Basic
                         .requestMatchers("/actuator/**").hasAuthority("ADMIN")
