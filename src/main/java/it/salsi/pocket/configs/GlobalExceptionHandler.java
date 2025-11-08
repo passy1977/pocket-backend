@@ -63,6 +63,7 @@ public class GlobalExceptionHandler {
 
         errorResponse.put("validationErrors", validationErrors);
 
+        log.warning("Returning error response: " + HttpStatus.BAD_REQUEST + " - ConstraintViolationException");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
@@ -86,6 +87,7 @@ public class GlobalExceptionHandler {
 
         errorResponse.put("fieldErrors", fieldErrors);
 
+        log.warning("Returning error response: " + HttpStatus.BAD_REQUEST + " - MethodArgumentNotValidException");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
@@ -102,6 +104,7 @@ public class GlobalExceptionHandler {
         errorResponse.put("message", "Invalid credentials or authentication required");
         errorResponse.put("path", request.getDescription(false).replace("uri=", ""));
 
+        log.warning("Returning error response: " + HttpStatus.UNAUTHORIZED + " - AuthenticationException");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
     }
 
@@ -118,6 +121,7 @@ public class GlobalExceptionHandler {
         errorResponse.put("message", "Invalid username or password");
         errorResponse.put("path", request.getDescription(false).replace("uri=", ""));
 
+        log.warning("Returning error response: " + HttpStatus.UNAUTHORIZED + " - BadCredentialsException");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
     }
 
@@ -134,6 +138,7 @@ public class GlobalExceptionHandler {
         errorResponse.put("message", "Insufficient permissions to access this resource");
         errorResponse.put("path", request.getDescription(false).replace("uri=", ""));
 
+        log.warning("Returning error response: " + HttpStatus.FORBIDDEN + " - AccessDeniedException");
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
     }
 
@@ -150,6 +155,7 @@ public class GlobalExceptionHandler {
         errorResponse.put("message", "Invalid request parameter");
         errorResponse.put("path", request.getDescription(false).replace("uri=", ""));
 
+        log.warning("Returning error response: " + HttpStatus.BAD_REQUEST + " - IllegalArgumentException");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 
@@ -169,6 +175,8 @@ public class GlobalExceptionHandler {
         // In production, don't expose stack trace details
         // errorResponse.put("details", ex.getMessage());
 
+        log.severe("Returning error response: " + HttpStatus.INTERNAL_SERVER_ERROR + " - "
+                + ex.getClass().getSimpleName());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 }

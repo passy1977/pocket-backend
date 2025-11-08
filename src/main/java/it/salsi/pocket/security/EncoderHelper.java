@@ -1,5 +1,23 @@
-package it.salsi.pocket.security;
+/***************************************************************************
+ *
+ * Pocket web backend
+ * Copyright (C) 2018/2025 Antonio Salsi <passy.linux@zresa.it>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ ***************************************************************************/
 
+package it.salsi.pocket.security;
 
 import it.salsi.commons.CommonsException;
 import it.salsi.commons.utils.Crypto;
@@ -51,21 +69,19 @@ public class EncoderHelper {
     }
 
     public @NotNull Crypto getCrypto(@NotNull final String authPasswd) throws CommonsException {
-        if(aesCrbIv == null) {
+        if (aesCrbIv == null) {
             throw new CommonsException("AES CRC IV not set");
         }
-        if(aesCrbIv.length() != 16) {
+        if (aesCrbIv.length() != 16) {
             throw new CommonsException("AES CRC IV must be 16 byte");
         }
 
         var localAuthPasswd = new char[KEY_SIZE];
         byte i = 0;
-        for (; i < authPasswd.length() && i < KEY_SIZE; i++)
-        {
+        for (; i < authPasswd.length() && i < KEY_SIZE; i++) {
             localAuthPasswd[i] = authPasswd.charAt(i);
         }
-        for (; i < KEY_SIZE; i++)
-        {
+        for (; i < KEY_SIZE; i++) {
             localAuthPasswd[i] = PADDING;
         }
 

@@ -75,7 +75,7 @@ public class SecurityConfig {
     private String corsHeaderToken;
 
     @Autowired
-    private AuthFilter authenticationFilter;
+    private AuthFilter authFilter;
 
     @Bean
     public @NotNull PasswordEncoder passwordEncoder() {
@@ -128,7 +128,7 @@ public class SecurityConfig {
                         }))
 
                 // Aggiunge il filtro di autenticazione personalizzato
-                .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
 
                 // Headers di sicurezza
                 .headers(headers -> headers

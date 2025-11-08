@@ -39,102 +39,52 @@ import org.springframework.web.bind.annotation.*;
 @Validated
 public class SessionRest {
 
-    private @NotNull final SessionController sessionController;
+        private @NotNull final SessionController sessionController;
 
-    public SessionRest(@Autowired @NotNull SessionController sessionController) {
-        this.sessionController = sessionController;
-    }
+        public SessionRest(@Autowired @NotNull SessionController sessionController) {
+                this.sessionController = sessionController;
+        }
 
-    @GetMapping("/{uuid}/{crypt}")
-    public @NotNull ResponseEntity<Container> getData(
-            @PathVariable 
-            @NotBlank(message = "UUID cannot be blank")
-            @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", 
-                    message = "UUID must be in valid format")
-            @NotNull final String uuid,
-            @PathVariable 
-            @NotBlank(message = "Crypt parameter cannot be blank")
-            @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}={0,2}$", 
-                    message = "Crypt parameter contains invalid characters or length")
-            @NotNull final String crypt,
-            @NotNull final HttpServletRequest request
-    ) throws CommonsException
-    {
-        return sessionController.getData(uuid, crypt, SessionController.getClientIP(request));
-    }
+        @GetMapping("/{uuid}/{crypt}")
+        public @NotNull ResponseEntity<Container> getData(
+                        @PathVariable @NotBlank(message = "UUID cannot be blank") @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", message = "UUID must be in valid format") @NotNull final String uuid,
+                        @PathVariable @NotBlank(message = "Crypt parameter cannot be blank") @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}={0,2}$", message = "Crypt parameter contains invalid characters or length") @NotNull final String crypt,
+                        @NotNull final HttpServletRequest request) throws CommonsException {
+                return sessionController.getData(uuid, crypt, SessionController.getClientIP(request));
+        }
 
-    @PostMapping("/{uuid}/{crypt}")
-    public @NotNull ResponseEntity<Container> persist(
-            @PathVariable 
-            @NotBlank(message = "UUID cannot be blank")
-            @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", 
-                    message = "UUID must be in valid format")
-            @NotNull final String uuid,
-            @PathVariable 
-            @NotBlank(message = "Crypt parameter cannot be blank")
-            @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}={0,2}$", 
-                    message = "Crypt parameter contains invalid characters or length")
-            @NotNull final String crypt,
-            @Valid @NotNull @RequestBody final Container container,
-            @NotNull final HttpServletRequest request
-    ) throws CommonsException
-    {
-        return sessionController.persist(uuid, crypt, container, SessionController.getClientIP(request));
-    }
+        @PostMapping("/{uuid}/{crypt}")
+        public @NotNull ResponseEntity<Container> persist(
+                        @PathVariable @NotBlank(message = "UUID cannot be blank") @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", message = "UUID must be in valid format") @NotNull final String uuid,
+                        @PathVariable @NotBlank(message = "Crypt parameter cannot be blank") @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}={0,2}$", message = "Crypt parameter contains invalid characters or length") @NotNull final String crypt,
+                        @Valid @NotNull @RequestBody final Container container,
+                        @NotNull final HttpServletRequest request) throws CommonsException {
+                return sessionController.persist(uuid, crypt, container, SessionController.getClientIP(request));
+        }
 
-    @PutMapping("/{uuid}/{crypt}/{changePasswdDataOnServer}")
-    public @NotNull ResponseEntity<Boolean> changePasswd(
-            @PathVariable 
-            @NotBlank(message = "UUID cannot be blank")
-            @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", 
-                    message = "UUID must be in valid format")
-            @NotNull final String uuid,
-            @PathVariable 
-            @NotBlank(message = "Crypt parameter cannot be blank")
-            @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}={0,2}$", 
-                    message = "Crypt parameter contains invalid characters or length")
-            @NotNull final String crypt,
-            @PathVariable(required = false) @NotNull final Boolean changePasswdDataOnServer,
-            @NotNull final HttpServletRequest request
-    ) throws CommonsException
-    {
-        return sessionController.changePasswd(uuid, crypt, changePasswdDataOnServer, SessionController.getClientIP(request));
-    }
+        @PutMapping("/{uuid}/{crypt}/{changePasswdDataOnServer}")
+        public @NotNull ResponseEntity<Boolean> changePasswd(
+                        @PathVariable @NotBlank(message = "UUID cannot be blank") @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", message = "UUID must be in valid format") @NotNull final String uuid,
+                        @PathVariable @NotBlank(message = "Crypt parameter cannot be blank") @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}={0,2}$", message = "Crypt parameter contains invalid characters or length") @NotNull final String crypt,
+                        @PathVariable(required = false) @NotNull final Boolean changePasswdDataOnServer,
+                        @NotNull final HttpServletRequest request) throws CommonsException {
+                return sessionController.changePasswd(uuid, crypt, changePasswdDataOnServer,
+                                SessionController.getClientIP(request));
+        }
 
+        @DeleteMapping("/{uuid}/{crypt}")
+        public @NotNull ResponseEntity<?> deleteCacheRecord(
+                        @PathVariable @NotBlank(message = "UUID cannot be blank") @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", message = "UUID must be in valid format") @NotNull final String uuid,
+                        @PathVariable @NotBlank(message = "Crypt parameter cannot be blank") @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}={0,2}$", message = "Crypt parameter contains invalid characters or length") @NotNull final String crypt)
+                        throws CommonsException {
+                return sessionController.deleteCacheRecord(uuid, crypt);
+        }
 
-    @DeleteMapping("/{uuid}/{crypt}")
-    public @NotNull ResponseEntity<?> deleteCacheRecord(
-            @PathVariable 
-            @NotBlank(message = "UUID cannot be blank")
-            @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", 
-                    message = "UUID must be in valid format")
-            @NotNull final String uuid,
-            @PathVariable 
-            @NotBlank(message = "Crypt parameter cannot be blank")
-            @Pattern(regexp = "^[A-Za-z0-9_-]{10,2048}={0,2}$", 
-                    message = "Crypt parameter contains invalid characters or length")
-            @NotNull final String crypt
-    ) throws CommonsException
-    {
-        return sessionController.deleteCacheRecord(uuid, crypt);
-    }
-
-
-    @GetMapping("/heartbeat/{uuid}/{crypt}")
-    public @NotNull ResponseEntity<?> heartbeat(
-            @PathVariable 
-            @NotBlank(message = "UUID cannot be blank")
-            @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", 
-                    message = "UUID must be in valid format")
-            @NotNull final String uuid,
-            @PathVariable 
-            @NotBlank(message = "Crypt parameter cannot be blank")
-            @Pattern(regexp = "^[A-Za-z0-9_-]+={0,2}$", 
-                    message = "Crypt parameter contains invalid characters or length")
-            @NotNull final String crypt,
-            @NotNull final HttpServletRequest request
-    ) throws CommonsException
-    {
-        return sessionController.heartbeat(uuid, crypt, SessionController.getClientIP(request));
-    }
+        @GetMapping("/heartbeat/{uuid}/{crypt}")
+        public @NotNull ResponseEntity<?> heartbeat(
+                        @PathVariable @NotBlank(message = "UUID cannot be blank") @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", message = "UUID must be in valid format") @NotNull final String uuid,
+                        @PathVariable @NotBlank(message = "Crypt parameter cannot be blank") @Pattern(regexp = "^[A-Za-z0-9_-]+={0,2}$", message = "Crypt parameter contains invalid characters or length") @NotNull final String crypt,
+                        @NotNull final HttpServletRequest request) throws CommonsException {
+                return sessionController.heartbeat(uuid, crypt, SessionController.getClientIP(request));
+        }
 }

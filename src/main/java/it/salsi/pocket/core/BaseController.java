@@ -41,7 +41,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Log
-public abstract class BaseController <T extends BaseModel, Y extends BaseRepository<T>> {
+public abstract class BaseController<T extends BaseModel, Y extends BaseRepository<T>> {
 
     @FunctionalInterface
     protected interface OnStore<T> {
@@ -60,47 +60,48 @@ public abstract class BaseController <T extends BaseModel, Y extends BaseReposit
     private BaseController.OnStore<T> onStore;
 
     public BaseController(@Autowired @NotNull final Y repository,
-                    @Autowired @NotNull final DeviceRepository deviceRepository,
-                    @Autowired @NotNull final UserRepository userRepository
-    ) {
+            @Autowired @NotNull final DeviceRepository deviceRepository,
+            @Autowired @NotNull final UserRepository userRepository) {
         this.repository = repository;
         this.deviceRepository = deviceRepository;
     }
 
     @NotNull
     public Iterable<T> getAll(@NotNull final String token,
-                              @NotNull final Long timestampLastUpdate
-    ) {
+            @NotNull final Long timestampLastUpdate) {
         final var device = deviceRepository.findByUuid(token);
         if (device.isPresent()) {
-            if (device.get().getStatus() != Device.Status.ACTIVE) return List.of();
-            if (device.get().getUser().getStatus() != User.Status.ACTIVE) return List.of();
-            final var ret = repository.findByUserAndTimestampLastUpdateGreaterThan(device.get().getUser(), timestampLastUpdate);
+            if (device.get().getStatus() != Device.Status.ACTIVE)
+                return List.of();
+            if (device.get().getUser().getStatus() != User.Status.ACTIVE)
+                return List.of();
+            final var ret = repository.findByUserAndTimestampLastUpdateGreaterThan(device.get().getUser(),
+                    timestampLastUpdate);
             ret.forEach(T::switchId);
             return ret;
-        } else return List.of();
+        } else
+            return List.of();
     }
 
     @NotNull
-    public Iterable<T> store(@NotNull final String uuid
-            , @NotNull final Long now
-            , @Nullable final Iterable<T> elements
-    ) {
+    public Iterable<T> store(@NotNull final String uuid, @NotNull final Long now,
+            @Nullable final Iterable<T> elements) {
 
-        if(elements == null) {
+        if (elements == null) {
             return List.of();
         }
 
         List<T> ret = new ArrayList<>();
 
-
         final var device = deviceRepository.findByUuid(uuid);
         if (device.isPresent()) {
-            if (device.get().getStatus() != Device.Status.ACTIVE) return List.of();
-            if (device.get().getUser().getStatus() != User.Status.ACTIVE) return List.of();
+            if (device.get().getStatus() != Device.Status.ACTIVE)
+                return List.of();
+            if (device.get().getUser().getStatus() != User.Status.ACTIVE)
+                return List.of();
 
-            for(final var it : elements) {
-                if(it.deleted) {
+            for (final var it : elements) {
+                if (it.deleted) {
                     continue;
                 }
                 it.setUser(device.get().getUser());
@@ -115,7 +116,10 @@ public abstract class BaseController <T extends BaseModel, Y extends BaseReposit
                     var original = new AtomicReference<T>();
                     Optional.ofNullable(onStore).ifPresent(onStore -> original.set(onStore.perform(it)));
 
-                    @SuppressWarnings("unchecked") final var base = (T) repository.save(original.get()).clone();
+                    @SuppressWarnings("unchecked")
+                    final var base = (T) repository.save(original.get()).clone();
+
+                    log.warning("store-->" + base.toString());
 
                     base.postStore(original.get());
 
@@ -126,11 +130,12 @@ public abstract class BaseController <T extends BaseModel, Y extends BaseReposit
                             }
                         }
                         case @NotNull final GroupFieldController gfc -> {
-                            if(base instanceof final @NotNull GroupField gf) {
+                            if (base instanceof final @NotNull GroupField gf) {
                                 gfc.add(gf);
                             }
                         }
-                        default -> {}
+                        default -> {
+                        }
                     }
 
                     ret.add(base);
@@ -144,11 +149,9 @@ public abstract class BaseController <T extends BaseModel, Y extends BaseReposit
         return ret;
     }
 
-    public Iterable<T> delete(@NotNull final String uuid
-            , @NotNull final Long now
-            , @Nullable final Iterable<T> elements
-    ) {
-        if(elements == null) {
+    public Iterable<T> delete(@NotNull final String uuid, @NotNull final Long now,
+            @Nullable final Iterable<T> elements) {
+        if (elements == null) {
             return List.of();
         }
 
@@ -156,11 +159,13 @@ public abstract class BaseController <T extends BaseModel, Y extends BaseReposit
 
         final var device = deviceRepository.findByUuid(uuid);
         if (device.isPresent()) {
-            if (device.get().getStatus() != Device.Status.ACTIVE) return List.of();
-            if (device.get().getUser().getStatus() != User.Status.ACTIVE) return List.of();
+            if (device.get().getStatus() != Device.Status.ACTIVE)
+                return List.of();
+            if (device.get().getUser().getStatus() != User.Status.ACTIVE)
+                return List.of();
 
-            for(final var it : elements) {
-                if(!it.deleted) {
+            for (final var it : elements) {
+                if (!it.deleted) {
                     continue;
                 }
                 it.setUser(device.get().getUser());
@@ -171,11 +176,13 @@ public abstract class BaseController <T extends BaseModel, Y extends BaseReposit
                 it.serverId = tmp;
 
                 var t = repository.findById(it.id);
-                if(t.isPresent()) {
+                if (t.isPresent()) {
                     t.get().setDeleted(true);
 
                     try {
-                        var elm = (T)repository.save(t.get()).clone();
+                        var elm = (T) repository.save(t.get()).clone();
+
+                        log.warning("delete-->" + elm.toString());
 
                         elm.serverId = elm.id;
                         elm.id = tmp;
@@ -194,6 +201,7 @@ public abstract class BaseController <T extends BaseModel, Y extends BaseReposit
         return List.of();
     }
 
-    public abstract void changePasswd(@NotNull final User user, @NotNull final Crypto aesOld, @NotNull final Crypto aesNew, long now) throws CommonsException;
+    public abstract void changePasswd(@NotNull final User user, @NotNull final Crypto aesOld,
+            @NotNull final Crypto aesNew, long now) throws CommonsException;
 
 }

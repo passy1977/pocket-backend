@@ -1,3 +1,22 @@
+/***************************************************************************
+ *
+ * Pocket web backend
+ * Copyright (C) 2018/2025 Antonio Salsi <passy.linux@zresa.it>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ ***************************************************************************/
+
 package it.salsi.pocket.security;
 
 import it.salsi.commons.CommonsException;
@@ -15,7 +34,7 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
-final public class RSAHelper  {
+final public class RSAHelper {
 
     private final @NotNull String algorithm;
 
@@ -48,7 +67,7 @@ final public class RSAHelper  {
     }
 
     public byte @Nullable [] getPrivateKey() {
-        if(privateKey == null) {
+        if (privateKey == null) {
             return null;
         }
         return privateKey.getEncoded();
@@ -56,26 +75,26 @@ final public class RSAHelper  {
 
     public @Nullable String getPrivateKeyString() {
         final var ret = getPrivateKey();
-        if(ret == null) {
+        if (ret == null) {
             return null;
         }
 
         return """
------BEGIN RSA PRIVATE KEY-----
-{}
------END RSA PRIVATE KEY-----
-""".replace("{}", Base64.getEncoder().encodeToString(ret));
+                -----BEGIN RSA PRIVATE KEY-----
+                {}
+                -----END RSA PRIVATE KEY-----
+                """.replace("{}", Base64.getEncoder().encodeToString(ret));
     }
 
     public byte @Nullable [] getPublicKey() {
-        if(publicKey == null) {
+        if (publicKey == null) {
             return null;
         }
         return publicKey.getEncoded();
     }
 
     public @Nullable String getPublicKeyString() {
-        if(publicKey == null || publicKey.getFormat() == null) {
+        if (publicKey == null || publicKey.getFormat() == null) {
             return null;
         }
         if (!publicKey.getFormat().equals("X.509")) {
@@ -83,10 +102,10 @@ final public class RSAHelper  {
         }
 
         return """
------BEGIN PUBLIC KEY-----
-{}
------END PUBLIC KEY-----
-""".replace("{}", Base64.getEncoder().encodeToString(publicKey.getEncoded()));
+                -----BEGIN PUBLIC KEY-----
+                {}
+                -----END PUBLIC KEY-----
+                """.replace("{}", Base64.getEncoder().encodeToString(publicKey.getEncoded()));
     }
 
     public void enroll() throws CommonsException {
@@ -100,7 +119,6 @@ final public class RSAHelper  {
             throw new CommonsException(e);
         }
     }
-
 
     public void loadPrivateKey(byte[] keyBytes) throws CommonsException {
         try {
@@ -122,18 +140,18 @@ final public class RSAHelper  {
         }
     }
 
-    public byte @NotNull [] encrypt(final byte @NotNull[] buffer) throws CommonsException {
+    public byte @NotNull [] encrypt(final byte @NotNull [] buffer) throws CommonsException {
         try {
             final var rsa = Cipher.getInstance(algorithm);
             rsa.init(Cipher.ENCRYPT_MODE, publicKey);
             return rsa.doFinal(buffer);
-        } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | IllegalBlockSizeException |
-                 BadPaddingException e) {
+        } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | IllegalBlockSizeException
+                | BadPaddingException e) {
             throw new CommonsException(e);
         }
     }
 
-    public @NotNull String encryptToString(final byte @NotNull[] buffer) throws CommonsException {
+    public @NotNull String encryptToString(final byte @NotNull [] buffer) throws CommonsException {
         final var result = new StringBuilder();
 
         for (final var b : encrypt(buffer)) {
@@ -149,7 +167,8 @@ final public class RSAHelper  {
             rsa.init(Cipher.DECRYPT_MODE, privateKey);
             byte[] utf8 = rsa.doFinal(buffer);
             return new String(utf8, StandardCharsets.UTF_8);
-        } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
+        } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | IllegalBlockSizeException
+                | BadPaddingException e) {
             throw new CommonsException(e);
         }
     }
@@ -157,9 +176,7 @@ final public class RSAHelper  {
     public @NotNull String decryptFromURLBase64(final @NotNull String base64) throws CommonsException {
         return decrypt(Base64.getDecoder().decode(
                 base64.replace('_', '/')
-                        .replace('-', '+')
-        ));
+                        .replace('-', '+')));
     }
-
 
 }
