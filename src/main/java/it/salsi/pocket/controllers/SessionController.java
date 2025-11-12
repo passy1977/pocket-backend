@@ -76,7 +76,6 @@ public class SessionController {
         public final int code;
     }
 
-
     private final @NotNull UserRepository userRepository;
     private final @NotNull DeviceRepository deviceRepository;
     private final @NotNull GroupController groupController;
@@ -96,8 +95,7 @@ public class SessionController {
             @Autowired @NotNull final GroupFieldController groupFieldController,
             @Autowired @NotNull final FieldController fieldController,
             @Autowired @NotNull final EncoderHelper encoderHelper,
-            @Autowired @NotNull final CacheManager cacheManager
-    ) {
+            @Autowired @NotNull final CacheManager cacheManager) {
         this.userRepository = userRepository;
         this.deviceRepository = deviceRepository;
         this.groupController = groupController;
@@ -111,10 +109,8 @@ public class SessionController {
     }
 
     public @NotNull ResponseEntity<Container> getData(@NotNull final String uuid,
-                                                      @NotNull final String crypt,
-                                                      @NotNull final String remoteIP
-    ) throws CommonsException {
-
+            @NotNull final String crypt,
+            @NotNull final String remoteIP) throws CommonsException {
 
         final var now = Instant.now(Clock.systemUTC()).getEpochSecond();
 
@@ -122,12 +118,12 @@ public class SessionController {
         Optional<User> optUser = Optional.empty();
         Device device = null;
         RSAHelper rsaHelper = null;
-        if(cacheManager.has(uuid)) {
+        if (cacheManager.has(uuid)) {
             cacheManager.rm(uuid);
         }
 
         final var optDevice = deviceRepository.findByUuid(uuid);
-        if(optDevice.isEmpty()) {
+        if (optDevice.isEmpty()) {
             return ResponseEntity.status(DEVICE_NOT_FOUND.code).build();
         }
 
@@ -136,20 +132,17 @@ public class SessionController {
         rsaHelper.loadPublicKey(Base64.getDecoder().decode(device.getPublicKey()));
         rsaHelper.loadPrivateKey(Base64.getDecoder().decode(device.getPrivateKey()));
 
-        final var decryptSplit = rsaHelper.decryptFromURLBase64(crypt).split("["+DIVISOR.value+"]");
-        if(decryptSplit.length != 5)
-        {
+        final var decryptSplit = rsaHelper.decryptFromURLBase64(crypt).split("[" + DIVISOR.value + "]");
+        if (decryptSplit.length != 5) {
             return ResponseEntity.status(WRONG_SIZE_TOKEN.code).build();
         }
 
-        if(Long.parseLong(decryptSplit[0]) != device.getId())
-        {
+        if (Long.parseLong(decryptSplit[0]) != device.getId()) {
             return ResponseEntity.status(DEVICE_ID_NOT_MATCH.code).build();
         }
 
         final var secret = decryptSplit[1];
-        if(secret.isEmpty())
-        {
+        if (secret.isEmpty()) {
             return ResponseEntity.status(SECRET_EMPTY.code).build();
         }
 
@@ -160,8 +153,8 @@ public class SessionController {
             return ResponseEntity.status(TIMESTAMP_LAST_NOT_PARSABLE.code).build();
         }
 
-        optUser =  userRepository.findByEmailAndPasswd(decryptSplit[3], encoderHelper.encode(decryptSplit[4]));
-        if(optUser.isEmpty()) {
+        optUser = userRepository.findByEmailAndPasswd(decryptSplit[3], encoderHelper.encode(decryptSplit[4]));
+        if (optUser.isEmpty()) {
             return ResponseEntity.status(USER_NOT_FOUND.code).build();
         }
 
@@ -175,9 +168,7 @@ public class SessionController {
                 secret,
                 device,
                 rsaHelper,
-                now
-        ));
-
+                now));
 
         return ResponseEntity.ok(
                 new Container(
@@ -186,58 +177,52 @@ public class SessionController {
                         device,
                         groupController.getAll(uuid, timestampLastUpdate),
                         groupFieldController.getAll(uuid, timestampLastUpdate),
-                        fieldController.getAll(uuid, timestampLastUpdate)
-        ));
+                        fieldController.getAll(uuid, timestampLastUpdate)));
     }
 
     public @NotNull ResponseEntity<Container> persist(@NotNull final String uuid,
-                                                      @NotNull final String crypt,
-                                                      @NotNull final Container container,
-                                                      @NotNull final String remoteIP
-    ) throws CommonsException  {
+            @NotNull final String crypt,
+            @NotNull final Container container,
+            @NotNull final String remoteIP) throws CommonsException {
         final var now = Instant.now(Clock.systemUTC()).getEpochSecond();
 
         long timestampLastUpdate = 0;
         Optional<User> optUser = Optional.empty();
         Device device = null;
         CacheRecord record = null;
-        if(cacheManager.has(uuid)) {
+        if (cacheManager.has(uuid)) {
             final var cacheRecord = cacheManager.get(uuid);
-            if(cacheRecord.isPresent()) {
+            if (cacheRecord.isPresent()) {
                 record = cacheRecord.get();
                 device = record.getDevice();
                 final var rsaHelper = record.getRsaHelper();
 
-                final var decryptSplit = rsaHelper.decryptFromURLBase64(crypt).split("["+DIVISOR.value+"]");
-                if(decryptSplit.length != 5)
-                {
+                final var decryptSplit = rsaHelper.decryptFromURLBase64(crypt).split("[" + DIVISOR.value + "]");
+                if (decryptSplit.length != 5) {
                     cacheManager.rm(record);
                     return ResponseEntity.status(WRONG_SIZE_TOKEN.code).build();
                 }
 
-                if(Long.parseLong(decryptSplit[0]) != device.getId())
-                {
+                if (Long.parseLong(decryptSplit[0]) != device.getId()) {
                     cacheManager.rm(record);
                     return ResponseEntity.status(DEVICE_ID_NOT_MATCH.code).build();
                 }
 
-                if(!decryptSplit[1].equals(record.getSecret()))
-                {
+                if (!decryptSplit[1].equals(record.getSecret())) {
                     cacheManager.rm(record);
                     return ResponseEntity.status(SECRET_NOT_MATCH.code).build();
                 }
 
-                if(checkTimestampLastUpdate != null && checkTimestampLastUpdate) {
+                if (checkTimestampLastUpdate != null && checkTimestampLastUpdate) {
                     timestampLastUpdate = Long.parseLong(decryptSplit[2]);
-                    if(timestampLastUpdate != device.getTimestampLastUpdate())
-                    {
+                    if (timestampLastUpdate != device.getTimestampLastUpdate()) {
                         cacheManager.rm(record);
                         return ResponseEntity.status(TIMESTAMP_LAST_UPDATE_NOT_MATCH.code).build();
                     }
                 }
 
-                optUser =  userRepository.findByEmailAndPasswd(decryptSplit[3], encoderHelper.encode(decryptSplit[4]));
-                if(optUser.isEmpty()) {
+                optUser = userRepository.findByEmailAndPasswd(decryptSplit[3], encoderHelper.encode(decryptSplit[4]));
+                if (optUser.isEmpty()) {
                     return ResponseEntity.status(USER_NOT_FOUND.code).build();
                 }
 
@@ -246,8 +231,7 @@ public class SessionController {
             return ResponseEntity.status(CACHE_NOT_FOND.code).build();
         }
 
-
-        if(device == null) {
+        if (device == null) {
             return ResponseEntity.status(DEVICE_NOT_FOUND.code).build();
         }
 
@@ -261,18 +245,16 @@ public class SessionController {
         final var groupFieldsDeleted = groupFieldController.delete(uuid, now, container.groupFields());
         final var fieldsDeleted = fieldController.delete(uuid, now, container.fields());
 
-        if(
-                StreamSupport.stream(groups.spliterator(), false).findFirst().isPresent()
+        if (StreamSupport.stream(groups.spliterator(), false).findFirst().isPresent()
                 || StreamSupport.stream(groupFields.spliterator(), false).findFirst().isPresent()
                 || StreamSupport.stream(fields.spliterator(), false).findFirst().isPresent()
                 || StreamSupport.stream(groupsDeleted.spliterator(), false).findFirst().isPresent()
                 || StreamSupport.stream(groupFieldsDeleted.spliterator(), false).findFirst().isPresent()
-                || StreamSupport.stream(fieldsDeleted.spliterator(), false).findFirst().isPresent()
-        )
-        {
+                || StreamSupport.stream(fieldsDeleted.spliterator(), false).findFirst().isPresent()) {
             device.setAddress(remoteIP);
             device.setTimestampLastUpdate(now);
-            deviceRepository.save(device);
+            device = deviceRepository.save(device);
+            System.out.println(device.toString());
         }
 
         record.setTimestampLastUpdate(now);
@@ -283,16 +265,14 @@ public class SessionController {
                         device,
                         concat(groups, groupsDeleted),
                         concat(groupFields, groupFieldsDeleted),
-                        concat(fields, fieldsDeleted)
-                ));
+                        concat(fields, fieldsDeleted)));
     }
 
     @PostMapping("/{uuid}/{crypt}")
     public @NotNull ResponseEntity<Boolean> changePasswd(@NotNull final String uuid,
-                                                        @NotNull final String crypt,
-                                                         @NotNull final Boolean changePasswdDataOnServer,
-                                                         @NotNull final String remoteIP
-    ) throws CommonsException  {
+            @NotNull final String crypt,
+            @NotNull final Boolean changePasswdDataOnServer,
+            @NotNull final String remoteIP) throws CommonsException {
         final var now = Instant.now(Clock.systemUTC()).getEpochSecond();
 
         long timestampLastUpdate = 0;
@@ -301,36 +281,32 @@ public class SessionController {
         String oldPasswd = null;
         String newPasswd = null;
         RSAHelper rsaHelper = null;
-        if(cacheManager.has(uuid)) {
+        if (cacheManager.has(uuid)) {
             final var cacheRecord = cacheManager.get(uuid);
-            if(cacheRecord.isPresent()) {
+            if (cacheRecord.isPresent()) {
                 var record = cacheRecord.get();
                 device = record.getDevice();
                 rsaHelper = record.getRsaHelper();
 
-                final var decryptSplit = rsaHelper.decryptFromURLBase64(crypt).split("["+DIVISOR.value+"]");
-                if(decryptSplit.length != 6)
-                {
+                final var decryptSplit = rsaHelper.decryptFromURLBase64(crypt).split("[" + DIVISOR.value + "]");
+                if (decryptSplit.length != 6) {
                     cacheManager.rm(record);
                     return ResponseEntity.status(WRONG_SIZE_TOKEN.code).build();
                 }
 
-                if(Long.parseLong(decryptSplit[0]) != device.getId())
-                {
+                if (Long.parseLong(decryptSplit[0]) != device.getId()) {
                     cacheManager.rm(record);
                     return ResponseEntity.status(DEVICE_ID_NOT_MATCH.code).build();
                 }
 
-                if(!decryptSplit[1].equals(record.getSecret()))
-                {
+                if (!decryptSplit[1].equals(record.getSecret())) {
                     cacheManager.rm(record);
                     return ResponseEntity.status(SECRET_NOT_MATCH.code).build();
                 }
 
-                if(checkTimestampLastUpdate != null && checkTimestampLastUpdate) {
+                if (checkTimestampLastUpdate != null && checkTimestampLastUpdate) {
                     timestampLastUpdate = Long.parseLong(decryptSplit[2]);
-                    if(timestampLastUpdate != device.getTimestampLastUpdate())
-                    {
+                    if (timestampLastUpdate != device.getTimestampLastUpdate()) {
                         cacheManager.rm(record);
                         return ResponseEntity.status(TIMESTAMP_LAST_UPDATE_NOT_MATCH.code).build();
                     }
@@ -338,8 +314,8 @@ public class SessionController {
 
                 oldPasswd = decryptSplit[4];
 
-                optUser =  userRepository.findByEmailAndPasswd(decryptSplit[3], encoderHelper.encode(oldPasswd));
-                if(optUser.isEmpty()) {
+                optUser = userRepository.findByEmailAndPasswd(decryptSplit[3], encoderHelper.encode(oldPasswd));
+                if (optUser.isEmpty()) {
                     return ResponseEntity.status(USER_NOT_FOUND.code).build();
                 }
 
@@ -349,17 +325,17 @@ public class SessionController {
             return ResponseEntity.status(CACHE_NOT_FOND.code).build();
         }
 
-        if(device == null) {
+        if (device == null) {
             return ResponseEntity.status(DEVICE_NOT_FOUND.code).build();
         }
 
-        if(newPasswd == null) {
+        if (newPasswd == null) {
             return ResponseEntity.status(PASSWD_ERROR.code).build();
         }
 
-        final var user= optUser.get();
+        final var user = optUser.get();
 
-        if(changePasswdDataOnServer) {
+        if (changePasswdDataOnServer) {
             final var aesOld = encoderHelper.getCrypto(oldPasswd);
             final var aesNew = encoderHelper.getCrypto(newPasswd);
             groupController.changePasswd(user, aesOld, aesNew, now);
@@ -372,56 +348,51 @@ public class SessionController {
 
         user.setPasswd(encoderHelper.encode(newPasswd));
         userRepository.save(user);
-        
+
         cacheManager.rm(uuid);
         return ResponseEntity.ok(true);
     }
 
     public @NotNull ResponseEntity<?> deleteCacheRecord(@NotNull final String uuid,
-                                                        @NotNull final String crypt
-    ) throws CommonsException {
+            @NotNull final String crypt) throws CommonsException {
 
         Optional<CacheRecord> cacheRecord;
         long timestampLastUpdate;
         Optional<User> optUser;
         Device device = null;
-        if(cacheManager.has(uuid)) {
+        if (cacheManager.has(uuid)) {
             cacheRecord = cacheManager.get(uuid);
-            if(cacheRecord.isPresent()) {
+            if (cacheRecord.isPresent()) {
                 var record = cacheRecord.get();
                 device = record.getDevice();
                 final var rsaHelper = record.getRsaHelper();
 
-                final var decryptSplit = rsaHelper.decryptFromURLBase64(crypt).split("["+DIVISOR.value+"]");
-                if(decryptSplit.length != 5)
-                {
+                final var decryptSplit = rsaHelper.decryptFromURLBase64(crypt).split("[" + DIVISOR.value + "]");
+                if (decryptSplit.length != 5) {
                     cacheManager.rm(record);
                     return ResponseEntity.status(WRONG_SIZE_TOKEN.code).build();
                 }
 
-                if(Long.parseLong(decryptSplit[0]) != device.getId())
-                {
+                if (Long.parseLong(decryptSplit[0]) != device.getId()) {
                     cacheManager.rm(record);
                     return ResponseEntity.status(DEVICE_ID_NOT_MATCH.code).build();
                 }
 
-                if(!decryptSplit[1].equals(record.getSecret()))
-                {
+                if (!decryptSplit[1].equals(record.getSecret())) {
                     cacheManager.rm(record);
                     return ResponseEntity.status(SECRET_NOT_MATCH.code).build();
                 }
 
-                if(checkTimestampLastUpdate != null && checkTimestampLastUpdate) {
+                if (checkTimestampLastUpdate != null && checkTimestampLastUpdate) {
                     timestampLastUpdate = Long.parseLong(decryptSplit[2]);
-                    if(timestampLastUpdate != device.getTimestampLastUpdate())
-                    {
+                    if (timestampLastUpdate != device.getTimestampLastUpdate()) {
                         cacheManager.rm(record);
                         return ResponseEntity.status(TIMESTAMP_LAST_UPDATE_NOT_MATCH.code).build();
                     }
                 }
 
-                optUser =  userRepository.findByEmailAndPasswd(decryptSplit[3], encoderHelper.encode(decryptSplit[4]));
-                if(optUser.isEmpty()) {
+                optUser = userRepository.findByEmailAndPasswd(decryptSplit[3], encoderHelper.encode(decryptSplit[4]));
+                if (optUser.isEmpty()) {
                     return ResponseEntity.status(USER_NOT_FOUND.code).build();
                 }
 
@@ -430,89 +401,81 @@ public class SessionController {
             return ResponseEntity.status(CACHE_NOT_FOND.code).build();
         }
 
-
-        if(device == null) {
+        if (device == null) {
             return ResponseEntity.status(DEVICE_NOT_FOUND.code).build();
         }
 
-        if(cacheManager.rm(cacheRecord.get())) {
-            return new ResponseEntity< Success<?> >(HttpStatus.OK);
+        if (cacheManager.rm(cacheRecord.get())) {
+            return new ResponseEntity<Success<?>>(HttpStatus.OK);
         } else {
-            return new ResponseEntity< Success<?> >(HttpStatus.NOT_FOUND);
+            return new ResponseEntity<Success<?>>(HttpStatus.NOT_FOUND);
         }
 
     }
 
     public @NotNull ResponseEntity<?> heartbeat(@NotNull final String uuid,
-                                                       @NotNull final String crypt,
-                                                       @NotNull final String remoteIP
-    ) throws CommonsException {
-        
+            @NotNull final String crypt,
+            @NotNull final String remoteIP) throws CommonsException {
+
         final var now = Instant.now(Clock.systemUTC()).getEpochSecond();
-        
+
         Optional<CacheRecord> cacheRecord;
         long timestampLastUpdate;
         Device device = null;
-        
-        if(cacheManager.has(uuid)) {
+
+        if (cacheManager.has(uuid)) {
             cacheRecord = cacheManager.get(uuid);
-            if(cacheRecord.isPresent()) {
+            if (cacheRecord.isPresent()) {
                 var record = cacheRecord.get();
                 device = record.getDevice();
                 final var rsaHelper = record.getRsaHelper();
 
-                final var decryptSplit = rsaHelper.decryptFromURLBase64(crypt).split("["+DIVISOR.value+"]");
-                if(decryptSplit.length != 3)
-                {
+                final var decryptSplit = rsaHelper.decryptFromURLBase64(crypt).split("[" + DIVISOR.value + "]");
+                if (decryptSplit.length != 3) {
                     cacheManager.rm(record);
                     return ResponseEntity.status(WRONG_SIZE_TOKEN.code).build();
                 }
 
-                if(Long.parseLong(decryptSplit[0]) != device.getId())
-                {
+                if (Long.parseLong(decryptSplit[0]) != device.getId()) {
                     cacheManager.rm(record);
                     return ResponseEntity.status(DEVICE_ID_NOT_MATCH.code).build();
                 }
 
-                if(!decryptSplit[1].equals(record.getSecret()))
-                {
+                if (!decryptSplit[1].equals(record.getSecret())) {
                     cacheManager.rm(record);
                     return ResponseEntity.status(SECRET_NOT_MATCH.code).build();
                 }
 
-                if(checkTimestampLastUpdate != null && checkTimestampLastUpdate) {
+                if (checkTimestampLastUpdate != null && checkTimestampLastUpdate) {
                     timestampLastUpdate = Long.parseLong(decryptSplit[2]);
-                    if(timestampLastUpdate != record.getTimestampLastUpdate())
-                    {
+                    if (timestampLastUpdate != record.getTimestampLastUpdate()) {
                         cacheManager.rm(record);
                         return ResponseEntity.status(TIMESTAMP_LAST_UPDATE_NOT_MATCH.code).build();
                     }
                 }
-                
+
                 record.setTimestampLastUpdate(now);
             }
         } else {
             return ResponseEntity.ok(
-                new Container(
-                        0L,
-                        null,
-                        null,
-                        List.of(),
-                        List.of(),
-                        List.of()
-                ));
+                    new Container(
+                            0L,
+                            null,
+                            null,
+                            List.of(),
+                            List.of(),
+                            List.of()));
         }
 
-        if(device == null) {
+        if (device == null) {
             return ResponseEntity.ok(
-                new Container(
-                        0L,
-                        null,
-                        null,
-                        List.of(),
-                        List.of(),
-                        List.of()
-                ));
+                    new Container(
+                            0L,
+                            null,
+                            null,
+                            List.of(),
+                            List.of(),
+                            List.of()));
         }
 
         return ResponseEntity.ok(
@@ -522,8 +485,7 @@ public class SessionController {
                         null,
                         List.of(),
                         List.of(),
-                        List.of()
-                ));
+                        List.of()));
     }
 
     private static <T> @NotNull List<T> concat(@NotNull Iterable<? extends T> a, Iterable<? extends T> b) {
@@ -550,7 +512,4 @@ public class SessionController {
         return remoteIP;
     }
 
-
 }
-
-
