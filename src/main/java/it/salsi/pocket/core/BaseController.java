@@ -75,7 +75,7 @@ public abstract class BaseController<T extends BaseModel, Y extends BaseReposito
                 return List.of();
             if (device.get().getUser().getStatus() != User.Status.ACTIVE)
                 return List.of();
-            final var ret = repository.findByUserAndTimestampLastUpdateGreaterThan(device.get().getUser(),
+            final var ret = repository.findByUserAndTimestampLastUpdateGreaterThanEqual(device.get().getUser(),
                     timestampLastUpdate);
             ret.forEach(T::switchId);
             return ret;
@@ -118,8 +118,6 @@ public abstract class BaseController<T extends BaseModel, Y extends BaseReposito
 
                     @SuppressWarnings("unchecked")
                     final var base = (T) repository.save(original.get()).clone();
-
-                    log.warning("store-->" + base.toString());
 
                     base.postStore(original.get());
 
@@ -178,11 +176,10 @@ public abstract class BaseController<T extends BaseModel, Y extends BaseReposito
                 var t = repository.findById(it.id);
                 if (t.isPresent()) {
                     t.get().setDeleted(true);
+                    t.get().setTimestampLastUpdate(now);
 
                     try {
                         var elm = (T) repository.save(t.get()).clone();
-
-                        log.warning("delete-->" + elm.toString());
 
                         elm.serverId = elm.id;
                         elm.id = tmp;
