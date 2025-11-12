@@ -17,7 +17,6 @@
  *
  ***************************************************************************/
 
-
 package it.salsi.pocket.core;
 
 import it.salsi.pocket.models.User;
@@ -28,11 +27,14 @@ import org.springframework.data.repository.NoRepositoryBean;
 @NoRepositoryBean
 public interface BaseRepository<T> extends CrudRepository<T, Long> {
 
-//    Optional<T> findByUserAndId(@NotNull final User userId, @NotNull final Long id);
+    // Optional<T> findByUserAndId(@NotNull final User userId, @NotNull final Long
+    // id);
 
     Iterable<T> findByUser(@NotNull final User userId);
 
-    Iterable<T> findByUserAndTimestampLastUpdateGreaterThan(@NotNull final User userId, @NotNull final Long dateTimeLastUpdate);
+    Iterable<T> findByUserAndTimestampLastUpdateGreaterThanEqual(@NotNull final User userId,
+            @NotNull final Long dateTimeLastUpdate);
 
-    Iterable<T> findByUserAndDeletedAndTimestampLastUpdateLessThan(@NotNull final User userId, boolean deleted, @NotNull final Long dateTimeLastUpdate);
+    Iterable<T> findByUserAndDeletedAndTimestampLastUpdateLessThan(@NotNull final User userId, boolean deleted,
+            @NotNull final Long dateTimeLastUpdate);
 }
