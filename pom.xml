@@ -28,7 +28,7 @@
 	</scm>
 	<properties>
 		<java.version>21</java.version>
-		<spring-boot-admin.version>3.5.0</spring-boot-admin.version>
+		<spring-boot-admin.version>3.5.6</spring-boot-admin.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -55,7 +55,7 @@
 		<dependency>
 			<groupId>org.mariadb.jdbc</groupId>
 			<artifactId>mariadb-java-client</artifactId>
-			<version>3.5.6</version>
+			<version>3.5.7</version>
 		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
@@ -112,7 +112,7 @@
 		<dependency>
 			<groupId>org.wiremock</groupId>
 			<artifactId>wiremock-standalone</artifactId>
-			<version>3.13.1</version>
+			<version>3.13.2</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
