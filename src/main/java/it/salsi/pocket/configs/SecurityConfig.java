@@ -96,8 +96,9 @@ public class SecurityConfig {
     @Bean
     public @NotNull SecurityFilterChain filterChain(@NotNull final HttpSecurity http) throws Exception {
         return http
-                // Disabilita CSRF per API REST
-                .csrf(AbstractHttpConfigurer::disable)
+                // Abilita CSRF e ignora solo le API REST stateless
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers(apiVersion + "/**"))
 
                 // Configurazione CORS
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
