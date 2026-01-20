@@ -17,7 +17,6 @@
  *
  ***************************************************************************/
 
-
 package it.salsi.pocket.core;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -52,11 +51,9 @@ abstract public class BaseModel<T extends BaseModel> implements Cloneable {
     @Column(nullable = false)
     protected Boolean deleted = false;
 
-    @Temporal(TemporalType.TIMESTAMP)
     private Long timestampCreation = Instant.now(Clock.systemUTC()).getEpochSecond();
 
     @JsonIgnore
-    @Temporal(TemporalType.TIMESTAMP)
     private Long timestampLastUpdate = 0L;
 
     @Override
@@ -75,8 +72,10 @@ abstract public class BaseModel<T extends BaseModel> implements Cloneable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        if (this == o)
+            return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o))
+            return false;
         final var baseModel = (BaseModel) o;
         return id != null && Objects.equals(id, baseModel.id);
     }

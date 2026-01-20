@@ -83,6 +83,7 @@ public abstract class BaseController<T extends BaseModel, Y extends BaseReposito
             return List.of();
     }
 
+    @SuppressWarnings("unchecked")
     @NotNull
     public Iterable<T> store(@NotNull final String uuid, @NotNull final Long now,
             @Nullable final Iterable<T> elements) {
@@ -116,7 +117,6 @@ public abstract class BaseController<T extends BaseModel, Y extends BaseReposito
                     var original = new AtomicReference<T>();
                     Optional.ofNullable(onStore).ifPresent(onStore -> original.set(onStore.perform(it)));
 
-                    @SuppressWarnings("unchecked")
                     final var base = (T) repository.save(original.get()).clone();
 
                     base.postStore(original.get());
@@ -147,6 +147,8 @@ public abstract class BaseController<T extends BaseModel, Y extends BaseReposito
         return ret;
     }
 
+    @SuppressWarnings("unchecked")
+    @NotNull
     public Iterable<T> delete(@NotNull final String uuid, @NotNull final Long now,
             @Nullable final Iterable<T> elements) {
         if (elements == null) {

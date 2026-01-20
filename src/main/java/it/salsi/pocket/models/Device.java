@@ -17,7 +17,6 @@
  *
  ***************************************************************************/
 
-
 package it.salsi.pocket.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -38,17 +37,15 @@ import java.util.UUID;
 import static it.salsi.pocket.models.Device.Status.ACTIVE;
 
 @ToString
-//@Data no perchè crash OneToMany
+// @Data no perchè crash OneToMany
 @Entity(name = "devices")
-@Table(
-        indexes = {@Index(name = "idx_devices_device_serial", columnList = "deviceSerial"), @Index(name = "idx_devices_token", columnList = "token")},
-        uniqueConstraints = {@UniqueConstraint(columnNames = {"token"})}
-)
+@Table(indexes = { @Index(name = "idx_devices_device_serial", columnList = "deviceSerial"),
+        @Index(name = "idx_devices_token", columnList = "token") }, uniqueConstraints = {
+                @UniqueConstraint(columnNames = { "token" }) })
 @Getter
 @Setter
 @SuppressWarnings("JpaDataSourceORMInspection")
 public class Device {
-
 
     @SuppressWarnings("unused")
     public enum Status {
@@ -74,15 +71,12 @@ public class Device {
     @Column(nullable = false)
     private Status status = ACTIVE;
 
-    @Temporal(TemporalType.TIMESTAMP)
     private Long timestampLastUpdate = 0L;
 
     @JsonIgnore
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false)
     private Long timestampLastLogin = 0L;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false)
     private Long timestampCreation = Instant.now(Clock.systemUTC()).getEpochSecond();
 
@@ -106,14 +100,13 @@ public class Device {
     @Lob
     private String privateKey;
 
-
     public @NotNull String getPublicKey() throws CommonsException {
-        if(publicKey.isEmpty()) {
+        if (publicKey.isEmpty()) {
             return "";
         }
 
         final var tokenizer = new StringTokenizer(publicKey, "[\n]");
-        if(tokenizer.countTokens() != 3) {
+        if (tokenizer.countTokens() != 3) {
             throw new CommonsException("Token number != 3");
         }
         tokenizer.nextToken();
@@ -121,11 +114,11 @@ public class Device {
     }
 
     public @NotNull String getPrivateKey() throws CommonsException {
-        if(privateKey.isEmpty()) {
+        if (privateKey.isEmpty()) {
             return "";
         }
         final var tokenizer = new StringTokenizer(privateKey, "[\n]");
-        if(tokenizer.countTokens() != 3) {
+        if (tokenizer.countTokens() != 3) {
             throw new CommonsException("Token number != 3");
         }
         tokenizer.nextToken();
@@ -140,7 +133,8 @@ public class Device {
         timestampLastUpdate = Instant.now(Clock.systemUTC()).getEpochSecond();
     }
 
-    public Device() {}
+    public Device() {
+    }
 
     public Device(@org.jetbrains.annotations.NotNull final User user) {
         this();

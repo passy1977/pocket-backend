@@ -17,7 +17,6 @@
  *
  ***************************************************************************/
 
-
 package it.salsi.pocket.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -43,7 +42,7 @@ import static it.salsi.pocket.models.User.Status.NOT_ACTIVE;
 @Getter
 @Setter
 @Entity(name = "users")
-@SuppressWarnings({"JpaDataSourceORMInspection", "unused"})
+@SuppressWarnings({ "JpaDataSourceORMInspection", "unused" })
 public final class User implements Cloneable {
 
     public enum Status {
@@ -77,7 +76,6 @@ public final class User implements Cloneable {
     @Column(nullable = false)
     private Status status = ACTIVE;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false)
     private Long timestampCreation = 0L;
 
@@ -113,13 +111,13 @@ public final class User implements Cloneable {
         return ret;
     }
 
-    public User() {}
+    public User() {
+    }
 
     public User(
             @NotNull final String name,
             @NotNull final String email,
-            @NotNull final String passwd
-    ) {
+            @NotNull final String passwd) {
         this.email = email;
         this.name = name;
         this.passwd = passwd;
@@ -140,8 +138,10 @@ public final class User implements Cloneable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        if (this == o)
+            return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o))
+            return false;
         User user = (User) o;
         return id != null && Objects.equals(id, user.id);
     }
