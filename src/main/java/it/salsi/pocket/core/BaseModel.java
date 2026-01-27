@@ -51,9 +51,11 @@ abstract public class BaseModel<T extends BaseModel> implements Cloneable {
     @Column(nullable = false)
     protected Boolean deleted = false;
 
+    @Column(name = "timestamp_creation")
     private Long timestampCreation = Instant.now(Clock.systemUTC()).getEpochSecond();
 
     @JsonIgnore
+    @Column(name = "timestamp_last_update")
     private Long timestampLastUpdate = 0L;
 
     @Override

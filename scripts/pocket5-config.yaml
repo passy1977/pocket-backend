@@ -2,6 +2,7 @@ spring:
   application.name: Pocket
   jpa:
     show-sql: true
+    open-in-view: false
     properties:
       hibernate:
         globally_quoted_identifiers: true
@@ -17,6 +18,9 @@ spring:
     url: ${SPRING_DATASOURCE_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+
+  thymeleaf:
+    check-template-location: false
 
 logging:
  level:
@@ -60,10 +64,3 @@ security:
     additional-origins: ${CORS_ADDITIONAL_ORIGINS}
     enable-strict: ${CORS_ENABLE_STRICT}
     header-token: ${CORS_HEADER_TOKEN}
-
-spring:
-  boot:
-    admin:
-      notify:
-        mail:
-          enabled: false

@@ -54,7 +54,7 @@ public final class Field extends BaseModel<Field> {
     @Column(nullable = false)
     private Boolean isHidden = false;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "group_field_id")
     @NotNull
     private Long groupFieldId = 0L;
 

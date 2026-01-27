@@ -76,7 +76,7 @@ public final class User implements Cloneable {
     @Column(nullable = false)
     private Status status = ACTIVE;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "timestamp_creation")
     private Long timestampCreation = 0L;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "user", fetch = FetchType.EAGER)

@@ -5,7 +5,7 @@ spring:
   application.name: Pocket
   jpa:
     show-sql: true
-#    database-platform: org.hibernate.dialect.MariaDBDialect
+    open-in-view: false
     properties:
       hibernate:
         globally_quoted_identifiers: true
@@ -21,6 +21,8 @@ spring:
     url: jdbc:mariadb://localhost:3306/pocket5?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&autoReconnect=true&sslMode=DISABLED
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:passwd_to_change}
+  thymeleaf:
+    check-template-location: false
 
 logging:
  level:
@@ -70,9 +72,3 @@ security:
     enable-strict: ${CORS_ENABLE_STRICT:false}
     header-token: ${CORS_HEADER_TOKEN:__cors_token_change_me__}
 
-spring:
-  boot:
-    admin:
-      notify:
-        mail:
-          enabled: false

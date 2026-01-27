@@ -71,13 +71,14 @@ public class Device {
     @Column(nullable = false)
     private Status status = ACTIVE;
 
+    @Column(name = "timestamp_last_update")
     private Long timestampLastUpdate = 0L;
 
     @JsonIgnore
-    @Column(nullable = false)
+    @Column(nullable = false, name = "timestamp_last_login")
     private Long timestampLastLogin = 0L;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "timestamp_creation")
     private Long timestampCreation = Instant.now(Clock.systemUTC()).getEpochSecond();
 
     @ToString.Exclude
@@ -93,11 +94,13 @@ public class Device {
     @ToString.Exclude
     @JsonIgnore
     @Lob
+    @Column(name = "public_key")
     private String publicKey;
 
     @ToString.Exclude
     @JsonIgnore
     @Lob
+    @Column(name = "private_key")
     private String privateKey;
 
     public @NotNull String getPublicKey() throws CommonsException {
