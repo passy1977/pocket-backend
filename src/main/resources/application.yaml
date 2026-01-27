@@ -70,3 +70,9 @@ security:
     enable-strict: ${CORS_ENABLE_STRICT:false}
     header-token: ${CORS_HEADER_TOKEN:__cors_token_change_me__}
 
+spring:
+  boot:
+    admin:
+      notify:
+        mail:
+          enabled: false
