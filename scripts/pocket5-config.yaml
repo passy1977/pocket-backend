@@ -60,3 +60,10 @@ security:
     additional-origins: ${CORS_ADDITIONAL_ORIGINS}
     enable-strict: ${CORS_ENABLE_STRICT}
     header-token: ${CORS_HEADER_TOKEN}
+
+spring:
+  boot:
+    admin:
+      notify:
+        mail:
+          enabled: false
