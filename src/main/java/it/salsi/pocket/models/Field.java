@@ -51,7 +51,7 @@ public final class Field extends BaseModel<Field> {
     @Column(nullable = false)
     private String value = "";
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "is_hidden")
     private Boolean isHidden = false;
 
     @Column(nullable = false, name = "group_field_id")

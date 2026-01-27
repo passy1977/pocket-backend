@@ -46,7 +46,7 @@ public final class GroupField extends BaseModel<GroupField> {
     @Column(nullable = false)
     private String title = "";
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "is_hidden")
     //@JsonProperty("hidden")
     private Boolean isHidden = false;
 
