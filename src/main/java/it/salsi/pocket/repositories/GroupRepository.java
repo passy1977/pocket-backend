@@ -22,6 +22,19 @@ package it.salsi.pocket.repositories;
 
 import it.salsi.pocket.core.BaseRepository;
 import it.salsi.pocket.models.Group;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.Optional;
 
 public interface GroupRepository extends BaseRepository<Group> {
+    
+    @EntityGraph(attributePaths = {"fields"})
+    @Query("SELECT g FROM groups g WHERE g.id = :id")
+    Optional<Group> findByIdWithFields(@Param("id") Long id);
+    
+    @EntityGraph(attributePaths = {"groupFields"})
+    @Query("SELECT g FROM groups g WHERE g.id = :id")
+    Optional<Group> findByIdWithGroupFields(@Param("id") Long id);
 }

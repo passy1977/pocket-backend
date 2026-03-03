@@ -73,7 +73,7 @@ public final class FieldController extends BaseController<Field, FieldRepository
             field.setGroupId(field.getServerGroupId());
             field.setServerGroupId(tmp);
 
-            groupRepository.findById(field.getGroupId()).ifPresent(group -> {
+            groupRepository.findByIdWithFields(field.getGroupId()).ifPresent(group -> {
                 field.setGroup(group);
 
                 Optional.ofNullable(group.getFields()).ifPresentOrElse(
