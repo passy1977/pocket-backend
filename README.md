@@ -1263,7 +1263,8 @@ docker compose exec pocket-db mysql -u root -p -e "SHOW GLOBAL STATUS LIKE 'Slow
 
 - [Security Documentation](SECURITY.md) - Detailed security implementation
 - [API Reference](https://deepwiki.com/passy1977/pocket-lib) - Complete API documentation
-- [Client Applications](https://github.com/passy1977/pocket-ios) - iOS client implementation
+- [iOS Client Applications](https://github.com/passy1977/pocket-ios) - iOS client implementation
+- [Web Client Applications](https://github.com/passy1977/pocket-web-backend) - Web client implementation
 - [CLI Tools](https://github.com/passy1977/pocket-cli) - User and device management tools
 
 ## 📄 License
