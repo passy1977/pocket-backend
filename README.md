@@ -14,7 +14,7 @@ Secure and scalable backend for the Pocket application, built with Spring Boot 4
 ## ✨ Key Features
 
 - 🔐 **Enterprise Security** with Spring Security and custom authentication
-- 🏗️ **Modern Architecture** using Spring Boot 3.4.4 and Java 21
+- 🏗️ **Modern Architecture** using Spring Boot 4 and Java 21
 - � **Robust Encryption** RSA + AES-CBC for data protection
 - 🐳 **Full Containerization** with Docker or Podman support
 - 📊 **Integrated Monitoring** with Spring Boot Actuator
