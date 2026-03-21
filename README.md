@@ -1,7 +1,7 @@
 # 🔐 Pocket Backend
 
 [![Java](https://img.shields.io/badge/Java-21+-blue.svg)](https://www.oracle.com/java/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.4-green.svg)](https://spring.io/projects/spring-boot)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4-green.svg)](https://spring.io/projects/spring-boot)
 [![Docker](https://img.shields.io/badge/Docker%20%7C%20Podman-Ready-blue.svg)](https://www.docker.com/)
 [![Security](https://img.shields.io/badge/Security-Spring%20Security-red.svg)](https://spring.io/projects/spring-security)
 [![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
