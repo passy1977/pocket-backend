@@ -1272,6 +1272,6 @@ This program is free software: you can redistribute it and/or modify it under th
 
 ---
 
-**Made with ❤️ in Italy** | 🇬🇧 **English** | [🇮🇹 Italiano](README-IT.md)
+**Made with ❤️ in Italy**
 
 **⚠️ Important**: Always change default passwords and configuration values before deploying to production!
