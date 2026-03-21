@@ -7,7 +7,7 @@
 [![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/passy1977/pocket-lib)
 
-Secure and scalable backend for the Pocket application, built with Spring Boot 3.4.4 and Java 21. Provides robust REST APIs for session management, user authentication, and secure data storage with end-to-end encryption.
+Secure and scalable backend for the Pocket application, built with Spring Boot 4 and Java 21. Provides robust REST APIs for session management, user authentication, and secure data storage with end-to-end encryption.
 
 🇬🇧 **English** | [🇮🇹 Italiano](README-IT.md)
 
