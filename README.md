@@ -961,8 +961,6 @@ Application logs include:
 
 ## 🐛 Troubleshooting
 
-## 🐛 Troubleshooting
-
 ### Common Issues
 
 #### 🔐 Authentication Failures
