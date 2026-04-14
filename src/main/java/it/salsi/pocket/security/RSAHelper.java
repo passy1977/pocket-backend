@@ -59,6 +59,7 @@ final public class RSAHelper {
     }
 
     public static final String ALGORITHM = "RSA";
+    public static final String CIPHER_TRANSFORMATION = "RSA/ECB/OAEPWithSHA-1AndMGF1Padding";
     public static final int KEY_SIZE = 2048;
 
     public RSAHelper(@NotNull String algorithm, int keySize) {
@@ -142,7 +143,7 @@ final public class RSAHelper {
 
     public byte @NotNull [] encrypt(final byte @NotNull [] buffer) throws CommonsException {
         try {
-            final var rsa = Cipher.getInstance(algorithm);
+            final var rsa = Cipher.getInstance(CIPHER_TRANSFORMATION);
             rsa.init(Cipher.ENCRYPT_MODE, publicKey);
             return rsa.doFinal(buffer);
         } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | IllegalBlockSizeException
@@ -163,7 +164,7 @@ final public class RSAHelper {
 
     public @NotNull String decrypt(byte[] buffer) throws CommonsException {
         try {
-            final var rsa = Cipher.getInstance(algorithm);
+            final var rsa = Cipher.getInstance(CIPHER_TRANSFORMATION);
             rsa.init(Cipher.DECRYPT_MODE, privateKey);
             byte[] utf8 = rsa.doFinal(buffer);
             return new String(utf8, StandardCharsets.UTF_8);
