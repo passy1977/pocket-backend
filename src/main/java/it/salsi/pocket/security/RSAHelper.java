@@ -173,6 +173,7 @@ final public class RSAHelper {
             return new String(utf8, StandardCharsets.UTF_8);
         } catch (BadPaddingException e) {
             try {
+                log.warn("OAEP decryption failed, trying legacy PKCS#1 v1.5 decryption", e);
                 final var legacyRsa = Cipher.getInstance(LEGACY_CIPHER_TRANSFORMATION);
                 legacyRsa.init(Cipher.DECRYPT_MODE, privateKey);
                 byte[] utf8 = legacyRsa.doFinal(buffer);
