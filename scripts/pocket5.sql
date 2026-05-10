@@ -35,7 +35,7 @@ CREATE TABLE `fields` (
   `group_field_id` bigint(20) NOT NULL,
   `is_hidden` bit(1) NOT NULL,
   `title` varchar(256) NOT NULL,
-  `value` varchar(256) NOT NULL,
+  `value` varchar(2048) NOT NULL,
   `group_id` bigint(20) DEFAULT NULL,
   `user_id` bigint(20) DEFAULT NULL,
   `timestamp_creation` bigint(20) DEFAULT NULL,

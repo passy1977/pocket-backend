@@ -18,6 +18,7 @@ ALTER TABLE fields
     ADD COLUMN timestamp_creation bigint(20) DEFAULT 0;
 UPDATE fields SET timestamp_creation = UNIX_TIMESTAMP(date_time_last_update), timestamp_last_update = UNIX_TIMESTAMP(date_time_last_update);
 ALTER TABLE fields DROP COLUMN  date_time_last_update;
+ALTER TABLE fields MODIFY COLUMN value varchar(2048) NOT NULL;
 
 ALTER TABLE group_fields 
     ADD COLUMN timestamp_last_update bigint(20) DEFAULT 0,

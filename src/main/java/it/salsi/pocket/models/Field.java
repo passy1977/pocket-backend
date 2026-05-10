@@ -46,9 +46,9 @@ public final class Field extends BaseModel<Field> {
     private String title = "";
 
     @EqualsAndHashCode.Include
-    @Size(max = 256, message = "max size exceeded; maximum 256 char")
+    @Size(max = 2048, message = "max size exceeded; maximum 2048 char")
     @NotNull(message = "field null")
-    @Column(nullable = false)
+    @Column(nullable = false, length = 2048)
     private String value = "";
 
     @Column(nullable = false, name = "is_hidden")
