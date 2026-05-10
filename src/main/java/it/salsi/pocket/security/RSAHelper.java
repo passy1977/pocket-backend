@@ -60,6 +60,7 @@ final public class RSAHelper {
 
     public static final String ALGORITHM = "RSA";
     public static final String CIPHER_TRANSFORMATION = "RSA/ECB/OAEPWithSHA-1AndMGF1Padding";
+    public static final String LEGACY_CIPHER_TRANSFORMATION = "RSA/ECB/PKCS1Padding";
     public static final int KEY_SIZE = 2048;
 
     public RSAHelper(@NotNull String algorithm, int keySize) {
@@ -163,11 +164,23 @@ final public class RSAHelper {
     }
 
     public @NotNull String decrypt(byte[] buffer) throws CommonsException {
+        // Prefer OAEP and transparently support legacy PKCS#1 v1.5 tokens for
+        // compatibility with older bridge clients.
         try {
             final var rsa = Cipher.getInstance(CIPHER_TRANSFORMATION);
             rsa.init(Cipher.DECRYPT_MODE, privateKey);
             byte[] utf8 = rsa.doFinal(buffer);
             return new String(utf8, StandardCharsets.UTF_8);
+        } catch (BadPaddingException e) {
+            try {
+                final var legacyRsa = Cipher.getInstance(LEGACY_CIPHER_TRANSFORMATION);
+                legacyRsa.init(Cipher.DECRYPT_MODE, privateKey);
+                byte[] utf8 = legacyRsa.doFinal(buffer);
+                return new String(utf8, StandardCharsets.UTF_8);
+            } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException
+                    | IllegalBlockSizeException | BadPaddingException legacyEx) {
+                throw new CommonsException(legacyEx);
+            }
         } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | IllegalBlockSizeException
                 | BadPaddingException e) {
             throw new CommonsException(e);
