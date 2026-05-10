@@ -5,10 +5,10 @@ FROM maven:3-amazoncorretto-21-debian-trixie AS build
 USER root
 
 # Install system dependencies
-RUN DEBIAN_FRONTEND=noninteractive apt update && apt-get upgrade -y
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev curl git build-essential manpages-dev autoconf \
     automake cmake git libtool pkg-config vim \
+    rustc cargo \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Setup working directory and user
@@ -46,12 +46,9 @@ RUN mvn package -DskipTests
 
 # Build CLI tools
 WORKDIR /home/pocket
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-ENV PATH="/home/pocket/.cargo/bin:$PATH"
 RUN git clone https://github.com/passy1977/pocket-cli.git
 WORKDIR /home/pocket/pocket-cli
 RUN cargo build --release
-RUN rustup self uninstall -y
 RUN cp /home/pocket/pocket-cli/target/release/pocket-device /var/www/pocket-device
 RUN cp /home/pocket/pocket-cli/target/release/pocket-user /var/www/pocket-user
 RUN rm -fr /home/pocket/pocket-cli
