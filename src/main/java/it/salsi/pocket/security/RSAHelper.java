@@ -147,8 +147,7 @@ final public class RSAHelper {
             final var rsa = Cipher.getInstance(CIPHER_TRANSFORMATION);
             rsa.init(Cipher.ENCRYPT_MODE, publicKey);
             return rsa.doFinal(buffer);
-        } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | IllegalBlockSizeException
-                | BadPaddingException e) {
+        } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | IllegalBlockSizeException e) {
             throw new CommonsException(e);
         }
     }
