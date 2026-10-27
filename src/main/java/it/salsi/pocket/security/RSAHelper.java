@@ -64,7 +64,7 @@ final public class RSAHelper {
 
     public static final String ALGORITHM = "RSA";
     public static final String CIPHER_TRANSFORMATION = "RSA/ECB/OAEPWithSHA-1AndMGF1Padding";
-    public static final String LEGACY_CIPHER_TRANSFORMATION = "RSA/ECB/PKCS1Padding";
+    // public static final String LEGACY_CIPHER_TRANSFORMATION = "RSA/ECB/PKCS1Padding";
     public static final int KEY_SIZE = 2048;
 
     public RSAHelper(@NotNull String algorithm, int keySize) {
@@ -176,16 +176,17 @@ final public class RSAHelper {
             byte[] utf8 = rsa.doFinal(buffer);
             return new String(utf8, StandardCharsets.UTF_8);
         } catch (BadPaddingException e) {
-            try {
-                log.log(Level.WARNING, "OAEP decryption failed, trying legacy PKCS#1 v1.5 decryption", e);
-                final var legacyRsa = Cipher.getInstance(LEGACY_CIPHER_TRANSFORMATION);
-                legacyRsa.init(Cipher.DECRYPT_MODE, privateKey);
-                byte[] utf8 = legacyRsa.doFinal(buffer);
-                return new String(utf8, StandardCharsets.UTF_8);
-            } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException
-                    | IllegalBlockSizeException | BadPaddingException legacyEx) {
-                throw new CommonsException(legacyEx);
-            }
+            // try {
+            //     log.log(Level.WARNING, "OAEP decryption failed, trying legacy PKCS#1 v1.5 decryption", e);
+            //     final var legacyRsa = Cipher.getInstance(LEGACY_CIPHER_TRANSFORMATION);
+            //     legacyRsa.init(Cipher.DECRYPT_MODE, privateKey);
+            //     byte[] utf8 = legacyRsa.doFinal(buffer);
+            //     return new String(utf8, StandardCharsets.UTF_8);
+            // } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException
+            //         | IllegalBlockSizeException | BadPaddingException legacyEx) {
+            //     throw new CommonsException(legacyEx);
+            // }
+            throw new CommonsException(e);
         } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | IllegalBlockSizeException e) {
             throw new CommonsException(e);
         }
